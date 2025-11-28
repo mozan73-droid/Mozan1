@@ -11,8 +11,8 @@ Sub PDKS_Dashboard_sql(Nereden)
 	sql = sql & "    SELECT" & vbCrLf
 	sql = sql & "        p.SicilID," & vbCrLf
 	sql = sql & "        CASE" & vbCrLf
-	sql = sql & "            WHEN p.TerminalID = '1094' THEN 'DISARIDA'" & vbCrLf
-	sql = sql & "            WHEN p.TerminalID = '1093' THEN 'ICERDE'" & vbCrLf
+	sql = sql & "            WHEN EXISTS (SELECT 1 FROM dbo.vw_PDKS_Cikis_Terminalleri c WHERE CAST(p.TerminalID AS varchar(10)) = c.TerminalID) THEN 'DISARIDA'" & vbCrLf
+	sql = sql & "            WHEN EXISTS (SELECT 1 FROM dbo.vw_PDKS_Giris_Terminalleri g WHERE CAST(p.TerminalID AS varchar(10)) = g.TerminalID) THEN 'ICERDE'" & vbCrLf
 	sql = sql & "            ELSE 'BILINMIYOR'" & vbCrLf
 	sql = sql & "        END AS Durum," & vbCrLf
 	sql = sql & "        ROW_NUMBER() OVER (" & vbCrLf

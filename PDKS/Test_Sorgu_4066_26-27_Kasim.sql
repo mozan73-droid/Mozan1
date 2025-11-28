@@ -1,5 +1,9 @@
 -- Test SQL - 4066 Sicil ID için 26-27 Kasım
 -- Bu sorguyu çalıştırıp sonuçları kontrol edin
+-- NOT: Giriş ve çıkış terminalleri ayar tablosundan (ZU_P_AYARE ve ZU_P_AYART) dinamik olarak alınır
+
+USE PUNTEKS_2025;
+GO
 
 DECLARE @HedefGirisSaati varchar(5) = '07:00';
 DECLARE @HedefCikisSaati varchar(5) = '18:00';
@@ -110,8 +114,8 @@ FROM (
         p.EventTimeDt,
         ROW_NUMBER() OVER (PARTITION BY p.SicilID, CAST(p.EventTimeDt AS date) ORDER BY p.EventTimeDt) AS rn 
     FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) 
-    WHERE p.TerminalID = '1093' 
-      AND p.SicilID = 4066
+    INNER JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID
+    WHERE p.SicilID = 4066
       AND CAST(p.EventTimeDt AS date) BETWEEN '2025-11-26' AND '2025-11-27'
     GROUP BY p.SicilID, CAST(p.EventTimeDt AS date), p.EventTimeDt 
 ) g 
@@ -133,8 +137,8 @@ LEFT JOIN (
             END 
             ORDER BY p.EventTimeDt DESC) AS rn 
     FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) 
-    WHERE p.TerminalID = '1094' 
-      AND p.SicilID = 4066
+    INNER JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID
+    WHERE p.SicilID = 4066
       AND CAST(p.EventTimeDt AS date) BETWEEN '2025-11-25' AND '2025-11-28'
     GROUP BY p.SicilID, CAST(p.EventTimeDt AS date), p.EventTimeDt 
 ) c ON g.SicilID = c.SicilID 

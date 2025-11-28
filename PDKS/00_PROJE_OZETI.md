@@ -105,6 +105,22 @@
     - En son kaydı tutup diğerlerini silme
     - Statistics güncelleme
 
+12. **PDKS_Terminal_Ayar_View.sql** ⭐ (YENİ)
+    - Giriş/çıkış terminalleri için view'ler
+    - Ayar tablosundan dinamik terminal filtreleme
+    - vw_PDKS_Giris_Terminalleri, vw_PDKS_Cikis_Terminalleri, vw_PDKS_Tum_Terminaller
+
+13. **PDKS_Terminal_Genisletme_README.md** ⭐ (YENİ)
+    - Terminal genişletme dokümantasyonu
+    - View kullanım kılavuzu
+    - Kurulum adımları
+    - GIRISCIKIS alanı desteği
+
+14. **PDKS_Terminal_GIRISCIKIS_Kontrol.sql** ⭐ (YENİ)
+    - GIRISCIKIS alanı kontrol sorgusu
+    - View'lerin doğru çalışıp çalışmadığını test eder
+    - Problem tespiti yapar
+
 ## Sistem Mimarisi
 
 ```
@@ -191,6 +207,15 @@ DELETE FROM dbo.PDKS_HAMDATA_CACHE;
 -- 3. Statistics güncelleyin: UPDATE STATISTICS dbo.PDKS_HAMDATA_CACHE WITH FULLSCAN;
 ```
 
+### Senaryo 6: Terminal Genişletme (Yeni Terminal Ekleme)
+
+```sql
+-- 1. View'leri oluşturun: PDKS_Terminal_Ayar_View.sql
+-- 2. Ayar tablosuna yeni terminal ekleyin (ZU_P_AYARE ve ZU_P_AYART)
+-- 3. View'ler otomatik olarak yeni terminali alacaktır
+-- 4. Tüm sorgular otomatik olarak yeni terminali kullanacaktır
+```
+
 ## Önemli Notlar
 
 1. **Terminal Filtreleme**: Ayar tablosundaki (ZU_P_AYARE.AP10 = 1) aktif TerminalID'lere göre filtreleme yapılıyor
@@ -201,6 +226,11 @@ DELETE FROM dbo.PDKS_HAMDATA_CACHE;
 6. **Cache Temizleme**: İlk kurulumda veya test sırasında cache tablosunu temizlemek için `PDKS_Cache_Tablo_Silme.sql` kullanılabilir
 7. **Kayıt Sayısı Kontrolü**: COUNT(*) ve SELECT * farklı sayılar gösteriyorsa duplicate ID kontrolü yapın
 8. **Statistics Güncelleme**: Düzenli olarak statistics'leri güncelleyin (`UPDATE STATISTICS`)
+9. **Terminal Genişletme**: Yeni terminal eklendiğinde sadece ayar tablosunu güncellemek yeterli, view'ler otomatik olarak yeni terminali alır
+10. **View Kullanımı**: Giriş/çıkış terminalleri için `vw_PDKS_Giris_Terminalleri` ve `vw_PDKS_Cikis_Terminalleri` view'lerini kullanın
+11. **GIRISCIKIS Alanı**: View'ler artık `GIRISCIKIS` alanına göre filtreleme yapıyor (TerminalYonu yerine)
+12. **GIRISCIKIS Değerleri**: Doğrudan eşitlik kontrolü - `GIRISCIKIS = 'GIRIS'` → Giriş terminalleri, `GIRISCIKIS = 'CIKIS'` → Çıkış terminalleri
+13. **TerminalID Eşitleme**: Cache tablosundaki TerminalID, ayar tablosundaki TerminalID ile eşleştirilip GIRISCIKIS değeri alınıyor
 
 ## Sonraki Adımlar
 
@@ -216,7 +246,27 @@ Sorularınız için: mozan73@gmail.com
 
 ## Versiyon Geçmişi
 
-- **v2.1 - 2025-11-28 (Güncel)**: Cache Tablosu Kontrol ve Optimizasyon
+- **v2.4 - 2025-11-28 (Güncel)**: GIRISCIKIS Doğrudan Eşitlik Kontrolü
+  - View'ler artık GIRISCIKIS değerini doğrudan eşitlik ile kontrol ediyor
+  - GIRISCIKIS = 'GIRIS' → Giriş terminalleri
+  - GIRISCIKIS = 'CIKIS' → Çıkış terminalleri
+  - LIKE yerine doğrudan eşitlik kontrolü kullanılıyor
+  - TerminalID eşitleme ve GIRISCIKIS kontrolü basitleştirildi
+
+- **v2.3 - 2025-11-28**: GIRISCIKIS Alanı Desteği
+  - View'ler GIRISCIKIS alanını kullanacak şekilde güncellendi
+  - TerminalYonu yerine GIRISCIKIS alanına göre filtreleme yapılıyor
+  - Büyük/küçük harf duyarsız ve trim edilmiş kontrol eklendi
+  - GIRISCIKIS kontrol sorgusu eklendi
+
+- **v2.2 - 2025-11-28**: Terminal Genişletme ve Dinamik Filtreleme
+  - Terminal view'leri oluşturuldu (Giriş/Çıkış/Tüm)
+  - Hardcoded 1093 ve 1094 TerminalID'leri kaldırıldı
+  - Tüm sorgular ayar tablosundan dinamik terminal alıyor
+  - Test sorgusu, Dashboard ve Makro güncellendi
+  - Terminal genişletme dokümantasyonu eklendi
+
+- **v2.1 - 2025-11-28**: Cache Tablosu Kontrol ve Optimizasyon
   - Cache tablosu kayıt sayısı kontrol scriptleri eklendi
   - Duplicate ID kontrolü ve temizleme scriptleri hazırlandı
   - Statistics kontrolü ve güncelleme scriptleri eklendi

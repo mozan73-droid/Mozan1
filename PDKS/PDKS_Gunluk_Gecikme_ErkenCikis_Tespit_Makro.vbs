@@ -116,8 +116,9 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "        END AS Gun_Adi," & vbCrLf
 	sql = sql & "        p.EventTimeDt," & vbCrLf
 	sql = sql & "        ROW_NUMBER() OVER (PARTITION BY p.SicilID, CAST(p.EventTimeDt AS date) ORDER BY p.EventTimeDt) AS rn " & vbCrLf
-	sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
-	sql = sql & "    WHERE p.TerminalID = '1093' " & vbCrLf
+    sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+    sql = sql & "    INNER JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID " & vbCrLf
+    sql = sql & "    WHERE 1=1 " & vbCrLf
 
 	' Tarih filtreleri
 	If Trim(KRT.KRTTARIH1) <> "" Then 
@@ -144,8 +145,9 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "        CAST(p.EventTimeDt AS date) AS Gun_Cikis," & vbCrLf
 	sql = sql & "        p.EventTimeDt," & vbCrLf
 	sql = sql & "        ROW_NUMBER() OVER (PARTITION BY p.SicilID, CAST(p.EventTimeDt AS date) ORDER BY p.EventTimeDt DESC) AS rn " & vbCrLf
-	sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
-	sql = sql & "    WHERE p.TerminalID = '1094' " & vbCrLf
+    sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+    sql = sql & "    INNER JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID " & vbCrLf
+    sql = sql & "    WHERE 1=1 " & vbCrLf
 
 	' Çıkış için tarih filtreleri (ertesi günü de kapsamak için genişletilmiş)
 	If Trim(KRT.KRTTARIH1) <> "" Then 
