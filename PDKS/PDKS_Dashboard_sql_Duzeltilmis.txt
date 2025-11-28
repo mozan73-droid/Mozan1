@@ -1,0 +1,115 @@
+Sub PDKS_Dashboard_sql(Nereden)
+
+	Set KRT = Doc.GetTableObject("KRITERLER")
+	Set KRT2 = Doc.GetTableObject("KRITERLER2")
+
+	KontrolDk = KRT2.HAREKET_DK
+
+	'1) Şu anda içeride/dışarıda olan kişi sayıları
+	sql = "SELECT Durum, COUNT(*) AS PersonelSayisi" & vbCrLf
+	sql = sql & "FROM (" & vbCrLf
+	sql = sql & "    SELECT" & vbCrLf
+	sql = sql & "        p.SicilID," & vbCrLf
+	sql = sql & "        CASE" & vbCrLf
+	sql = sql & "            WHEN p.TerminalID = '1094' THEN 'DISARIDA'" & vbCrLf
+	sql = sql & "            WHEN p.TerminalID = '1093' THEN 'ICERDE'" & vbCrLf
+	sql = sql & "            ELSE 'BILINMIYOR'" & vbCrLf
+	sql = sql & "        END AS Durum," & vbCrLf
+	sql = sql & "        ROW_NUMBER() OVER (" & vbCrLf
+	sql = sql & "            PARTITION BY p.SicilID" & vbCrLf
+	sql = sql & "            ORDER BY p.EventTimeDt DESC" & vbCrLf
+	sql = sql & "        ) AS rn" & vbCrLf
+	sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK)" & vbCrLf
+	sql = sql & "    WHERE 1=1 " & vbCrLf
+	sql = sql & "    AND CAST(p.EventTimeDt AS date) = '"& Doc.Bugun &"' " & vbCrLf
+	sql = sql & ") x" & vbCrLf
+	sql = sql & "WHERE x.rn = 1" & vbCrLf
+	sql = sql & "GROUP BY x.Durum" & vbCrLf
+
+	'2) Son X dakikadaki olay listesi (canlı akış)
+	sql2 = "SELECT  " & vbCrLf
+	sql2 = sql2 & "    p.EventTimeDt, " & vbCrLf
+	sql2 = sql2 & "    CAST(LEFT(CONVERT(char(8), p.EventTimeDt, 108), 5) AS varchar(5)) AS HareketSaati, " & vbCrLf
+	sql2 = sql2 & "    p.PersonelAdi, " & vbCrLf
+	sql2 = sql2 & "    p.PersonelSoyadi, " & vbCrLf
+	sql2 = sql2 & "    p.Bolum, " & vbCrLf
+	sql2 = sql2 & "    p.TerminalID, " & vbCrLf
+	sql2 = sql2 & "    p.TerminalYonu " & vbCrLf
+	sql2 = sql2 & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+
+	'3) Terminal bazlı günlük toplamlar
+	sql3 = "SELECT " & vbCrLf
+	sql3 = sql3 & "    p.TerminalID, " & vbCrLf
+	sql3 = sql3 & "    p.TerminalYonu, " & vbCrLf
+	sql3 = sql3 & "    COUNT(*) AS OlaySayisi " & vbCrLf
+	sql3 = sql3 & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+
+	If Nereden = "Makro1" Then 
+		'1- Şu anda içeride/dışarıda olan kişi sayıları
+		Set DASHBOARD1SQL = Doc.RunSQLQuery("DASHBOARD1_SQL", sql)
+
+		'2-Son X dakikadaki olay listesi (canlı akış)
+		If KontrolDk = 0 Then
+			KontrolDk = 5
+		End If
+		sql2 = sql2 & " WHERE p.EventTimeDt >= DATEADD(minute, -" & KontrolDk & ", GETDATE()) " & vbCrLf
+		sql2 = sql2 & " ORDER BY p.EventTimeDt DESC; " & vbCrLf
+		Set DASHBOARD2SQL = Doc.RunSQLQuery("DASHBOARD2_SQL", sql2)
+
+		'3) Terminal bazlı günlük toplamlar
+		sql3 = sql3 & "    WHERE CAST(p.EventTimeDt AS date) = '"& Doc.Bugun &"' " & vbCrLf
+		sql3 = sql3 & "    GROUP BY p.TerminalID, p.TerminalYonu " & vbCrLf
+		sql3 = sql3 & "    ORDER BY p.TerminalID; " & vbCrLf
+		Set DASHBOARD3SQL = Doc.RunSQLQuery("DASHBOARD3_SQL", sql3)
+	    Exit Sub
+	End If
+
+	'1-Şu anda içeride/dışarıda olan kişi sayıları
+	Set DASHBOARD1SQLDOLU = Doc.RunSQLQuery("DASHBOARD1_SQL_DOLU", sql)	
+	Set DASHBOARD1SQL = Doc.GetTableObject("DASHBOARD1_SQL")
+	DASHBOARD1SQL.Empty
+
+	If DASHBOARD1SQLDOLU.GetRecCount > 0 Then
+		DASHBOARD1SQL.CopyTable(DASHBOARD1SQLDOLU)
+		Set DASHBOARD1SQLDOLU = Nothing 
+		DASHBOARD1SQL.SetCurrentRow 1
+	End If
+
+	'-------------------------------------------------
+	'2- Son X dakikadaki giriş çıkışlar
+	If KontrolDk = 0 Then
+		KontrolDk = 10
+	End If
+
+	sql2 = sql2 & "    WHERE p.EventTimeDt >= DATEADD(minute, -" & KontrolDk & ", GETDATE()) " & vbCrLf
+	sql2 = sql2 & "    ORDER BY p.EventTimeDt DESC; " & vbCrLf
+
+	Set DASHBOARD2SQLDOLU = Doc.RunSQLQuery("DASHBOARD2_SQL_DOLU", sql2)	
+	Set DASHBOARD2SQL = Doc.GetTableObject("DASHBOARD2_SQL")
+	DASHBOARD2SQL.Empty
+
+	If DASHBOARD2SQLDOLU.GetRecCount > 0 Then
+		DASHBOARD2SQL.CopyTable(DASHBOARD2SQLDOLU)
+		Set DASHBOARD2SQLDOLU = Nothing 
+		DASHBOARD2SQL.SetCurrentRow 1
+	End If
+
+	'-------------------------------------------------
+	'3- Terminal bazlı günlük toplamlar
+	sql3 = sql3 & "    WHERE CAST(p.EventTimeDt AS date) = '"& Doc.Bugun &"' " & vbCrLf
+	sql3 = sql3 & "    GROUP BY p.TerminalID, p.TerminalYonu " & vbCrLf
+	sql3 = sql3 & "    ORDER BY p.TerminalID; " & vbCrLf
+
+	Set DASHBOARD3SQLDOLU = Doc.RunSQLQuery("DASHBOARD3_SQL_DOLU", sql3)	
+	Set DASHBOARD3SQL = Doc.GetTableObject("DASHBOARD3_SQL")
+	DASHBOARD3SQL.Empty
+
+	If DASHBOARD3SQLDOLU.GetRecCount > 0 Then
+		DASHBOARD3SQL.CopyTable(DASHBOARD3SQLDOLU)
+		Set DASHBOARD3SQLDOLU = Nothing 
+		DASHBOARD3SQL.SetCurrentRow 1
+	End If
+
+	Call SonGuncellemeZamani("PDKS_Dashboard_sql")
+End Sub
+

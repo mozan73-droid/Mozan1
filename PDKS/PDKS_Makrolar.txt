@@ -1,0 +1,96 @@
+PDKS Makroları - Punteks ERP
+=============================
+Tarih: 2025-11-28
+Modül: ZU_P_PDKS
+
+GENEL BİLGİLER:
+---------------
+- Makro Dili: VBScript (Dinamo ERP)
+- Ana Modül: ZU_P_PDKS
+- View: VW_PDKS
+- Tablo: PDKS_HAMDATA_CACHE
+
+ANA MAKROLAR:
+------------
+
+1. cmd_datakayitlarilistele()
+   - PDKS kayıtlarını listeler
+   - Kriterlere göre filtreleme yapar
+   - MAKROTABLET tablosuna sonuçları doldurur
+
+2. genelkayitlarilistele(Nereden)
+   - Genel kayıt listeleme fonksiyonu
+   - SQL sorgusu oluşturur ve çalıştırır
+   - Kriterler:
+     * SicilID
+     * Yıl
+     * Ay
+     * Tarih Aralığı (KRTTARIH1, KRTTARIH2)
+
+3. cmd_tumunusil
+   - Tüm kayıtları silme işlemi (Admin yetkisi gerekli)
+   - Şu an iptal edilmiş durumda
+
+4. INITDOCUMENT
+   - Doküman başlatma
+   - Tablo objelerini oluşturur
+   - Kriter tablosunu hazırlar
+   - Varsayılan değerler: Yıl=2025, Ay=09
+
+5. INITDOCUMENT_VALUES
+   - Doküman değerlerini başlatır
+   - Rowset özelliklerini ayarlar
+
+6. CALC_BIRSEYLER_HESAPLA
+   - Hesaplama makrosu
+   - Test amaçlı mesaj gösterir
+
+SQL SORGULARI:
+-------------
+Ana SQL sorgusu:
+SELECT * FROM VW_PDKS WHERE 1=1
+[Kriterlere göre filtreleme]
+
+Kriterler:
+- SicilID = '...'
+- Yil = '...'
+- Ay = '...'
+- Tarih >= '...'
+- Tarih <= '...'
+
+TABLO YAPISI:
+-------------
+MAKROTABLET (ZU_P_PDKST):
+- ID
+- Bolum
+- SicilID
+- UserID
+- PersonelAdi
+- PersonelSoyadi
+- SicilNo
+- TerminalID
+- Tarih
+- Gun_Adi
+- Hafta
+- Yil
+- Ay
+- Giris_Saati
+- Cikis_Saati
+- Calisma_Suresi
+- Calisma_Suresi_Saat
+- Kayit_Durumu
+
+KRITERLER (STACK):
+- SicilID (CHAR, 20)
+- KRTTARIH1 (DATE)
+- KRTTARIH2 (DATE)
+- AY (CHAR, 2)
+- Yil (CHAR, 4)
+
+NOTLAR:
+------
+- View: VW_PDKS kullanılıyor
+- SQL sorgusu: KTTPDKST_SQL adıyla çalıştırılıyor
+- Kayıt bulunamazsa "Kayıt Bulunamadı...(msg:888)" mesajı gösteriliyor
+- Şu an For döngüsü 10 kayıtla sınırlı (test için)
+

@@ -1,0 +1,49 @@
+PDKS_HAMDATA_CACHE Tablo Kolonları Bilgisi
+===========================================
+
+Tablo Adı: PDKS_HAMDATA_CACHE
+Veritabanı: PUNTEKS_2025
+Schema: dbo
+
+Kolonlar (pdks.txt dosyasından çıkarılan):
+------------------------------------------
+1. ID - Primary Key
+2. SicilID - Personel Sicil ID
+3. UserID - Kullanıcı ID
+4. PersonelAdi - Personel Adı
+5. PersonelSoyadi - Personel Soyadı
+6. SicilNo - Personel Sicil Numarası
+7. Bolum - Bölüm
+8. Pozisyon - Pozisyon
+9. TerminalID - Terminal ID
+10. TerminalYonu - Terminal Yönü (Giriş/Çıkış)
+11. KartNumarasi - Kart Numarası
+12. CardType - Kart Tipi
+13. EventTime - Olay Zamanı (DateTime)
+14. EventCode - Olay Kodu
+15. FuncCode - Fonksiyon Kodu
+16. PDKS - PDKS Durumu
+17. Status - Durum
+18. Automatic - Otomatik
+19. Deleted - Silindi mi
+20. ReaderID - Okuyucu ID
+21. UnDelete - Geri Al
+22. ForeignID - Dış ID
+23. pdksx - PDKSX
+24. duzeltme - Düzeltme
+25. mudahale - Müdahale
+26. kayitbilgisi - Kayıt Bilgisi
+27. entegrasyonbilgisi - Entegrasyon Bilgisi
+28. Veri_Gelis - Veri Geliş
+29. KayitZamani - Kayıt Zamanı
+
+Not: Bu kolonlar pdks.txt dosyasının başlık satırından çıkarılmıştır.
+Gerçek veri tipleri için INFORMATION_SCHEMA.COLUMNS sorgusu kullanılmalıdır.
+
+SQL Sorgusu:
+SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, 
+       NUMERIC_PRECISION, NUMERIC_SCALE, IS_NULLABLE, ORDINAL_POSITION 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'PDKS_HAMDATA_CACHE' 
+ORDER BY ORDINAL_POSITION;
+

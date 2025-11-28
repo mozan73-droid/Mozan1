@@ -1,0 +1,101 @@
+PDKS Makroları - Dinamo ERP Entegrasyonu
+=========================================
+Tarih: 2025-11-28
+Sistem: Dinamo ERP (M5Service)
+
+GENEL BİLGİLER:
+---------------
+- ERP Sistemi: Dinamo ERP
+- Servis: M5Service
+- Veritabanı: PUNTEKS_2025
+- Ana Tablo: PDKS_HAMDATA_CACHE
+
+DİNAMO ENTEGRASYON MAKROLARI:
+-----------------------------
+
+1. Veri Aktarım Makroları
+   - PDKS verilerini Dinamo ERP'ye aktarma
+   - M5Service üzerinden veri senkronizasyonu
+   - Otomatik veri aktarımı
+
+2. View Oluşturma
+   - VW_PDKS view'i Dinamo için hazırlanmış
+   - Dinamo ERP'den erişilebilir format
+
+3. SQL Entegrasyon Sorguları
+   - Dinamo ERP'den PDKS verilerine erişim
+   - Raporlama için hazır sorgular
+
+DİNAMO MODÜL YAPISI:
+-------------------
+Modül Adları:
+- ZU_P_PDKS (Ana PDKS Modülü)
+- ZU_P_PDKSM (PDKS Main)
+- ZU_P_PDKSM_E (PDKS Main Entry)
+- ZU_P_PDKSM_T (PDKS Main Table)
+- ZU_P_PDKST (PDKS Table)
+- ZU_P_PDKSE (PDKS Entry)
+
+MODÜL TİPLERİ:
+-------------
+- KTM_TYPE: EV10R, KD24LP
+- VTA_DEF_PROC_TYPE: K (Kart), T (Tablo)
+- MAIN_TABLE: ZU_P_PDKSM_E
+
+VERİ AKIŞI:
+----------
+PDKS Terminali → PDKS_HAMDATA_CACHE → VW_PDKS → Dinamo ERP Modülleri
+
+1. PDKS terminallerinden veri gelir
+2. PDKS_HAMDATA_CACHE tablosuna kaydedilir
+3. VW_PDKS view'i üzerinden görüntülenir
+4. Dinamo ERP modülleri üzerinden işlenir
+
+DİNAMO MAKRO ÖRNEKLERİ:
+----------------------
+
+Sub cmd_datakayitlarilistele()
+    ' Dinamo ERP'de PDKS kayıtlarını listeler
+    Call genelkayitlarilistele("cmd_datakayitlarilistele")
+End Sub
+
+Sub genelkayitlarilistele(Nereden)
+    Set KRT = Doc.GetTableObject("KRITERLER")
+    Set MTABLET = Doc.GetTableObject("MAKROTABLET")
+    MTABLET.Empty
+    
+    SQL = "SELECT * FROM VW_PDKS WHERE 1=1 "
+    ' Kriterlere göre filtreleme...
+    
+    Set KTTPDKSTSQL = Doc.RunSQLQuery("KTTPDKST_SQL", SQL)
+    ' Sonuçları işle...
+End Sub
+
+VERİTABANI BAĞLANTISI:
+---------------------
+- Server: localhost
+- Database: PUNTEKS_2025
+- Schema: dbo
+- Tablo: PDKS_HAMDATA_CACHE
+
+ENTEGRASYON NOTLARI:
+-------------------
+1. M5Service otomatik veri aktarımı yapıyor
+2. Status alanı "M5Service" değeri entegrasyonu gösterir
+3. Veri_Gelis ve KayitZamani alanları takip için kullanılıyor
+4. Deleted = 0 olan kayıtlar aktif kabul edilir
+
+RAPORLAMA:
+---------
+Dinamo ERP'de şu raporlar oluşturulabilir:
+- Günlük yoklama raporu
+- Aylık puantaj raporu
+- Personel çalışma saatleri
+- Terminal bazlı raporlar
+
+GÜNCELLEME NOTLARI:
+------------------
+- Son güncelleme: 2025-11-28
+- View oluşturma scripti: vw_PDKS_HAMDATA_Liste.sql
+- SQL sorguları: PDKS_Puantaj_Personel_Toplam.sql
+
