@@ -49,7 +49,10 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "    MIN(CASE WHEN g.rn = 1 THEN g.EventTimeDt END) AS IlkGirisTS," & vbCrLf
 	sql = sql & "    MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END) AS SonCikisTS," & vbCrLf
 	sql = sql & "    CAST(LEFT(CONVERT(char(8), MIN(CASE WHEN g.rn = 1 THEN g.EventTimeDt END), 108), 5) AS varchar(5)) AS IlkGiris," & vbCrLf
-	sql = sql & "    CAST(LEFT(CONVERT(char(8), MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END), 108), 5) AS varchar(5)) AS SonCikis," & vbCrLf
+	sql = sql & "    CASE " & vbCrLf
+	sql = sql & "        WHEN MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END) IS NULL THEN '' " & vbCrLf
+	sql = sql & "        ELSE CAST(LEFT(CONVERT(char(8), MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END), 108), 5) AS varchar(5)) " & vbCrLf
+	sql = sql & "    END AS SonCikis," & vbCrLf
 	sql = sql & "    CASE " & vbCrLf
 	sql = sql & "        WHEN MIN(CASE WHEN g.rn = 1 THEN g.EventTimeDt END) > " & vbCrLf
 	sql = sql & "             CAST(CONVERT(varchar(10), g.Gun, 120) + ' " & HedefGirisSaati & ":00' AS datetime) " & vbCrLf
@@ -64,6 +67,7 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "        ELSE 0 " & vbCrLf
 	sql = sql & "    END AS GecikmeDakika," & vbCrLf
 	sql = sql & "    CASE " & vbCrLf
+	sql = sql & "        WHEN MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END) IS NULL THEN 'YOK' " & vbCrLf
 	sql = sql & "        WHEN MAX(CASE WHEN c.rn = 1 THEN c.Gun_Cikis END) > g.Gun " & vbCrLf
 	sql = sql & "             AND CONVERT(time, MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END)) < '06:00' THEN " & vbCrLf
 	sql = sql & "            CASE " & vbCrLf
@@ -79,6 +83,7 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "            END " & vbCrLf
 	sql = sql & "    END AS ErkenCikisDurumu," & vbCrLf
 	sql = sql & "    CASE " & vbCrLf
+	sql = sql & "        WHEN MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END) IS NULL THEN 0 " & vbCrLf
 	sql = sql & "        WHEN MAX(CASE WHEN c.rn = 1 THEN c.Gun_Cikis END) > g.Gun " & vbCrLf
 	sql = sql & "             AND CONVERT(time, MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END)) < '06:00' THEN " & vbCrLf
 	sql = sql & "            CASE " & vbCrLf
@@ -116,9 +121,9 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "        END AS Gun_Adi," & vbCrLf
 	sql = sql & "        p.EventTimeDt," & vbCrLf
 	sql = sql & "        ROW_NUMBER() OVER (PARTITION BY p.SicilID, CAST(p.EventTimeDt AS date) ORDER BY p.EventTimeDt) AS rn " & vbCrLf
-    sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
-    sql = sql & "    INNER JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID " & vbCrLf
-    sql = sql & "    WHERE 1=1 " & vbCrLf
+	sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+	sql = sql & "    INNER JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID " & vbCrLf
+	sql = sql & "    WHERE 1=1 " & vbCrLf
 
 	' Tarih filtreleri
 	If Trim(KRT.KRTTARIH1) <> "" Then 
@@ -145,9 +150,9 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "        CAST(p.EventTimeDt AS date) AS Gun_Cikis," & vbCrLf
 	sql = sql & "        p.EventTimeDt," & vbCrLf
 	sql = sql & "        ROW_NUMBER() OVER (PARTITION BY p.SicilID, CAST(p.EventTimeDt AS date) ORDER BY p.EventTimeDt DESC) AS rn " & vbCrLf
-    sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
-    sql = sql & "    INNER JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID " & vbCrLf
-    sql = sql & "    WHERE 1=1 " & vbCrLf
+	sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+	sql = sql & "    INNER JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID " & vbCrLf
+	sql = sql & "    WHERE 1=1 " & vbCrLf
 
 	' Çıkış için tarih filtreleri (ertesi günü de kapsamak için genişletilmiş)
 	If Trim(KRT.KRTTARIH1) <> "" Then 
@@ -175,19 +180,8 @@ Sub Gunluk_Gecikme_ErkenCikis_Tespit(Nereden)
 	sql = sql & "       -- Ertesi gün 06:00'dan önce çıkış (gece vardiyası) - giriş gününe bağla " & vbCrLf
 	sql = sql & "       (c.Gun_Cikis = DATEADD(DAY, 1, g.Gun) AND CONVERT(time, c.EventTimeDt) < '06:00') " & vbCrLf
 	sql = sql & "   ) " & vbCrLf
-	sql = sql & "WHERE g.EventTimeDt IS NOT NULL AND c.EventTimeDt IS NOT NULL " & vbCrLf
+	sql = sql & "WHERE g.EventTimeDt IS NOT NULL " & vbCrLf
 	sql = sql & "GROUP BY g.Gun, g.SicilID " & vbCrLf
-	sql = sql & "HAVING (MIN(CASE WHEN g.rn = 1 THEN g.EventTimeDt END) > CAST(CONVERT(varchar(10), g.Gun, 120) + ' " & HedefGirisSaati & ":00' AS datetime)) " & vbCrLf
-	sql = sql & "    OR (" & vbCrLf
-	sql = sql & "        (MAX(CASE WHEN c.rn = 1 THEN c.Gun_Cikis END) > g.Gun " & vbCrLf
-	sql = sql & "         AND CONVERT(time, MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END)) < '06:00' " & vbCrLf
-	sql = sql & "         AND DATEADD(DAY, 1, CAST(CONVERT(varchar(10), g.Gun, 120) + ' ' + CONVERT(varchar(5), MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END), 108) AS datetime)) < " & vbCrLf
-	sql = sql & "             CAST(CONVERT(varchar(10), g.Gun, 120) + ' " & HedefCikisSaati & ":00' AS datetime)) " & vbCrLf
-	sql = sql & "        OR " & vbCrLf
-	sql = sql & "        (MAX(CASE WHEN c.rn = 1 THEN c.Gun_Cikis END) = g.Gun " & vbCrLf
-	sql = sql & "         AND CAST(CONVERT(varchar(10), g.Gun, 120) + ' ' + CONVERT(varchar(5), MAX(CASE WHEN c.rn = 1 THEN c.EventTimeDt END), 108) AS datetime) < " & vbCrLf
-	sql = sql & "             CAST(CONVERT(varchar(10), g.Gun, 120) + ' " & HedefCikisSaati & ":00' AS datetime)) " & vbCrLf
-	sql = sql & "    ) " & vbCrLf
 	sql = sql & "ORDER BY g.Gun DESC, MAX(g.PersonelAdi), MAX(g.PersonelSoyadi); " & vbCrLf
 
 	' Makro1 modunda sadece tablo yapısını oluştur

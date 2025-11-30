@@ -38,7 +38,7 @@
 **Dosyalar**:
 - `PDKS_Merge_Sorgu_Duzeltilmis.sql`: Ayar tablosunu kullanan merge sorgusu
 - `PDKS_Cache_Tablo_Silme.sql`: Cache tablosunu temizleme scripti
-- `PDKS_Terminal_Konfigurasyon_Tablo.sql`: Alternatif konfigürasyon tablosu (opsiyonel)
+- `PDKS_Terminal_Ayar_View.sql`: Terminal view'leri (Giriş/Çıkış/Tüm)
 
 **Avantajlar**:
 - Ayar tablosunda (ZU_P_AYARE.AP10 = 1) aktif olan TerminalID'lere göre filtreleme
@@ -61,15 +61,10 @@
    - Sadece TerminalID'ye göre filtreleme
    - Sadece 2025 ve sonrası veriler alınıyor
 
-3. **PDKS_Terminal_Konfigurasyon_Tablo.sql**
-   - PDKS_TERMINAL_KONFIGURASYON tablosu oluşturma
-   - Link server'dan otomatik terminal aktarma
-   - Terminal yönetimi örnekleri
-
-4. **PDKS_Terminal_Konfigurasyon_README.md**
-   - Sistem kullanım kılavuzu
-   - Örnek sorgular
-   - Sorun giderme
+3. **PDKS_Terminal_Ayar_View.sql** ⭐
+   - Terminal view'leri oluşturma (Giriş/Çıkış/Tüm)
+   - Ayar tablosundan dinamik terminal filtreleme
+   - GIRISCIKIS alanına göre filtreleme
 
 ### Yardımcı Dosyalar
 

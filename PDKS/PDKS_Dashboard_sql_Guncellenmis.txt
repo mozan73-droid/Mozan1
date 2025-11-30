@@ -1,31 +1,32 @@
 Sub PDKS_Dashboard_sql(Nereden)
-
 	Set KRT = Doc.GetTableObject("KRITERLER")
 	Set KRT2 = Doc.GetTableObject("KRITERLER2")
-
 	KontrolDk = KRT2.HAREKET_DK
-
 	'1) Şu anda içeride/dışarıda olan kişi sayıları
 	sql = "SELECT Durum, COUNT(*) AS PersonelSayisi" & vbCrLf
 	sql = sql & "FROM (" & vbCrLf
 	sql = sql & "    SELECT" & vbCrLf
-	sql = sql & "        p.SicilID," & vbCrLf
+	sql = sql & "        p.SicilNo AS SicilID," & vbCrLf
 	sql = sql & "        CASE" & vbCrLf
 	sql = sql & "            WHEN EXISTS (SELECT 1 FROM dbo.vw_PDKS_Cikis_Terminalleri c WHERE CAST(p.TerminalID AS varchar(10)) = c.TerminalID) THEN 'DISARIDA'" & vbCrLf
 	sql = sql & "            WHEN EXISTS (SELECT 1 FROM dbo.vw_PDKS_Giris_Terminalleri g WHERE CAST(p.TerminalID AS varchar(10)) = g.TerminalID) THEN 'ICERDE'" & vbCrLf
 	sql = sql & "            ELSE 'BILINMIYOR'" & vbCrLf
 	sql = sql & "        END AS Durum," & vbCrLf
 	sql = sql & "        ROW_NUMBER() OVER (" & vbCrLf
-	sql = sql & "            PARTITION BY p.SicilID" & vbCrLf
+	sql = sql & "            PARTITION BY p.SicilNo" & vbCrLf
 	sql = sql & "            ORDER BY p.EventTimeDt DESC" & vbCrLf
 	sql = sql & "        ) AS rn" & vbCrLf
 	sql = sql & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK)" & vbCrLf
+	sql = sql & "    INNER JOIN dbo.PERSM0 per ON LTRIM(RTRIM(CAST(p.SicilNo AS varchar))) = LTRIM(RTRIM(CAST(per.TCKIMLIKNO AS varchar))) COLLATE Turkish_CI_AS" & vbCrLf
+	sql = sql & "    CROSS JOIN dbo.ZU_P_AYARE ayar WITH (NOLOCK)" & vbCrLf
 	sql = sql & "    WHERE 1=1 " & vbCrLf
+	sql = sql & "      AND (ayar.PMO_AP10 IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_AP10 AS varchar))) = '' OR per.AP10 = ayar.PMO_AP10) " & vbCrLf
+	sql = sql & "      AND (ayar.PMO_STATU IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_STATU AS varchar))) = '' OR per.STATU = ayar.PMO_STATU) " & vbCrLf
+	sql = sql & "      AND (ayar.PMO_GK1 IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_GK1 AS varchar))) = '' OR per.GK_1 = ayar.PMO_GK1) " & vbCrLf
 	sql = sql & "    AND CAST(p.EventTimeDt AS date) = '"& Doc.Bugun &"' " & vbCrLf
 	sql = sql & ") x" & vbCrLf
 	sql = sql & "WHERE x.rn = 1" & vbCrLf
 	sql = sql & "GROUP BY x.Durum" & vbCrLf
-
 	'2) Son X dakikadaki olay listesi (canlı akış)
 	sql2 = "SELECT  " & vbCrLf
 	sql2 = sql2 & "    p.EventTimeDt, " & vbCrLf
@@ -41,10 +42,14 @@ Sub PDKS_Dashboard_sql(Nereden)
 	sql2 = sql2 & "        ELSE 'BILINMIYOR' " & vbCrLf
 	sql2 = sql2 & "    END AS Durum " & vbCrLf
 	sql2 = sql2 & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+	sql2 = sql2 & "    INNER JOIN dbo.PERSM0 per ON LTRIM(RTRIM(CAST(p.SicilNo AS varchar))) = LTRIM(RTRIM(CAST(per.TCKIMLIKNO AS varchar))) COLLATE Turkish_CI_AS " & vbCrLf
+	sql2 = sql2 & "    CROSS JOIN dbo.ZU_P_AYARE ayar WITH (NOLOCK) " & vbCrLf
 	sql2 = sql2 & "    LEFT JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID " & vbCrLf
 	sql2 = sql2 & "    LEFT JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID " & vbCrLf
 	sql2 = sql2 & "    WHERE EXISTS (SELECT 1 FROM dbo.vw_PDKS_Tum_Terminaller t WHERE CAST(t.TerminalID AS varchar(10)) = CAST(p.TerminalID AS varchar(10))) " & vbCrLf
-
+	sql2 = sql2 & "    AND (ayar.PMO_AP10 IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_AP10 AS varchar))) = '' OR per.AP10 = ayar.PMO_AP10) " & vbCrLf
+	sql2 = sql2 & "    AND (ayar.PMO_STATU IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_STATU AS varchar))) = '' OR per.STATU = ayar.PMO_STATU) " & vbCrLf
+	sql2 = sql2 & "    AND (ayar.PMO_GK1 IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_GK1 AS varchar))) = '' OR per.GK_1 = ayar.PMO_GK1) " & vbCrLf
 	'3) Terminal bazlı günlük toplamlar
 	sql3 = "SELECT " & vbCrLf
 	sql3 = sql3 & "    p.TerminalID, " & vbCrLf
@@ -56,22 +61,24 @@ Sub PDKS_Dashboard_sql(Nereden)
 	sql3 = sql3 & "    END AS TerminalTipi, " & vbCrLf
 	sql3 = sql3 & "    COUNT(*) AS OlaySayisi " & vbCrLf
 	sql3 = sql3 & "    FROM dbo.PDKS_HAMDATA_CACHE p WITH (NOLOCK) " & vbCrLf
+	sql3 = sql3 & "    INNER JOIN dbo.PERSM0 per ON LTRIM(RTRIM(CAST(p.SicilNo AS varchar))) = LTRIM(RTRIM(CAST(per.TCKIMLIKNO AS varchar))) COLLATE Turkish_CI_AS " & vbCrLf
+	sql3 = sql3 & "    CROSS JOIN dbo.ZU_P_AYARE ayar WITH (NOLOCK) " & vbCrLf
 	sql3 = sql3 & "    LEFT JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID " & vbCrLf
 	sql3 = sql3 & "    LEFT JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID " & vbCrLf
 	sql3 = sql3 & "    WHERE EXISTS (SELECT 1 FROM dbo.vw_PDKS_Tum_Terminaller t WHERE CAST(t.TerminalID AS varchar(10)) = CAST(p.TerminalID AS varchar(10))) " & vbCrLf
-
+	sql3 = sql3 & "    AND (ayar.PMO_AP10 IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_AP10 AS varchar))) = '' OR per.AP10 = ayar.PMO_AP10) " & vbCrLf
+	sql3 = sql3 & "    AND (ayar.PMO_STATU IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_STATU AS varchar))) = '' OR per.STATU = ayar.PMO_STATU) " & vbCrLf
+	sql3 = sql3 & "    AND (ayar.PMO_GK1 IS NULL OR LTRIM(RTRIM(CAST(ayar.PMO_GK1 AS varchar))) = '' OR per.GK_1 = ayar.PMO_GK1) " & vbCrLf
 	If Nereden = "Makro1" Then 
 		'1- Şu anda içeride/dışarıda olan kişi sayıları
 		Set DASHBOARD1SQL = Doc.RunSQLQuery("DASHBOARD1_SQL", sql)
-
 		'2-Son X dakikadaki olay listesi (canlı akış)
 		If KontrolDk = 0 Then
 			KontrolDk = 5
 		End If
-		sql2 = sql2 & " WHERE p.EventTimeDt >= DATEADD(minute, -" & KontrolDk & ", GETDATE()) " & vbCrLf
+		sql2 = sql2 & " AND p.EventTimeDt >= DATEADD(minute, -" & KontrolDk & ", GETDATE()) " & vbCrLf
 		sql2 = sql2 & " ORDER BY p.EventTimeDt DESC; " & vbCrLf
 		Set DASHBOARD2SQL = Doc.RunSQLQuery("DASHBOARD2_SQL", sql2)
-
 		'3) Terminal bazlı günlük toplamlar
 		sql3 = sql3 & "    AND CAST(p.EventTimeDt AS date) = '"& Doc.Bugun &"' " & vbCrLf
 		sql3 = sql3 & "    GROUP BY p.TerminalID, p.TerminalYonu, " & vbCrLf
@@ -84,37 +91,30 @@ Sub PDKS_Dashboard_sql(Nereden)
 		Set DASHBOARD3SQL = Doc.RunSQLQuery("DASHBOARD3_SQL", sql3)
 	    Exit Sub
 	End If
-
 	'1-Şu anda içeride/dışarıda olan kişi sayıları
 	Set DASHBOARD1SQLDOLU = Doc.RunSQLQuery("DASHBOARD1_SQL_DOLU", sql)	
 	Set DASHBOARD1SQL = Doc.GetTableObject("DASHBOARD1_SQL")
 	DASHBOARD1SQL.Empty
-
 	If DASHBOARD1SQLDOLU.GetRecCount > 0 Then
 		DASHBOARD1SQL.CopyTable(DASHBOARD1SQLDOLU)
 		Set DASHBOARD1SQLDOLU = Nothing 
 		DASHBOARD1SQL.SetCurrentRow 1
 	End If
-
 	'-------------------------------------------------
 	'2- Son X dakikadaki giriş çıkışlar
 	If KontrolDk = 0 Then
 		KontrolDk = 10
 	End If
-
-	sql2 = sql2 & "    WHERE p.EventTimeDt >= DATEADD(minute, -" & KontrolDk & ", GETDATE()) " & vbCrLf
-	sql2 = sql2 & "    ORDER BY p.EventTimeDt DESC; " & vbCrLf
-
+	sql2 = sql2 & " AND p.EventTimeDt >= DATEADD(minute, -" & KontrolDk & ", GETDATE()) " & vbCrLf
+	sql2 = sql2 & " ORDER BY p.EventTimeDt DESC; " & vbCrLf
 	Set DASHBOARD2SQLDOLU = Doc.RunSQLQuery("DASHBOARD2_SQL_DOLU", sql2)	
 	Set DASHBOARD2SQL = Doc.GetTableObject("DASHBOARD2_SQL")
 	DASHBOARD2SQL.Empty
-
 	If DASHBOARD2SQLDOLU.GetRecCount > 0 Then
 		DASHBOARD2SQL.CopyTable(DASHBOARD2SQLDOLU)
 		Set DASHBOARD2SQLDOLU = Nothing 
 		DASHBOARD2SQL.SetCurrentRow 1
 	End If
-
 	'-------------------------------------------------
 	'3- Terminal bazlı günlük toplamlar
 	sql3 = sql3 & "    AND CAST(p.EventTimeDt AS date) = '"& Doc.Bugun &"' " & vbCrLf
@@ -125,17 +125,14 @@ Sub PDKS_Dashboard_sql(Nereden)
 	sql3 = sql3 & "            ELSE 'BILINMIYOR' " & vbCrLf
 	sql3 = sql3 & "        END " & vbCrLf
 	sql3 = sql3 & "    ORDER BY p.TerminalID; " & vbCrLf
-
 	Set DASHBOARD3SQLDOLU = Doc.RunSQLQuery("DASHBOARD3_SQL_DOLU", sql3)	
 	Set DASHBOARD3SQL = Doc.GetTableObject("DASHBOARD3_SQL")
 	DASHBOARD3SQL.Empty
-
 	If DASHBOARD3SQLDOLU.GetRecCount > 0 Then
 		DASHBOARD3SQL.CopyTable(DASHBOARD3SQLDOLU)
 		Set DASHBOARD3SQLDOLU = Nothing 
 		DASHBOARD3SQL.SetCurrentRow 1
 	End If
-
 	Call SonGuncellemeZamani("PDKS_Dashboard_sql")
 End Sub
 

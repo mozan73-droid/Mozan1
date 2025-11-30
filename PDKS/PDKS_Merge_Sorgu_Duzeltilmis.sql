@@ -25,7 +25,7 @@ ORDER BY TerminalID, TerminalYonu;
 -- KRİTER: Sadece 2025 ve sonrası veriler alınır
 --   - EventTime >= '2025-01-01'
 --   - KayitZamani >= SonAktarim veya '2025-01-01' (hangisi büyükse)
---   - Ayar tablosu (ZU_P_AYARE ve ZU_P_AYART) içindeki TerminalID'lere göre filtreleme
+--   - Ayar tablosundaki aktif terminallere göre filtreleme (vw_PDKS_Tum_Terminaller view'i kullanılır)
 
 DECLARE @SonAktarim datetime = (
     SELECT ISNULL(MAX(KayitZamani), '19000101')
@@ -83,13 +83,10 @@ USING (
         v.KayitZamani
     FROM [PDKS_LS].[GULERYUZGROUP14885_Meyer].[dbo].[vw_PDKS_OlayDetay_Bolum3ve6] v
     WHERE EXISTS (
-        -- Ayar tablosunda aktif olan TerminalID'lere göre filtreleme
+        -- Ayar tablosundaki aktif terminallere göre filtreleme (View kullanarak)
         SELECT 1
-        FROM dbo.ZU_P_AYARE ayare
-        LEFT JOIN dbo.ZU_P_AYART ayart ON ayart.EVRAKNO = ayare.EVRAKNO
-        WHERE ayare.AP10 = 1  -- Aktif olanlar
-          AND ayart.TerminalID IS NOT NULL
-          AND CAST(ayart.TerminalID AS varchar(10)) = CAST(v.TerminalID AS varchar(10))
+        FROM dbo.vw_PDKS_Tum_Terminaller t
+        WHERE CAST(t.TerminalID AS varchar(10)) = CAST(v.TerminalID AS varchar(10))
     )
       AND v.EventTime >= @MinTarih  -- Sadece 2025 ve sonrası EventTime
       AND v.KayitZamani >= @BaslangicTarihi  -- Son aktarım veya 2025-01-01'den sonrası

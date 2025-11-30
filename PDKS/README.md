@@ -34,11 +34,10 @@
 6. **PDKS_Cache_Tablo_Temizleme.sql**
    - Detaylı cache tablosu temizleme (eski versiyon)
 
-7. **PDKS_Terminal_Konfigurasyon_Tablo.sql**
-   - Alternatif konfigürasyon tablosu (opsiyonel, şu an kullanılmıyor)
-
-8. **PDKS_Terminal_Konfigurasyon_README.md**
-   - Konfigürasyon tablosu kullanım kılavuzu (opsiyonel)
+7. **PDKS_Terminal_Ayar_View.sql** ⭐
+   - Terminal view'leri oluşturma (Giriş/Çıkış/Tüm)
+   - Ayar tablosundan dinamik terminal filtreleme
+   - GIRISCIKIS alanına göre filtreleme
 
 ### 📊 Rapor ve Analiz Dosyaları
 

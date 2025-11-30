@@ -12,28 +12,30 @@ SELECT
     p.SicilNo,
     p.Bolum,
     CAST(p.EventTime AS DATE) AS Tarih,
-    MIN(CASE WHEN p.TerminalYonu LIKE '%GİRİŞ%' OR p.TerminalYonu LIKE '%GIRIS%' 
+    MIN(CASE WHEN giris.TerminalID IS NOT NULL 
              THEN CAST(p.EventTime AS TIME) END) AS GirisSaati,
-    MAX(CASE WHEN p.TerminalYonu LIKE '%ÇIKIŞ%' OR p.TerminalYonu LIKE '%CIKIS%' 
+    MAX(CASE WHEN cikis.TerminalID IS NOT NULL 
              THEN CAST(p.EventTime AS TIME) END) AS CikisSaati,
     DATEDIFF(MINUTE, 
-        MIN(CASE WHEN p.TerminalYonu LIKE '%GİRİŞ%' OR p.TerminalYonu LIKE '%GIRIS%' 
+        MIN(CASE WHEN giris.TerminalID IS NOT NULL 
                  THEN p.EventTime END),
-        MAX(CASE WHEN p.TerminalYonu LIKE '%ÇIKIŞ%' OR p.TerminalYonu LIKE '%CIKIS%' 
+        MAX(CASE WHEN cikis.TerminalID IS NOT NULL 
                  THEN p.EventTime END)
     ) AS CalismaDakika,
     CAST(DATEDIFF(MINUTE, 
-        MIN(CASE WHEN p.TerminalYonu LIKE '%GİRİŞ%' OR p.TerminalYonu LIKE '%GIRIS%' 
+        MIN(CASE WHEN giris.TerminalID IS NOT NULL 
                  THEN p.EventTime END),
-        MAX(CASE WHEN p.TerminalYonu LIKE '%ÇIKIŞ%' OR p.TerminalYonu LIKE '%CIKIS%' 
+        MAX(CASE WHEN cikis.TerminalID IS NOT NULL 
                  THEN p.EventTime END)
     ) / 60.0 AS DECIMAL(10,2)) AS CalismaSaat,
-    COUNT(DISTINCT CASE WHEN p.TerminalYonu LIKE '%GİRİŞ%' OR p.TerminalYonu LIKE '%GIRIS%' 
+    COUNT(DISTINCT CASE WHEN giris.TerminalID IS NOT NULL 
                         THEN p.ID END) AS GirisSayisi,
-    COUNT(DISTINCT CASE WHEN p.TerminalYonu LIKE '%ÇIKIŞ%' OR p.TerminalYonu LIKE '%CIKIS%' 
+    COUNT(DISTINCT CASE WHEN cikis.TerminalID IS NOT NULL 
                         THEN p.ID END) AS CikisSayisi
 FROM 
     dbo.PDKS_HAMDATA_CACHE p
+    LEFT JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID
+    LEFT JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID
 WHERE 
     p.Deleted = 0
     AND p.Status IS NOT NULL
@@ -60,19 +62,21 @@ SELECT
     MONTH(p.EventTime) AS Ay,
     COUNT(DISTINCT CAST(p.EventTime AS DATE)) AS CalisilanGun,
     SUM(DATEDIFF(MINUTE, 
-        MIN(CASE WHEN p.TerminalYonu LIKE '%GİRİŞ%' OR p.TerminalYonu LIKE '%GIRIS%' 
+        MIN(CASE WHEN giris.TerminalID IS NOT NULL 
                  THEN p.EventTime END),
-        MAX(CASE WHEN p.TerminalYonu LIKE '%ÇIKIŞ%' OR p.TerminalYonu LIKE '%CIKIS%' 
+        MAX(CASE WHEN cikis.TerminalID IS NOT NULL 
                  THEN p.EventTime END)
     )) AS ToplamCalismaDakika,
     CAST(SUM(DATEDIFF(MINUTE, 
-        MIN(CASE WHEN p.TerminalYonu LIKE '%GİRİŞ%' OR p.TerminalYonu LIKE '%GIRIS%' 
+        MIN(CASE WHEN giris.TerminalID IS NOT NULL 
                  THEN p.EventTime END),
-        MAX(CASE WHEN p.TerminalYonu LIKE '%ÇIKIŞ%' OR p.TerminalYonu LIKE '%CIKIS%' 
+        MAX(CASE WHEN cikis.TerminalID IS NOT NULL 
                  THEN p.EventTime END)
     )) / 60.0 AS DECIMAL(10,2)) AS ToplamCalismaSaat
 FROM 
     dbo.PDKS_HAMDATA_CACHE p
+    LEFT JOIN dbo.vw_PDKS_Giris_Terminalleri giris ON CAST(p.TerminalID AS varchar(10)) = giris.TerminalID
+    LEFT JOIN dbo.vw_PDKS_Cikis_Terminalleri cikis ON CAST(p.TerminalID AS varchar(10)) = cikis.TerminalID
 WHERE 
     p.Deleted = 0
     AND p.Status IS NOT NULL

@@ -58,8 +58,8 @@ WHERE NOT EXISTS (
     WHERE c.ID = ls.ID
 );
 
--- Seçenek 2: Sadece belirli terminalleri ekle (1093 ve 1094 dışındakileri de eklemek için)
--- TerminalID filtresini kaldırın veya istediğiniz terminalleri ekleyin
+-- Seçenek 2: Sadece ayar tablosundaki aktif terminalleri ekle (View kullanarak)
+-- Ayar tablosundaki tüm aktif terminalleri otomatik olarak alır
 /*
 INSERT INTO dbo.PDKS_HAMDATA_CACHE (
     ID, SicilID, UserID, PersonelAdi, PersonelSoyadi, SicilNo, 
@@ -77,7 +77,12 @@ SELECT
     duzeltme, mudahale, kayitbilgisi, entegrasyonbilgisi,
     Veri_Gelis, KayitZamani
 FROM [PDKS_LS].[GULERYUZGROUP14885_Meyer].[dbo].[vw_PDKS_OlayDetay_Bolum3ve6] ls
-WHERE TerminalID IN ('1093', '1094', 'DIGER_TERMINAL_ID_LER')  -- Buraya eksik terminalleri ekleyin
+WHERE EXISTS (
+    -- Ayar tablosundaki aktif terminalleri kontrol et
+    SELECT 1 
+    FROM dbo.vw_PDKS_Tum_Terminaller t
+    WHERE CAST(ls.TerminalID AS varchar(10)) = t.TerminalID
+)
   AND NOT EXISTS (
     SELECT 1 
     FROM dbo.PDKS_HAMDATA_CACHE c 
