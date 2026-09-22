@@ -1,0 +1,191 @@
+'=====================================
+' Faz 1: VY_SECIMI ozellik secimi (STACK) — SCFOEN/FOKOD yok
+'=====================================
+Sub cmd_VySecim
+	Dim Par
+	Dim sKod
+	Dim sGk18
+	Dim TblS40T
+	Dim TblGk
+	Dim TblStack
+
+	On Error Resume Next
+
+	Set TblS40T = Doc.GetTableObject("STOK40T")
+	If TblS40T Is Nothing Then
+		MsgBox "STOK40T satiri bulunamadi."
+		Exit Sub
+	End If
+
+	sKod = Trim(TblS40T.KOD)
+	If Err.Number <> 0 Then
+		Err.Clear
+		sKod = ""
+	End If
+
+	If sKod = "" Then
+		MsgBox "Satir stok kodu bos."
+		Exit Sub
+	End If
+
+	sGk18 = ""
+	Set TblGk = Doc.Select1("vygk18", "STOK00", "KOD='" & Replace(sKod, "'", "''") & "'", "", -1)
+	If Not TblGk Is Nothing Then
+		If TblGk.GetRecCount > 0 Then
+			sGk18 = Trim(TblGk.GK_18(1))
+		End If
+	End If
+	If Err.Number <> 0 Then
+		Err.Clear
+		sGk18 = ""
+	End If
+
+	If UCase(sGk18) <> "VY_SECIMI" Then
+		MsgBox "Bu stok icin VY_SECIMI secimi gecerli degil (GK_18<>VY_SECIMI)." & vbCrLf & "Kod: " & sKod & vbCrLf & "GK_18: " & sGk18
+		Exit Sub
+	End If
+
+	Set TblStack = Doc.GetTableObject("VYSECIM_STACK")
+	If TblStack Is Nothing Then
+		Err.Clear
+		Set TblStack = Doc.CreateTableObject("VYSECIM_STACK=STACK", "IO")
+		TblStack.AddField2 "OZELLIK", "CHAR", 80, 0, "L", "", ""
+		TblStack.AddField2 "SEC", "CHAR", 1, 0, "L", "", ""
+	End If
+	If TblStack Is Nothing Then
+		MsgBox "VYSECIM_STACK (STACK) olusturulamadi."
+		Exit Sub
+	End If
+
+	Call VySecim_StackSeed
+
+	Set Par = Nothing
+	Doc.LoadSubForm_Dyn "FRM_VYSECIM", "EFRM10." & SC_SCRIPTMODULEFILENAME, Par
+End Sub
+
+Sub VySecim_StackSeed
+	Dim TblStack
+
+	On Error Resume Next
+	Set TblStack = Doc.GetTableObject("VYSECIM_STACK")
+	If TblStack Is Nothing Then
+		MsgBox "VYSECIM_STACK bulunamadi."
+		Exit Sub
+	End If
+
+	TblStack.Empty
+	Call VySecim_AddRow(TblStack, "EFO (AKU)")
+	Call VySecim_AddRow(TblStack, "SOGUTUCU")
+	Call VySecim_AddRow(TblStack, "DC MOTOR")
+	Call VySecim_AddRow(TblStack, "SDO")
+	Call VySecim_AddRow(TblStack, "HPU ISITICI")
+	Call VySecim_AddRow(TblStack, "PANO ISITICI")
+	Call VySecim_AddRow(TblStack, "IP 67")
+	Call VySecim_AddRow(TblStack, "220 Volt")
+	Call VySecim_AddRow(TblStack, "Oto Inis")
+
+	TblStack.SetCurrentRow 1
+	TblStack.Refresh
+End Sub
+
+Sub VySecim_AddRow(TblStack, sOzellik)
+	TblStack.AddRow
+	TblStack.SetCurrentRow TblStack.RowCount
+	TblStack.OZELLIK = sOzellik
+	TblStack.SEC = "H"
+End Sub
+
+Function MapOzellikToGrup(ByVal sOzellik)
+	Dim s
+	s = UCase(Trim(sOzellik))
+
+	If InStr(1, s, "EFO") > 0 Then
+		MapOzellikToGrup = "Grup01"
+		Exit Function
+	End If
+	If InStr(1, s, "SOGUT") > 0 Or InStr(1, s, "S" & Chr(208) & "TC") > 0 Then
+		MapOzellikToGrup = "Grup02"
+		Exit Function
+	End If
+	If InStr(1, s, "HPU") > 0 Then
+		MapOzellikToGrup = "Grup03"
+		Exit Function
+	End If
+	If InStr(1, s, "PANO") > 0 Then
+		MapOzellikToGrup = "Grup04"
+		Exit Function
+	End If
+	If InStr(1, s, "IP") > 0 And InStr(1, s, "67") > 0 Then
+		MapOzellikToGrup = "Grup05"
+		Exit Function
+	End If
+	If InStr(1, s, "DC") > 0 And InStr(1, s, "MOTOR") > 0 Then
+		MapOzellikToGrup = "TBD"
+		Exit Function
+	End If
+	If s = "SDO" Then
+		MapOzellikToGrup = "TBD"
+		Exit Function
+	End If
+	If InStr(1, s, "220") > 0 Then
+		MapOzellikToGrup = "TBD"
+		Exit Function
+	End If
+	If InStr(1, s, "OTO") > 0 Or InStr(1, s, "INIS") > 0 Then
+		MapOzellikToGrup = "TBD"
+		Exit Function
+	End If
+
+	MapOzellikToGrup = ""
+End Function
+
+Sub cmd_VySecimOK
+	Dim TblStack
+	Dim i
+	Dim nRow
+	Dim sOz
+	Dim sSec
+	Dim sOpt
+	Dim sOkList
+	Dim sTbdList
+	Dim bAny
+
+	On Error Resume Next
+	bAny = False
+	sOkList = ""
+	sTbdList = ""
+
+	Set TblStack = Doc.GetTableObject("VYSECIM_STACK")
+	If TblStack Is Nothing Then
+		MsgBox "Secim STACK tablosu (VYSECIM_STACK) bulunamadi."
+		Exit Sub
+	End If
+
+	nRow = TblStack.RowCount
+	For i = 1 To nRow
+		TblStack.SetCurrentRow i
+		sOz = Trim(TblStack.OZELLIK)
+		sSec = UCase(Trim(TblStack.SEC))
+		If sSec = "E" Then
+			sOpt = MapOzellikToGrup(sOz)
+			If sOpt = "TBD" Or sOpt = "" Then
+				If sTbdList <> "" Then sTbdList = sTbdList & ", "
+				sTbdList = sTbdList & sOz
+			Else
+				If sOkList <> "" Then sOkList = sOkList & ", "
+				sOkList = sOkList & sOpt & "=" & sOz
+				bAny = True
+			End If
+		End If
+	Next
+
+	If Not bAny And sTbdList = "" Then
+		MsgBox "Secim yok (hepsi H)."
+		Exit Sub
+	End If
+
+	' Faz 1 smoke: SCFOEN yazilmaz
+	MsgBox "Faz1 smoke (SCFOEN yok)" & vbCrLf & _
+		"Grup listesi: " & sOkList & vbCrLf & _
+		"TBD (atomik Option yok): " & sTbdList
+End Sub
