@@ -45,7 +45,7 @@ Tek dosya HTML (kopyala-yapıştır için): `ONENOTE_NOTEBOOK.html`
 ## Kaynak önceliği
 
 1. Bu referans + proje kuralları
-2. Makro örnek klasörü: `C:\KOD_ARA_KLASÖRÜ` (yeni özellik öncesi benzer örnek ara)
+2. Makro örnek klasörü: lokal `C:\KOD_ARA_KLASÖRÜ` — cloud aynası: repo `KOD_ARA_KLASORU/` (yeni özellik öncesi benzer örnek ara)
 3. Repo örnekleri: `OZAK/`, `PDKS/`
 
 ## Önemli yasaklar (özet)
