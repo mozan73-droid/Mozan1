@@ -44,8 +44,8 @@ Tek dosya HTML (kopyala-yapıştır için): `ONENOTE_NOTEBOOK.html`
 
 ## Kaynak önceliği
 
-1. Bu referans + proje kuralları
-2. Makro örnek klasörü: lokal `C:\KOD_ARA_KLASÖRÜ` — cloud aynası: repo `KOD_ARA_KLASORU/` (yeni özellik öncesi benzer örnek ara)
+1. Bu referans + proje kuralları (`.cursor/rules/dinamo-erp-kod-ara.mdc`)
+2. Makro örnek klasörü: **`KOD_ARA_KLASORU/`** (lokal `C:\KOD_ARA_KLASÖRÜ`) — Dinamo/ERP aramalarda zorunlu ilk kaynak
 3. Repo örnekleri: `OZAK/`, `PDKS/`
 
 ## Önemli yasaklar (özet)

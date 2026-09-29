@@ -34,13 +34,17 @@ Oracle veritabanına **doğrudan müdahale yok** (bağlantı, INSERT/UPDATE/DELE
 - Freedom / Dinamo **makro XML** içinde `SELECT` / `RunSqlQuery` (kullanıcı import eder)
 - Kullanıcının verdiği sorgu sonucunu yorumlamak
 
-## Makro örnek klasörü
+## Makro örnek klasörü (zorunlu arama)
 
-Yeni özellik (grafik, form kontrolü, kalıp) yazmadan önce:
+Dinamo / Freedom ERP **kod veya fonksiyon** aramalarında önce:
 
-`C:\KOD_ARA_KLASÖRÜ`
+1. Cloud/repo: **`KOD_ARA_KLASORU/`**
+2. Lokal: `C:\KOD_ARA_KLASÖRÜ`
+3. Proje: `OZAK/`, `PDKS/`
 
-Benzer Dinamo/Freedom kullanımını bulup takip et.
+Cursor kuralı: `.cursor/rules/dinamo-erp-kod-ara.mdc` (`alwaysApply`)
+
+Yeni özellik öncesi benzer kalıp ara; platform (Dinamo vs Freedom) aynı olsun.
 
 ## Parçalı kod notları
 
