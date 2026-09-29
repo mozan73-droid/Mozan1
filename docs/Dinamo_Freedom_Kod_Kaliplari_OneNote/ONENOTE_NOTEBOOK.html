@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Dinamo &amp; Freedom ERP — Kod Kalıpları</title>
+<style>
+  body { font-family: Calibri, Segoe UI, sans-serif; max-width: 920px; margin: 24px auto; padding: 0 16px; line-height: 1.45; color: #222; }
+  h1 { border-bottom: 2px solid #2b579a; padding-bottom: 6px; color: #2b579a; page-break-before: always; }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { color: #1a3a6b; margin-top: 1.4em; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #bbb; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #e8eef7; }
+  pre { background: #f4f4f4; border: 1px solid #ddd; padding: 10px 12px; overflow-x: auto; font-family: Consolas, "Courier New", monospace; font-size: 12.5px; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 0.92em; }
+  .note { background: #fff8e1; border-left: 4px solid #f0c040; padding: 8px 12px; margin: 12px 0; }
+  .warn { background: #fdecea; border-left: 4px solid #c0392b; padding: 8px 12px; margin: 12px 0; }
+  .toc a { text-decoration: none; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 2em 0; }
+</style>
+</head>
+<body>
+
+<h1>00 · OneNote’a aktarma</h1>
+<p><strong>Defter adı önerisi:</strong> Dinamo Freedom Kod Kaliplari</p>
+<p>Her <code>h1</code> başlığını OneNote’ta ayrı sayfa yapın. Bu HTML’i tarayıcıda açıp bölüm bölüm kopyalayın.</p>
+<div class="warn"><strong>Ortam notu:</strong> Bu paket GitHub reposunda tutulur. Ortamda OneNote API/MCP yok; içeriği OneNote masaüstü veya web’e yapıştırarak referans kaynağı oluşturun.</div>
+<ol>
+  <li>OneNote’ta yeni defter: <em>Dinamo Freedom Kod Kaliplari</em></li>
+  <li>Aşağıdaki her ana başlık = bir sayfa</li>
+  <li>Kod bloklarını monospace bırakın</li>
+</ol>
+<ul class="toc">
+  <li><a href="#p01">01 · Genel kurallar</a></li>
+  <li><a href="#p02">02 · Tablo nesneleri</a></li>
+  <li><a href="#p03">03 · Grid doldurma</a></li>
+  <li><a href="#p04">04 · Satır değişimi</a></li>
+  <li><a href="#p05">05 · Frame_Refresh &amp; SafePack</a></li>
+  <li><a href="#p06">06 · SQL kalıpları</a></li>
+  <li><a href="#p07">07 · XML / form import</a></li>
+  <li><a href="#p08">08 · Hata yönetimi</a></li>
+  <li><a href="#p09">09 · Doc metodları</a></li>
+  <li><a href="#p10">10 · Dinamo vs Freedom</a></li>
+  <li><a href="#p11">11 · Repo örnekleri</a></li>
+</ul>
+
+<hr>
+
+<h1 id="p01">01 · Genel kurallar</h1>
+<div class="warn"><strong>Goto yok.</strong> <code>GoTo</code>, <code>On Error Goto</code> kullanma. Akış: <code>If</code> / <code>Exit Sub</code>. Hata: <code>On Error Resume Next</code> + <code>Err.Number</code> / <code>Err.Clear</code>.</div>
+<pre>On Error Resume Next
+' ... riskli çağrı ...
+If Err.Number &lt;&gt; 0 Then
+	Err.Clear
+	Exit Sub
+End If</pre>
+<p><strong>Oracle:</strong> doğrudan bağlanma / yazma yok. Makro XML içinde SELECT / RunSqlQuery OK (kullanıcı import eder).</p>
+<p><strong>Örnek klasör:</strong> <code>C:\KOD_ARA_KLASÖRÜ</code> — yeni özellik öncesi benzer örnek ara.</p>
+<p>Parçalı kod: <strong>SRNUM</strong>. UAPP10T2’de FORMKODU yok. RWSTDF anahtar: <strong>ITEMCODE</strong>.</p>
+
+<hr>
+
+<h1 id="p02">02 · Tablo nesneleri (NOFILE / STACK)</h1>
+<table>
+  <tr><th>İhtiyaç</th><th>Kalıp</th><th>Metod</th></tr>
+  <tr><td>Çok satırlı grid</td><td><code>...(NOFILE)</code> transactional</td><td><code>CreateTransactionalTableObject</code></td></tr>
+  <tr><td>Tek satır kriter</td><td><code>...(NOFILE)</code></td><td><code>CreateTableObject</code></td></tr>
+  <tr><td>Geçici STACK</td><td><code>NAME=STACK</code></td><td>genelde <code>CreateTableObject</code></td></tr>
+</table>
+<div class="warn">Çok satırlı grid’de yanlış <code>=STACK</code> → <strong>74533[TABLOADI]</strong>. Şema = gerçek tablo + <code>AddField2</code>.</div>
+<pre>Set MTableXOP2 = Doc.CreateTransactionalTableObject("MTABLEX_OP2=SFDC32O(NOFILE)", "IO")
+MTableXOP2.AddField2 "OPERATORADI", "CHAR", 50, 0, "L", "", ""
+
+Set OTOKNTRL = Doc.CreateTableObject("OTOKONTROL=ZU_SFDC32E(NOFILE)", "IO")
+
+Set TblStack = Doc.CreateTableObject("VYSECIM_STACK=STACK", "IO")
+TblStack.AddField2 "OZELLIK", "CHAR", 80, 0, "L", "", ""
+TblStack.AddField2 "SEC", "CHAR", 1, 0, "L", "", ""</pre>
+<pre>' SQL şemalı grid
+Doc.RunSqlQuery "TABLO", SQL &amp; " WHERE 1=0"</pre>
+
+<hr>
+
+<h1 id="p03">03 · Grid doldurma</h1>
+<div class="note"><strong>Doğru:</strong> RunSqlQuery → Empty → CopyTable → SetCurrentRow → Refresh</div>
+<pre>Set TblDolu = Doc.RunSqlQuery("TABLO_DOLU", SQL)
+TrnTable.Empty
+TrnTable.CopyTable(TblDolu)
+TrnTable.SetCurrentRow 1
+TrnTable.Refresh</pre>
+<pre>Set XDOLU = Doc.RunSQLQuery("X_DOLU", sql)
+Set X = Doc.GetTableObject("X")
+X.Empty
+If XDOLU.GetRecCount &gt; 0 Then
+	X.CopyTable(XDOLU)
+	Set XDOLU = Nothing
+	X.SetCurrentRow 1
+End If</pre>
+<p>Ek satır:</p>
+<pre>Tbl.AddRow
+Tbl.SetCurrentRow Tbl.RowCount
+Tbl.OZELLIK = sOzellik
+Tbl.SEC = "H"</pre>
+<div class="warn">Sadece Create* + AddRow ile doldurmak → grid boş kalır.</div>
+
+<hr>
+
+<h1 id="p04">04 · Satır değişimi (Freedom vs Dinamo)</h1>
+<h2>Freedom</h2>
+<p><code>Setd7RowsetEventReplace "AFTERROWCHANGE"</code> <strong>KULLANMA</strong>.</p>
+<pre>Tbl.LoadMacroModule("MAKR7S." + "@@@BUMAKRO@@@")
+
+Sub RECCALC_IAFTERROWCHANGE
+	If t.getappname = "MAKROTABLE_OTEOZET" Then
+		Call DetayListeDoldur
+	End If
+End Sub</pre>
+<h2>Dinamo</h2>
+<pre>Doc.Setd7RowsetEventReplace "AFTERROWCHANGE", ...</pre>
+
+<hr>
+
+<h1 id="p05">05 · Frame_Refresh_Controls &amp; SafePack</h1>
+<table>
+  <tr><th>Platform</th><th>Frame_Refresh_Controls</th></tr>
+  <tr><td>Dinamo</td><td>Grid sonrası çağır</td></tr>
+  <tr><td>Freedom</td><td><strong>ÇAĞIRMA</strong> — 0x800A01B6</td></tr>
+</table>
+<div class="warn"><strong>SafePack:</strong> zorunlu alan yoksa tabloyu boşaltır. <code>SetMustEnter</code> yoksa SafePack kullanma. RunSqlQuery şemasında zorunlu alan varsayılan gelmez.</div>
+<pre>' Dinamo
+TrnTable.Refresh
+Doc.Frame_Refresh_Controls
+
+' Freedom — sadece Refresh</pre>
+
+<hr>
+
+<h1 id="p06">06 · SQL kalıpları</h1>
+<div class="warn">Makro SQL’de <strong>WITH (CTE) yok</strong>. EXISTS / alt sorgu / UNION kullan. <code>WITH (NOLOCK)</code> tablo hint’i CTE değildir — OK.</div>
+<pre>sql = "SELECT Durum, COUNT(*) AS PersonelSayisi FROM (" &amp; vbCrLf
+sql = sql &amp; "    SELECT ... FROM dbo.TABLO p WITH (NOLOCK) ..." &amp; vbCrLf
+sql = sql &amp; ") x WHERE x.rn = 1 GROUP BY x.Durum"</pre>
+<pre>' Turkish_BIN benzeri
+sql = sql &amp; " AND UPPER(kolon) LIKE '%KELIME%'"</pre>
+<pre>Set TblGk = Doc.Select1("vygk18", "STOK00", "KOD='" &amp; Replace(sKod, "'", "''") &amp; "'", "", -1)</pre>
+<p>GRID <code>D=</code> alanları = SQL kolon alias’ları (birebir).</p>
+
+<hr>
+
+<h1 id="p07">07 · XML / form import</h1>
+<ul>
+  <li>Saf ASCII; Türkçe: <code>Chr(214)</code>, <code>Chr(220)</code>…</li>
+  <li>SELECTVALUE: harf <strong>V</strong>, <strong>H</strong> (rakam değil)</li>
+</ul>
+<pre>GRID ... TABLE=PERSONELLISTESI_SQL NOEDIT=Y
+	EDITTEXT D="TCKIMLIKNO" CAPTION="Sicil ID (TC)" W=120P
+ENDGRID
+BUTTON ... ID="RUN_MODULE_PROC_NOCALC('cmd_personel_listesi')"</pre>
+<pre>Doc.LoadSubForm_Dyn "FRM_VYSECIM", "EFRM10." &amp; SC_SCRIPTMODULEFILENAME, Par</pre>
+
+<hr>
+
+<h1 id="p08">08 · Hata yönetimi</h1>
+<pre>On Error Resume Next
+Set Tbl = Doc.GetTableObject("STOK40T")
+If Tbl Is Nothing Then
+	MsgBox "STOK40T satiri bulunamadi."
+	Exit Sub
+End If
+sKod = Trim(Tbl.KOD)
+If Err.Number &lt;&gt; 0 Then
+	Err.Clear
+	sKod = ""
+End If</pre>
+
+<hr>
+
+<h1 id="p09">09 · Doc metodları (cheat sheet)</h1>
+<table>
+  <tr><th>Metod</th><th>Not</th></tr>
+  <tr><td><code>CreateTableObject</code></td><td>Tek satır / STACK / E</td></tr>
+  <tr><td><code>CreateTransactionalTableObject</code></td><td>Çok satırlı grid</td></tr>
+  <tr><td><code>GetTableObject</code></td><td>Mevcut tablo</td></tr>
+  <tr><td><code>RunSqlQuery</code> / <code>RunSQLQuery</code></td><td>Sorgu sonucu</td></tr>
+  <tr><td><code>Select1</code></td><td>Küçük filtreli sonuç</td></tr>
+  <tr><td><code>Frame_Refresh_Controls</code></td><td>Sadece Dinamo</td></tr>
+  <tr><td><code>LoadSubForm_Dyn</code></td><td>Alt form</td></tr>
+  <tr><td><code>Setd7RowsetEventReplace</code></td><td>Dinamo satır event</td></tr>
+  <tr><td><code>LoadMacroModule</code> + <code>RECCALC_IAFTERROWCHANGE</code></td><td>Freedom satır event</td></tr>
+</table>
+<p>Giriş noktaları: <code>INITDOCUMENT</code>, <code>INITDOCUMENT_VALUES</code>, <code>cmd_...</code>, <code>CALC_...</code></p>
+
+<hr>
+
+<h1 id="p10">10 · Dinamo vs Freedom</h1>
+<table>
+  <tr><th>Konu</th><th>Dinamo</th><th>Freedom</th></tr>
+  <tr><td>Goto</td><td>Yok</td><td>Yok</td></tr>
+  <tr><td>Frame_Refresh</td><td>Var</td><td>Yok — çağırma</td></tr>
+  <tr><td>Satır değişimi</td><td>Setd7RowsetEventReplace</td><td>LoadMacroModule + RECCALC</td></tr>
+  <tr><td>SQL CTE</td><td>Yok</td><td>Yok</td></tr>
+  <tr><td>SafePack</td><td>Zorunlu alan varsa</td><td>Aynı</td></tr>
+</table>
+
+<hr>
+
+<h1 id="p11">11 · Repo örnekleri</h1>
+<p><strong>OZAK / STOK40:</strong> <code>OZAK/STOK40_FO_KOD_GRUP_SECIMI/</code> — STACK seçim, Select1, LoadSubForm_Dyn</p>
+<p><strong>PDKS:</strong> <code>PDKS/PDKS_Puantaj_Personel_Toplam_Makro.vbs</code>, <code>PDKS_Dashboard_sql_*.txt</code> — INITDOCUMENT, CopyTable, dashboard SQL</p>
+<p>Etiket önerisi: #dinamo #freedom #grid #sql #stack #nofile #ozak #pdks</p>
+
+</body>
+</html>
