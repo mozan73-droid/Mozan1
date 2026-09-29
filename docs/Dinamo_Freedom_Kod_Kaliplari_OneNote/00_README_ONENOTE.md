@@ -21,9 +21,11 @@ Bu klasör, **Dinamo ERP** ve **Freedom ERP** makro çalışmalarında en sık k
 
 Tek dosya HTML (kopyala-yapıştır için): `ONENOTE_NOTEBOOK.html`
 
-## OneNote’a aktarma (3 yol)
+## OneNote’a aktarma
 
-### A) HTML’den kopyala-yapıştır (en hızlı)
+**Yerel Windows OneNote (otomatik):** `YEREL_ONENOTE_AKTAR.md` → `OneNote-Aktar.cmd` veya `Import-To-Local-OneNote.ps1`
+
+### A) HTML’den kopyala-yapıştır
 
 1. `ONENOTE_NOTEBOOK.html` dosyasını tarayıcıda açın.
 2. OneNote’ta yeni bir defter oluşturun: **Dinamo Freedom Kod Kaliplari**.
@@ -37,8 +39,8 @@ Tek dosya HTML (kopyala-yapıştır için): `ONENOTE_NOTEBOOK.html`
 
 ### C) Word aracılığıyla
 
-1. HTML’i Word’e açın → Kaydet (.docx).
-2. Word’den **Dosya → Gönder → OneNote**.
+1. Hazır dosya: `Dinamo_Freedom_Kod_Kaliplari.docx`
+2. Word’de açın → **Dosya → Gönder / Paylaş → OneNote**.
 
 ## Kaynak önceliği
 
