@@ -12,25 +12,35 @@ Cloud agent yerel `C:\` diskine erişemez. Dinamo/Freedom örnekleri buraya kopy
 
 ## İlk doldurma (bilgisayarınızda)
 
-### A) ZIP ile (önerilen)
+### A) Sohbet 10MB limiti — önerilen: git push (limitsiz pratikte)
 
-1. `C:\KOD_ARA_KLASÖRÜ` klasörünü ZIP’leyin
-2. Bu Cursor sohbetine ZIP’i yükleyin
-3. Agent içeriği buraya açıp commit eder
+Repo kökünde, bu branch’teyken:
 
-### B) PowerShell senkron
+```powershell
+git checkout cursor/dinamo-erp-kod-kaliplari-onenote-2b90
+powershell -ExecutionPolicy Bypass -File .\KOD_ARA_KLASORU\Sync-CodeOnly-And-Push.ps1
+```
 
-Repo kökünde (bu branch checkout iken):
+Bu script yalnızca `.txt .vbs .bas .xml .sql .md …` kod dosyalarını alır (pdf/exe/resim yok), `KOD_ARA_KLASORU/` içine koyar ve **commit + push** eder. Cloud agent hemen kullanır.
+
+### B) Küçük ZIP (sohbete Attach, max ~10MB)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\KOD_ARA_KLASORU\Sync-CodeOnly-And-Push.ps1 -ZipOnly
+```
+
+Masaüstünde `KOD_ARA_kod.zip` oluşur. 10MB altındaysa sohbete Attach edin.
+
+### C) Tam klasör kopyası (ağır dosyalar dahil)
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\KOD_ARA_KLASORU\Sync-From-Local.ps1
 git add KOD_ARA_KLASORU
-git commit -m "Sync KOD_ARA_KLASORU from local C:\KOD_ARA_KLASÖRÜ"
+git commit -m "Sync KOD_ARA_KLASORU from local"
 git push
 ```
 
-Varsayılan kaynak: `C:\KOD_ARA_KLASÖRÜ`  
-İsteğe bağlı: `-Source "D:\baska\yol"`
+Tam ZIP sohbete **yüklenemez** (10MB limit) — push kullanın.
 
 ## Kurallar
 
