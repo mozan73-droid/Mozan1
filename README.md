@@ -8,9 +8,12 @@ En sık kullanılan makro kalıpları: [`docs/Dinamo_Freedom_Kod_Kaliplari_OneNo
 - Sayfa sayfa Markdown: `docs/Dinamo_Freedom_Kod_Kaliplari_OneNote/sayfalar/`
 - OneNote’a kopyala-yapıştır HTML: `docs/Dinamo_Freedom_Kod_Kaliplari_OneNote/ONENOTE_NOTEBOOK.html`
 
-## Makro örnek klasörü (cloud aynası)
+## Makro örnek klasörü (zorunlu arama kaynağı)
 
-Lokal: `C:\KOD_ARA_KLASÖRÜ`  
-Cloud/repo: [`KOD_ARA_KLASORU/`](KOD_ARA_KLASORU/README.md)
+**Kural:** Dinamo / Freedom ERP kod veya fonksiyon aramalarında önce burayı kullan.
 
-İçeriği senkronlamak için: `KOD_ARA_KLASORU/Sync-From-Local.ps1` veya ZIP’i sohbete yükleyin.
+- Lokal: `C:\KOD_ARA_KLASÖRÜ`
+- Cloud/repo: [`KOD_ARA_KLASORU/`](KOD_ARA_KLASORU/README.md)
+- Cursor kuralı: [`.cursor/rules/dinamo-erp-kod-ara.mdc`](.cursor/rules/dinamo-erp-kod-ara.mdc)
+
+Senkron: `KOD_ARA_KLASORU/Sync-CodeOnly-And-Push.ps1`

@@ -1,57 +1,51 @@
 # KOD_ARA_KLASORU — cloud aynası
 
-Lokal Windows yolu:
+Lokal: `C:\KOD_ARA_KLASÖRÜ`  
+Cloud/repo: `KOD_ARA_KLASORU/`
 
-`C:\KOD_ARA_KLASÖRÜ`
+**Durum:** Senkronlandı (filtered kod dosyaları). ~150 dosya.
 
-Cloud / GitHub yolu (bu klasör):
+## Klasör haritası
 
-`KOD_ARA_KLASORU/`
+| Klasör | Ne | Örnek dosya |
+| --- | --- | --- |
+| `dinamo/EFRM10/` | Dinamo form özelleştirme makroları | `OZAK_2026_EFRM10.txt` |
+| `dinamo/MAKR8S/` | Dinamo MAKR8S | `OZAK_2026_MAKR8S.txt` |
+| `dinamo/PFRM7S/` | Dinamo yazdırma / etiket | `OPR_2026_PFRM7S.txt` |
+| `dinamo/REP17S/` | Dinamo rapor | `OZAK_2026_REP17S.txt` |
+| `dinamo/RWSTDF/` | Standart satır | `OZAK_2026_RWSTDF.txt` |
+| `dinamo/UAPP10/` | Uygulama | `OZAK_2026_UAPP10.txt` |
+| `MAKR7S/` | Freedom/eski MAKR7S örnekleri (çok firma) | `OPS_2016_MAKR7S.txt`, `YILDIZ_2014_MAKR7S.txt` |
+| `MAKR8S/` | Freedom MAKR8S | `ops_2023_makr8.txt` |
+| `PFRM7S/` | Yazdırma örnekleri | `CAVO_2016_PFRM7S.txt` |
+| `REP17S/` | Rapor | `BPRS13_REP17S.txt` |
 
-Cloud agent yerel `C:\` diskine erişemez. Dinamo/Freedom örnekleri buraya kopyalanınca agent ve PR’lar bu kopyayı kullanır.
+Export özeti: `dinamo/_export_info.txt` (OZAK_2026: MAKR7S=192, PFRM7S=208, …)
 
-## İlk doldurma (bilgisayarınızda)
+## Bu klasörde aranacak kalıplar
 
-### A) Sohbet 10MB limiti — önerilen: git push (limitsiz pratikte)
+**Zorunlu kural:** Dinamo / Freedom ERP kod veya fonksiyon aramalarında agent/geliştirici önce `KOD_ARA_KLASORU/` kullanır  
+(Cursor: `.cursor/rules/dinamo-erp-kod-ara.mdc`).
 
-Repo kökünde, bu branch’teyken:
+
+```text
+CreateTransactionalTableObject
+CreateTableObject
+CopyTable / SafePack / SetMustEnter
+LoadMacroModule / RECCALC_IAFTERROWCHANGE
+Setd7RowsetEventReplace
+Frame_Refresh_Controls
+RunSqlQuery / Select1 / Select2
+LoadSubForm_Dyn
+TMPCOPY
+```
+
+## Yeniden senkron
 
 ```powershell
+cd ...\Mozan1
 git checkout cursor/dinamo-erp-kod-kaliplari-onenote-2b90
 powershell -ExecutionPolicy Bypass -File .\KOD_ARA_KLASORU\Sync-CodeOnly-And-Push.ps1
 ```
 
-Bu script yalnızca `.txt .vbs .bas .xml .sql .md …` kod dosyalarını alır (pdf/exe/resim yok), `KOD_ARA_KLASORU/` içine koyar ve **commit + push** eder. Cloud agent hemen kullanır.
-
-### B) Küçük ZIP (sohbete Attach, max ~10MB)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\KOD_ARA_KLASORU\Sync-CodeOnly-And-Push.ps1 -ZipOnly
-```
-
-Masaüstünde `KOD_ARA_kod.zip` oluşur. 10MB altındaysa sohbete Attach edin.
-
-### C) Tam klasör kopyası (ağır dosyalar dahil)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\KOD_ARA_KLASORU\Sync-From-Local.ps1
-git add KOD_ARA_KLASORU
-git commit -m "Sync KOD_ARA_KLASORU from local"
-git push
-```
-
-Tam ZIP sohbete **yüklenemez** (10MB limit) — push kullanın.
-
-## Kurallar
-
-- Bu klasör **referans / arama** içindir; Oracle’a yazma yok
-- Büyük binary / gizli bilgi (şifre, connection string) eklemeyin
-- Sync sonrası OneNote referansı da bu kopyadan beslenir
-
-## Durum
-
-| Alan | Değer |
-| --- | --- |
-| Lokal kaynak | `C:\KOD_ARA_KLASÖRÜ` |
-| Cloud hedef | `KOD_ARA_KLASORU/` (bu repo) |
-| İçerik | Henüz senkron bekleniyor — ZIP yükleyin veya Sync script çalıştırın |
+veya ASCII-safe tek satır blok (sohbet geçmişindeki paste).

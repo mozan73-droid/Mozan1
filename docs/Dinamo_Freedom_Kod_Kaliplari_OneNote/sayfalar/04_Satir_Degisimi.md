@@ -1,46 +1,67 @@
-# 04 · Satır değişimi (Freedom vs Dinamo)
+# 04 · Satır değişimi (Freedom vs Dinamo) — KOD_ARA örnekleri
 
 ## Freedom — LoadMacroModule + RECCALC
 
-`Setd7RowsetEventReplace "AFTERROWCHANGE"` **KULLANMA**.
+Kaynak: `KOD_ARA_KLASORU/MAKR7S/OPS_2016_MAKR7S.txt`
 
-Grid tablosuna makro modülü bağla; satır değişince `RECCALC_IAFTERROWCHANGE` çalışır.
-
-Hangi grid: `t.getappname`.
+`Setd7RowsetEventReplace "AFTERROWCHANGE"` Freedom’da **kullanma** (tercih edilen kalıp aşağıda).
 
 ```vb
-Tbl.LoadMacroModule("MAKR7S." + "@@@BUMAKRO@@@")
+' Grid tablosuna makro bagla
+LST2X.LoadMacroModule("MAKR7S." + "@@@BUMAKRO@@@")
 
 Sub RECCALC_IAFTERROWCHANGE
-	If t.getappname = "MAKROTABLE_OTEOZET" Then
-		Call DetayListeDoldur
-	End If
+	Set S40LST = Doc.GetTableObject("STOK40T_LISTESI2")
+	Set MTABLE = Doc.GetTableObject("MAKROTABLE")
+	StokKodu = S40LST.KOD
+	' Satir degisince detay / ozet yenile
 End Sub
 ```
 
-## Dinamo — Setd7RowsetEventReplace
-
-Dinamo’da satır değişimi için:
+Liste grid örneği:
 
 ```vb
-Doc.Setd7RowsetEventReplace "AFTERROWCHANGE", ...
+LISTETX.LoadMacroModule("MAKR7S." + "@@@BUMAKRO@@@")
+
+Sub RECCALC_IAFTERROWCHANGE
+	Set LST = Doc.GetTableObject("LISTET")
+	Set MTableT = Doc.GetTableObject("MAKROTABLESP")
+	MTableT.Empty
+	EvrakNoValue = LST.EVRAKNO
+	If EvrakNoValue = "" Then Exit Sub
+	' EvrakNoValue ile detay SQL / Select ...
+End Sub
 ```
 
-(Freedom’da bu yol farklı / kullanılmaz — yukarıdaki LoadMacroModule kalıbını kullan.)
+Hangi grid? `t.getappname` (Freedom) ile ayırt et.
 
-## Pratik kontrol listesi
+## Dinamo — Setd7RowsetEventReplace
 
-| Soru | Freedom | Dinamo |
-| --- | --- | --- |
-| AFTERROWCHANGE event replace? | Hayır | Evet (Setd7…) |
-| LoadMacroModule + RECCALC? | Evet | Örnek klasörde doğrula |
-| Grid kimliği | `t.getappname` | Event / tablo adına göre |
-
-## Tipik kullanım
-
-Özet grid satırı değişince detay gridini yeniden doldur:
+Aynı OPS dosyasında Dinamo tarzı:
 
 ```vb
+MTableDepo.Setd7RowsetEventReplace _
+	"AFTERROWCHANGE", _
+	"MAKR7S." & SC_SCRIPTMODULEFILENAME, _
+	"MAFTERROWCHANGE"
+```
+
+OZAK Dinamo EFRM10 onay UI yenilemesi satır event’ten bağımsız `Frame_Refresh_Controls` kullanır (bkz. sayfa 05 / 12).
+
+## Karşılaştırma
+
+| | Freedom | Dinamo |
+| --- | --- | --- |
+| Satır değişimi | `LoadMacroModule` + `RECCALC_IAFTERROWCHANGE` | `Setd7RowsetEventReplace "AFTERROWCHANGE", ...` |
+| Grid kimliği | `t.getappname` | Event / tablo adı |
+| UI yenile | `Refresh` | + `Frame_Refresh_Controls` |
+
+## İskelet (yeni makro)
+
+```vb
+' INIT / Makro1 icinde:
+Tbl.LoadMacroModule("MAKR7S." + "@@@BUMAKRO@@@")
+
 Sub RECCALC_IAFTERROWCHANGE
 	If t.getappname = "MAKROTABLE_OTEOZET" Then
 		Call DetayListeDoldur

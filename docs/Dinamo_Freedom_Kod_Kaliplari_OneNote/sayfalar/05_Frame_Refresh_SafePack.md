@@ -1,52 +1,67 @@
-# 05 · Frame_Refresh_Controls & SafePack
+# 05 · Frame_Refresh_Controls & SafePack — KOD_ARA örnekleri
 
-## Frame_Refresh_Controls
+## Frame_Refresh_Controls (yalnızca Dinamo)
 
-`Doc.Frame_Refresh_Controls` **yalnızca Dinamo**’da vardır.
-
-| Platform | Davranış |
-| --- | --- |
-| Dinamo | Grid doldurduktan sonra çağır |
-| Freedom | **ÇAĞIRMA** |
-
-Freedom’da çağırırsan:
-
-`Nesne bu ozellik veya yontemi desteklemiyor: 'Doc.Frame_Refresh_Controls'` (`0x800A01B6`)
+Kaynak: `KOD_ARA_KLASORU/dinamo/EFRM10/OZAK_2026_EFRM10.txt`
 
 ```vb
-' Dinamo
-TrnTable.CopyTable(TblDolu)
-TrnTable.SetCurrentRow 1
-TrnTable.Refresh
+Doc.SetFormControlProperty "", "BTN_ONAY_1", "BCKCOL", "YELLOW"
+Doc.SetFormControlProperty "", "BTN_ONAY_1", "TXTCOL", "BLACK"
+Doc.SetFormControlProperty "", "BTN_ONAY_1", "READONLY", 0
 Doc.Frame_Refresh_Controls
-
-' Freedom — sadece Refresh yeterli
-TrnTable.CopyTable(TblDolu)
-TrnTable.SetCurrentRow 1
-TrnTable.Refresh
 ```
+
+Onay sonrası:
+
+```vb
+Call OnayYetkiKontrol
+nret = Doc.Save_Voucher
+Doc.Frame_Refresh_Controls
+```
+
+`dinamo/MAKR8S/OZAK_2026_MAKR8S.txt` içinde de tekrarlanır.
+
+### Freedom
+
+**ÇAĞIRMA.** Hata: `Doc.Frame_Refresh_Controls` → `0x800A01B6`.
 
 ## SafePack
 
-Zorunlu alan yoksa `SafePack` tabloyu **boşaltır**.
+Kaynak örnekler: `MAKR7S/HAK6_2014_MAKR7S.txt`, `OPS_2016_MAKR7S.txt`, `YILDIZ_2014_MAKR7S.txt`, `dinamo/PFRM7S/OPR_2026_PFRM7S.txt`
 
-| Durum | SafePack |
-| --- | --- |
-| Zorunlu alan var (`SetMustEnter "ALAN", "E"`) | Kullan |
-| Zorunlu alan yok | **Kullanma** |
-
-`RunSqlQuery` ile açılan grid şemasında zorunlu alan varsayılan gelmez. SafePack kullanacaksan önce:
+### Doğru sıra (zorunlu alan var)
 
 ```vb
-Tbl.SetMustEnter "ALAN", "E"
-' ... sonra SafePack ...
+MTableDT.SetMustEnter "DURUS_SEBEBI", "E"
+MTableDT.SafePack
+KayitSayisi = MTableDT.GetRecCount
 ```
-
-## STACK seçim formları
-
-Geçici STACK (ör. VYSECIM): genelde **SetMustEnter / SafePack yok**.
 
 ```vb
-' CreateTableObject("VYSECIM_STACK=STACK")
-' ZU_XXX / CreateTransactionalTableObject / SetMustEnter / SafePack yok
+KTT_T.SetMustEnter "KOLONNO", "E"
 ```
+
+```vb
+K_Table.SetMustEnter "STOKKODU", "E"
+```
+
+### Dinamo etiket / fiş
+
+```vb
+S25T.SafePack
+For i = 1 To S25T.GetRowCount()
+	Doc.StatusBarMessage "Etiket Bilgileri Guncelleniyor : " & i
+	' ...
+Next
+```
+
+```vb
+STOK60T.SafePack()
+Set S60T = Doc.Select2("XXX_STOK60T_KASA", "STOK60T", "FATURASIZMI<>'E'", "", -1)
+```
+
+### Uyarı
+
+Zorunlu alan **yoksa** SafePack tabloyu boşaltabilir. `RunSqlQuery` şemasında SetMustEnter varsayılan gelmez.
+
+STACK seçim ekranları (VYSECIM): genelde SafePack **yok**.

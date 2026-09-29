@@ -1,0 +1,51 @@
+---
+description: Dinamo / Freedom ERP makro ve fonksiyon aramalar?nda KOD_ARA_KLASORU zorunlu kaynak
+globs:
+  - "KOD_ARA_KLASORU/**"
+  - "OZAK/**"
+  - "PDKS/**"
+  - "docs/Dinamo_Freedom_Kod_Kaliplari_OneNote/**"
+  - "**/*.{vbs,txt,TXT,xml}"
+alwaysApply: true
+---
+
+# Dinamo / Freedom ERP ? kod arama kural?
+
+Dinamo ERP, Freedom ERP, makro, form, grid, SQL (`RunSqlQuery` / `Select1`), `Doc.*` fonksiyonlar? veya benzeri konularla ilgili **her arama ve ?rnek bulmada** ?nce ?u klas?r? kullan:
+
+## Zorunlu arama yolu
+
+1. **Cloud / repo:** `KOD_ARA_KLASORU/`
+2. **Lokal Windows (varsa):** `C:\KOD_ARA_KLAS?R?`
+3. Ard?ndan proje ?rnekleri: `OZAK/`, `PDKS/`
+4. ?zet kal?plar: `docs/Dinamo_Freedom_Kod_Kaliplari_OneNote/`
+
+Yeni makro / fonksiyon yazmadan veya ?nas?l yap?l?r?? cevab? vermeden ?nce `KOD_ARA_KLASORU` i?inde benzer kullan?m? ara (`Grep` / dosya tarama).
+
+## Alt klas?r ipu?lar?
+
+| Konu | ?nce bak |
+| --- | --- |
+| Dinamo form / onay / Frame_Refresh | `KOD_ARA_KLASORU/dinamo/EFRM10/` |
+| Dinamo MAKR8S / Select1 / RunSqlQuery | `KOD_ARA_KLASORU/dinamo/MAKR8S/` |
+| Dinamo PFRM / TMPCOPY / etiket | `KOD_ARA_KLASORU/dinamo/PFRM7S/` |
+| Freedom LoadMacroModule / RECCALC | `KOD_ARA_KLASORU/MAKR7S/` (?rn. `OPS_2016_MAKR7S.txt`) |
+| CreateTransactionalTableObject / NOFILE | `KOD_ARA_KLASORU/MAKR7S/` (?rn. `YILDIZ_2014_MAKR7S.txt`) |
+| Harita | `docs/Dinamo_Freedom_Kod_Kaliplari_OneNote/sayfalar/12_KOD_ARA_Kaynak_Haritasi.md` |
+
+## Arama ?rne?i
+
+```text
+path:KOD_ARA_KLASORU CreateTransactionalTableObject
+path:KOD_ARA_KLASORU/dinamo Frame_Refresh_Controls
+path:KOD_ARA_KLASORU/MAKR7S LoadMacroModule
+path:KOD_ARA_KLASORU SafePack
+```
+
+## Di?er Dinamo kurallar? (k?sa)
+
+- `Goto` / `On Error Goto` yok
+- Makro SQL?de `WITH` (CTE) yok
+- Freedom?da `Frame_Refresh_Controls` yok
+- Freedom?da `Setd7RowsetEventReplace "AFTERROWCHANGE"` yerine `LoadMacroModule` + `RECCALC_IAFTERROWCHANGE`
+- Oracle?a do?rudan yazma / ba?lanma yok

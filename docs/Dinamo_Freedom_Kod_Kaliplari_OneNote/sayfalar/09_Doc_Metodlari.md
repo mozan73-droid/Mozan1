@@ -1,49 +1,57 @@
-# 09 · Doc metodları (cheat sheet)
+# 09 · Doc metodları (cheat sheet + KOD_ARA)
 
-## Tablo yaşam döngüsü
+## Tablo
 
-| Metod | Ne işe yarar |
+| Metod | Örnek kaynak |
 | --- | --- |
-| `Doc.CreateTableObject("AD=SEMA", "IO")` | Tek satır / STACK / E tablosu |
-| `Doc.CreateTransactionalTableObject("AD=SEMA(NOFILE)", "IO")` | Çok satırlı grid |
-| `Doc.GetTableObject("AD")` | Mevcut tablo |
-| `Tbl.AddField2 ...` | Alan ekle |
-| `Tbl.Empty` | Satırları temizle |
-| `Tbl.CopyTable(Kaynak)` | Doldur |
-| `Tbl.AddRow` / `SetCurrentRow` / `Refresh` | Satır + UI |
-| `Tbl.SetMustEnter "ALAN", "E"` | Zorunlu alan |
-| `Tbl.LoadMacroModule(...)` | Freedom satır event makrosu |
-| `Tbl.GetRecCount` / `Tbl.RowCount` | Kayıt sayısı |
+| `CreateTableObject("AD=SEMA", "IO")` | STACK kriter |
+| `CreateTableObject("AD=SEMA", "TMPCOPY")` | `dinamo/PFRM7S/OPR_2026_PFRM7S.txt` |
+| `CreateTransactionalTableObject("AD=TABLO(NOFILE)", "IO")` | `MAKR7S/YILDIZ_2014_MAKR7S.txt` |
+| `CreateTransactionalTableObject("AD=STACK", "IO")` | aynı |
+| `GetTableObject` / `Empty` / `CopyTable` / `AddRow` / `DeleteRow` | PDKS + KOD_ARA |
+| `AddField2` / `Addfield2` | her yerde (yazım varyantı) |
+| `SetMustEnter` / `SafePack` | HAK6, OPS |
+| `GroupBy` / `GroupBy2` / `Sort` | PFRM etiket |
+| `LoadMacroModule` | OPS_2016 Freedom |
+| `Setd7RowsetEventReplace` | OPS_2016 / Dinamo |
+| `Setd7FieldEvent` | YILDIZ STOK26E AFTERVALIDATE |
 
 ## Sorgu
 
 | Metod | Not |
 | --- | --- |
-| `Doc.RunSqlQuery` / `RunSQLQuery` | Sonuç tablosu |
-| `Doc.Select1` | Filtreli küçük sonuç |
-| `Doc.Bugun` | Bugünün tarihi (kriter/SQL) |
+| `RunSqlQuery` / `RunSQLQuery` | OZAK MAKR8S SVS00_* |
+| `Select1` | tek/filtre — OZAK her yerde |
+| `Select2` / `Select2G` | çok satır filtre |
+| `GetDBFieldValue` / `GetDbFieldValue` | tek alan |
+| `GetUDFValue` | UDF |
 
 ## Form / UI
 
 | Metod | Platform |
 | --- | --- |
-| `Doc.LoadSubForm_Dyn` | Alt form |
-| `Doc.Frame_Refresh_Controls` | **Sadece Dinamo** |
-| `Doc.MsgBox` / `MsgBox` | Uyarı |
-| `Doc.Setd7RowsetEventReplace` | **Dinamo** satır event |
+| `Frame_Refresh_Controls` | Dinamo only |
+| `SetFormControlProperty` | Dinamo EFRM10 onay butonları |
+| `LoadSubForm_Dyn` | FRM_ONAYDETAY, FRM_VYSECIM |
+| `Save_Voucher` | evrak kaydet |
+| `d7MsgBox` / `MsgBox` | onay diyalog |
+| `RunMacro0` / `RunMacro2` | makrolar arası |
+| `StatusBarMessage` | uzun döngü |
+| `Getd7UserName` | yetki |
+| `Bugun` / `Saat` | tarih saat |
 
-## Makro giriş noktaları (sık)
+## Makro giriş noktaları
 
-| Sub | Ne zaman |
+| Sub/Function | Ne zaman |
 | --- | --- |
-| `INITDOCUMENT` | Form açılış — tablo yarat |
-| `INITDOCUMENT_VALUES` | Rowset sonrası değer |
-| `cmd_...` | Buton (`RUN_MODULE_PROC_NOCALC`) |
-| `RECCALC_IAFTERROWCHANGE` | Freedom satır değişimi |
-| `CALC_...` | Hesap / KTM callback |
+| `INITDOCUMENT` / `Makro1` | açılış / şema |
+| `cmd_*` | buton |
+| `RECCALC_IAFTERROWCHANGE` | Freedom satır |
+| `BeforeSave` / `BeforeCommand` | kayıt öncesi (OZAK) |
+| `CALC_*` | hesap |
 
-## Buton bağlama
+## Buton
 
 ```
-ID="RUN_MODULE_PROC_NOCALC('cmd_VySecim')"
+ID="RUN_MODULE_PROC_NOCALC('cmd_Personel_Listesi')"
 ```
