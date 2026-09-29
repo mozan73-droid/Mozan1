@@ -1,0 +1,988 @@
+Form Kaynak Kodu
+Firma Kodu : EMTAELEKT_2014 / Uygulama : PFRM7S
+Makro Kodu : F-FORM
+Hangi Tablo için : PFRM7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public strfind(8)
+Sub PrintForm()
+	
+	Dim objDoc, objWord, Selection
+	Set objWord = CreateObject( "Word.Application" )
+	objWord.visible = True
+	Set objDoc = objWord.Documents.Add()
+	Set Selection = objWord.Selection
+	'objWord.Selection.EndKey 6,0
+	FirmKodu = Trim(Doc.Getd7FirmCode())
+	Uygulama = Trim(Doc.GetDocType)
+
+	Set PFR7SE = Doc.Select1("dd333d", "PFRM7SE", "", "EVRAKNO", -1)
+	'Set MKR7SE = Doc.Select1("dd333d", "MAKR7SE", "EVRAKNO = '_GNPRG1'", "", -1)
+	
+	KayitSayisi = PFR7SE.GetRecCount()
+	'-------------------------------------------------
+	'Satýr boþluk ayarýný yapar.
+	Selection.ParagraphFormat.LineSpacing = 10
+	objWord.ActiveDocument.ShowSpellingErrors = False
+	'----------------------------------------------
+	'Tab ayarýný yapar.
+	objWord.ActiveDocument.DefaultTabStop = 15
+	'---------------------------------------------
+	For i = 1 To KayitSayisi
+		EVRAKKODU_ORJ = Trim(PFR7SE.EVRAKNO(i))
+		If Left(EVRAKKODU_ORJ, 2) <> "++" Then
+			EVRAKKODU = Trim(PFR7SE.EVRAKNO(i))
+
+			Kodlar = ""
+			EKodlar = ""
+			Selection.Paragraphs.Alignment = 1   '1:wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			Selection.TypeText "Form Kaynak Kodu"
+			Selection.Typeparagraph
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.TypeText "Firma Kodu : " & FirmKodu  & " / " & "Uygulama : " &  Uygulama
+			Selection.Typeparagraph
+			Selection.TypeText "Makro Kodu : " & EVRAKKODU 
+			'------------------------
+		
+			'Selection.Paragraphs.Alignment = 1 wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			'2: wdAlignParagraphRight yani üst satýrdakini saga yaslar.
+			'3: wdAlignParagraphRight yani üst satýrdakini sola yaslar.
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.Typeparagraph
+			Selection.TypeText "Hangi Tablo için : " & Trim(PFR7SE.DOCTYPE(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Ýlave Hangi Uygulamalar için : " & Trim(PFR7SE.ADDDOCTYPES(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Açýklama : " & Trim(PFR7SE.ACIKLAMA(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Kod : "
+			Selection.Typeparagraph
+
+			Set PFR7ST = Doc.Select1("dd333d", "PFRM7ST", "EVRAKNO='"&EVRAKKODU&"'",">SRNUM", -1)
+
+			For k = 1 To PFR7ST.GetRecCount()
+				Selection.Font.Color = vbBlue
+				Kodlar = Kodlar & PFR7ST.SCRIPTTEXT_RO(k)
+			Next
+
+			Selection.TypeText Kodlar
+			Selection.Typeparagraph
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Font.Color = vbBlack
+			Set PFR7SE= Doc.Select1("dd333d", "PFRM7SE", "", "", -1)
+		
+			Selection.TypeText "----------------------------------------------------------------"
+			Selection.Typeparagraph
+		End If
+	Next
+	'--------------------------------------------------------------------------
+	'Font lara makyaj
+	For j = 1  To 8
+		strfind(1) = "Makro Kaynak Kodu"
+		strfind(2) = "Makro Kodu : "
+		strfind(3) = "Hangi Tablo için : "
+		strfind(4) = "Ýlave Hangi Uygulamalar için : "
+		strfind(5) = "Açýklama : "
+		strfind(6) = "Kod : "
+		strfind(7) = "Firma Kodu : "
+		strfind(8) = "Uygulama : "
+
+		Set objRange = objWord.ActiveDocument.Content
+		
+		With objRange.Find
+		.Text = strfind(j)
+		Do
+			.Execute
+			If .Found Then
+				objRange.Font.Color = vbRed
+				objRange.Font.Bold = True
+				'If j = 1 Then objWord.ParagraphFormat.Alignment = wdAlignParagraphCenter
+			End If
+			Loop While .Found
+			End With
+		Next
+		Selection.WholeStory
+		'----------------------------------------------------
+		'Satýr sonlarýndaki boþluðu alma
+		Selection.ParagraphFormat.SpaceAfter = 0.5
+		'---------------------------------------------------
+		'Sayfanýn kenarlarýný daralt
+		With objWord.ActiveDocument.PageSetup
+			.Orientation = wdOrientLandscape
+			bosluk = 15
+			.TopMargin = bosluk
+			.BottomMargin = bosluk
+			.LeftMargin = 43
+			.RightMargin = bosluk
+		End With
+		'--------------------------------------------------------------------------
+		'Satýr numaralarý ekler
+    With Selection.PageSetup
+        With .LineNumbering
+            .Active = True
+            .StartingNumber = 1
+            .CountBy = 1
+            .RestartMode = 1
+            .DistanceFromText = 0
+        End With
+		End With
+		'--------------------------------------------------------------------------
+		objWord.visible = True
+		desktoppath = CreateObject("WScript.Shell").SpecialFolders("Desktop")
+		objDoc.SaveAs(desktoppath & "\" & FirmKodu & "_" & Uygulama)
+		Msgbox "Masaüstüne kaydedildi..."
+		Set objDoc = Nothing
+		Set oWords = Nothing
+		Set objWord = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                    
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : EMTAELEKT_2014 / Uygulama : PFRM7S
+Makro Kodu : STOK46-01
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : EMTA ELEKTRÝK - TÝCARET - SATINALMA SÝPARÝÞ FORMU - 08.10.2014
+Kod : 
+'bymozan
+Public SatirYuksekligi, SolMargin, SagMargin, UstMargin, AltMargin, DikeyBilgiAlani, YatayBilgiAlani,satirpozr, Baslik01sagcizgialtkonum
+Public Grid(), ToplamEn,pe1, SayfaSonuBaslangicSatiri, SatirBaslangic, cizgipayi, KolonBaslikSifirla, Sol,SonSatir
+Public SayfaBoyu, SayfaEni,SayfaSonuSatirSayisi,KolonBaslangic,DataSatirSonu,TutarKonum,TutarKolonGenisligi,Ondalik, ParaBirimiKolonGenisligi
+Public CariKodu, ToplamAlanSayisi, TabloSatirSayisi, TableE, TableT, TableStackT, TableStackE, FontSize
+Public IsYeriAdi, Tumadres, VergiAdiNo, SIPIALAN, SIPIVEREN, ACIKLAMA(20)
+
+Sub PrintForm()
+
+	'Sayfa Ayarlarý
+	ReDim ToplamGrid(1)
+	SolMargin = 8
+	SagMargin = 8
+	UstMargin = 8
+	AltMargin = 8
+	SatirYuksekligi = 3.7
+	cizgipayi = 1
+	ToplamAlanSayisi = 9
+	TabloSatirSayisi = 25
+	FontSize = 9
+	
+	Tip1 = "LANDSCAPE" 'YATAY
+	Tip2 = "PORTRAIT" 'DÝKEY
+
+	Tip = Tip2
+	Set pe1 = doc.CreatePrintEngineOutput()
+	
+	If Tip = Tip1 Then      '//  yatay sayfa
+		SayfaBoyu = 210
+		SayfaEni = 297
+		DikeyBilgiAlani = SayfaBoyu - (UstMargin + AltMargin)
+		YatayBilgiAlani = SayfaEni - (SolMargin + SagMargin)	
+		SayfaSonuSatirSayisi = 8
+		SayfaSonuBaslangicSatiri = (SayfaBoyu-AltMargin) - (SayfaSonuSatirSayisi*(SatirYuksekligi+2*cizgipayi))
+		res = pe1.Open(0, VPEAdi, SayfaEni, SayfaBoyu, Tip)
+	ElseIf Tip = Tip2 Then     '// dikey sayfa
+		SayfaBoyu = 297
+		SayfaEni = 210
+		DikeyBilgiAlani = SayfaBoyu - (UstMargin + AltMargin)
+		YatayBilgiAlani = SayfaEni - (SolMargin + SagMargin)	
+		SayfaSonuSatirSayisi = 2
+		SayfaSonuBaslangicSatiri = (SayfaBoyu-AltMargin) - (SayfaSonuSatirSayisi*(SatirYuksekligi+2*cizgipayi))
+		res = pe1.Open(0, VPEAdi, SayfaBoyu, SayfaEni, Tip)
+	End If
+	
+	'****************************************************
+	'Evrak bilgileri
+
+	Uygulama = Trim(Doc.GetDocType)
+	
+	If Uygulama = "STOK40" Then
+		TableStackT = "STOK40T"
+		TableStackE = "STOK40E"
+	ElseIf Uygulama = "STOK46" Then
+		TableStackT = "STOK46T"
+		TableStackE = "STOK46E"
+	End If
+		
+	Set TableT = Doc.GetTableObject(TableStackT)
+	Set TableE = Doc.GetTableObject(TableStackE)
+	TableT.SafePack
+	
+	If Uygulama = "STOK40" Then
+		CariKodu = Trim(TableE.MUSTERIKODU)
+	Else
+		CariKodu = TableE.CH_KODU
+	End If
+	
+	'****************************************************
+	
+	KayitSayisi = TableT.GetRecCount
+	
+	Call Print_Form_SayfaBasi()
+	Call Alanlar()
+	Call KolonBasliklari
+	
+	For j = 1 To KayitSayisi
+		Call Print_Form_Satir(j)
+	Next	
+
+	Call Print_Form_SayfaSonu()
+
+	'Call SayfaSayisi()
+
+	res = pe1.Show()
+	res = Doc.ActivateAfterMacro(1)	
+	
+End Sub
+'-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sub Print_Form_SayfaBasi()
+
+	kolonbasliksifirla = 1
+	res = pe1.pensize(0.3)
+
+	res = pe1.SetTransparentMode(1)
+	res = pe1.SetBkgColor(RGB(255,255,0))
+
+	EmtaFirmaAdi = Doc.Customp_Gets("FNAMEL0")
+
+	res = pe1.Line(Ustmargin, SolMargin, 0, YatayBilgiAlani) 
+
+	CariAdi = Trim(Doc.GetDBFieldValue("CARI00","AD",CariKodu,""))
+	Adres1x = Trim(Doc.GetDBFieldValue("CARI00","ADRES_1",CariKodu,""))
+	Adres2x = Trim(Doc.GetDBFieldValue("CARI00","ADRES_2",CariKodu,""))
+	Adres3x = Trim(Doc.GetDBFieldValue("CARI00","ADRES_3",CariKodu,""))
+	PostaKodux = Trim(Doc.GetDBFieldValue("CARI00","POSTAKODU",CariKodu,""))
+	SIPIALAN = Trim(TableE.SIPIALAN)
+	SIPIVEREN = Trim(TableE.SIPIVEREN)
+	SEHIRKODU = Trim(Doc.GetDBFieldValue("CARI00","SEHIRKODU",CariKodu,""))
+	SEHIRADIx = 	Trim(Doc.GetGecoValue("SEHIR", "AD", SEHIRKODU, -1))
+
+	VergiDairesi = Trim(Doc.GetDBFieldValue("CARI00","VERGIDAIRESI",CariKodu,""))	
+	VergiNo = Trim(Doc.GetDBFieldValue("CARI00","VERGINO",CariKodu,""))	
+	Telefon = Trim(Doc.GetDBFieldValue("CARI00","TELEFONNO_1",CariKodu,""))
+	Fax = Trim(Doc.GetDBFieldValue("CARI00","FAXNO",CariKodu,""))
+	Tarih = Doc.StrToNorDate(TableE.TARIH)
+	EvrakNo = Trim(TableE.EVRAKNO)
+
+
+	Genislik1 = 25
+	Genislik2 = 75
+	res = pe1.setalign("LEFT")
+	res = pe1.selectfont("Arial", FontSize)
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+3, SolMargin, SatirYuksekligi, Genislik1, "Firma Adi")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	If Adres1x <> "" Then Adres1 = Adres1x & " " 
+	If Adres2x <> "" Then Adres2 = Adres2x & " "
+	If Adres3x <> "" Then Adres3 = Adres3x & " " 
+	If PostaKodux <> "" Then PostaKodu = "P.K.: " & PostaKodux & " " 
+	If SEHIRADIx <> "" Then SEHIRADI = SEHIRADIx & " "
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, 6*SatirYuksekligi, Genislik2, CariAdi & vbcrlf & Adres1 & vbcrlf & Adres2 & vbcrlf & Adres3 & vbcrlf & PostaKodu & SEHIRADI )
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik1, "Ýlgili Adý")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik2, "Sn. " & SIPIALAN)	
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik1, "Vergi Dairesi")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik2, VergiDairesi)	
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik1, "Vergi No")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik2, VergiNo)	
+
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik1, "Faks")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik2, Fax)	
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik1, "Telefon")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik2, Telefon)		
+	
+	logo = Doc.Getd7Directory_DataFirm & Trim(Doc.Customp_Gets("!LOGO"))
+
+	resimkutusueni =  4 * (SatirYuksekligi + cizgipayi)
+	resimkutusuboyu =  6 * (SatirYuksekligi + cizgipayi)
+	
+	res = pe1.nopen()
+	res = pe1.Picture(Ustmargin+1, pe1.GetRight+10, resimkutusueni, resimkutusuboyu, logo, 16)
+
+	LogoSolKonum = pe1.GetLeft
+	res = pe1.SetTransparentMode(1)
+	
+	Set ID00 = Doc.Select1("aaaa","IDARI00","","",-1)
+	IsYeriAdi1 = Trim(ID00.UNVAN_1)
+	IsYeriAdi2 = Trim(ID00.UNVAN_2)
+	IsYeriAdi = IsYeriAdi1 & " " & IsYeriAdi2
+		
+	res=pe1.setbold(1)	
+	res = pe1.Write(pe1.GetBottom+2, LogoSolKonum, SatirYuksekligi, Genislik2, IsYeriAdi) 
+	res=pe1.setbold(0)	
+
+	IsYeriAdres1 = Trim(ID00.ADR_1)
+	IsYeriAdres2 = Trim(ID00.ADR_2)
+	
+	If IsYeriAdres2 <> "" Then res = pe1.Write(pe1.GetBottom, LogoSolKonum, SatirYuksekligi, Genislik2, IsYeriAdres1)
+	If IsYeriAdres2 <> "" Then res = pe1.Write(pe1.GetBottom, LogoSolKonum, SatirYuksekligi, Genislik2, IsYeriAdres2)
+	
+	IsYeriBinaNo = "No: " & Trim(ID00.BINANO)
+	IsYeriPostaKodu = "P.K.: " & Trim(ID00.POSTAKODU)
+	BinaNoPostaKodu = IsYeriBinaNo & " " & IsYeriPostaKodu
+	
+	res = pe1.Write(pe1.GetBottom, LogoSolKonum, SatirYuksekligi, Genislik2/2, BinaNoPostaKodu)
+
+	IsYeriTel = "+(90) " & Trim(ID00.TLF1_ALANKODU) & " " & Trim(ID00.TELEFON1)
+	IsYeriFax = "+(90) " & Trim(ID00.FAX1_ALANKODU) & " " & Trim(ID00.FAX1)
+	TelFax = "Tel: " & IsYeriTel & " Faks: " & IsYeriFax
+	
+	res = pe1.Write(pe1.GetBottom, LogoSolKonum, SatirYuksekligi, Genislik2, TelFax)
+	
+	Tumadres = IsYeriAdres1 & " " & IsYeriAdres2 & " " & BinaNoPostaKodu & " " & TelFax
+	
+	VergiDairesi = "V.Dairesi: " & Trim(ID00.VERGI_DAIRESI)
+	res = pe1.Write(pe1.GetBottom, LogoSolKonum, SatirYuksekligi, Genislik2, VergiDairesi)
+	
+	VergiNo = "V.No: " & Trim(ID00.VERGI_KIMLIK_NO)
+	res = pe1.Write(pe1.GetBottom, LogoSolKonum, SatirYuksekligi, Genislik2, VergiNo)
+	
+	VergiAdiNo = VergiDairesi & " " & VergiNo
+	
+	resim = Doc.Getd7Directory_DataFirm & "images\kalite.jpg"
+
+	resimkutusueni =  3 * (SatirYuksekligi + cizgipayi)
+	resimkutusuboyu =  5 * (SatirYuksekligi + cizgipayi)
+	
+	res = pe1.nopen()
+	res = pe1.Picture(pe1.GetBottom, pe1.GetRight-25, resimkutusueni, resimkutusuboyu, resim, 16)	
+	
+	res = pe1.Pensize(0.3)
+
+	res = pe1.selectfont("Arial", 10)
+	res = pe1.setalign("CENTER")
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom-5, SolMargin, 1.5*SatirYuksekligi, YatayBilgiAlani, "SATINALMA SÝPARÝÞÝ FORMU")
+	res = pe1.setbold(0)
+	res = pe1.selectfont("Arial", FontSize)
+	res = pe1.setalign("LEFT")
+	Note1 = "Aþaðýda miktarý ve cinsi belirtilen malzemeleri firmanýza sipariþ ediyoruz. "
+	Note2 = "Sipariþi aldýðýnýzda lütfen teyid ederek gönderiniz."
+	Note3 = "SAYGILARIMIZLA     "
+	
+	res = pe1.write(pe1.GetBottom+3.5, SolMargin, SatirYuksekligi, YatayBilgiAlani, Note1 & Note2)
+	res = pe1.setalign("RIGHT")
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, YatayBilgiAlani, Note3)
+	
+	Genislik3 = 20
+	Genislik4 = 85
+	
+	res = pe1.setalign("LEFT")
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+1, SolMargin, SatirYuksekligi, Genislik3, "Tarih")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4-27, Tarih)	
+	TarihUstKonum = pe1.GetTop
+	TarihSagKonum = pe1.GetRight
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik3, "Sipariþ No")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4-27, EvrakNo)	
+	
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin, SatirYuksekligi, Genislik3, "Düzenleyen")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4-27, SIPIVEREN)		
+	
+	Notlar1 = Trim(TableE.SIPLEILGILINOTLAR_1)
+	
+	res = pe1.setbold(1)
+	res = pe1.write(TarihUstKonum, TarihSagKonum+1, SatirYuksekligi, Genislik3+5, "TESLÝM SÜRESÝ")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	TeslimSuresi = Trim(TableE.CHSIPNO)
+	Set S46T = Doc.Select2G("dfsfsdf", TableStackT, "", "", "RTESTARIH", -1)
+		
+	For h = 1 To S46T.GetRecCount
+		TeslimTarihleri = Doc.StrToNorDate(S46T.RTESTARIH(h)) & ", " & TeslimTarihleri
+	Next
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4, TeslimTarihleri)
+	
+	res = pe1.setbold(1)
+	SevkFirmasi1 = Trim(TableE.SHIPTO_UNVAN_1)
+	SevkFirmasi2 = Trim(TableE.SHIPTO_UNVAN_2)
+	TeslimYeri = SevkFirmasi1 & " " & SevkFirmasi2
+		
+	res = pe1.write(pe1.GetBottom+0.5, TarihSagKonum+1, SatirYuksekligi, Genislik3+5, "TESLÝM YERÝ")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4, TeslimYeri)	
+
+	res = pe1.setbold(1)
+	OdemeSekli1 = Trim(TableE.ODEMEKOSULLARI_1)
+	OdemeSekli2 = Trim(TableE.ODEMEKOSULLARI_2)
+	OdemeSekli = OdemeSekli1 & " " & OdemeSekli2
+	res = pe1.write(pe1.GetBottom+0.5, TarihSagKonum+1, SatirYuksekligi, Genislik3+5, "ÖDEME ÞEKLÝ")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4, OdemeSekli)		
+	
+	Notlar1 = Trim(TableE.SIPLEILGILINOTLAR_1)
+	res = pe1.setbold(1)
+	res = pe1.write(pe1.GetBottom+0.5, TarihSagKonum+1, SatirYuksekligi, Genislik3+5, "AÇIKLAMA")
+	res = pe1.write(pe1.GetTop, pe1.GetRight, SatirYuksekligi, 2, ":")
+	res = pe1.setbold(0)
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, Genislik4, Notlar1)		
+	
+	KolonBaslangic = pe1.GetBottom() + 2
+
+End Sub
+'-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Sub Alanlar()
+
+	ReDim Grid(ToplamAlanSayisi, 6)
+	ToplamEn = 0
+	
+	alan = 0
+	Grid(alan,0) = "_S.NO"
+	Grid(alan,1) = 5
+	Grid(alan,2) = "S. No"
+	Grid(alan,4) = "N"
+	
+	alan = 1
+	Grid(alan,0) = "KOD_STOK00_AD"
+	Grid(alan,1) = 70
+	Grid(alan,2) = "Malzemenin Cinsi"
+	Grid(alan,4) = "C"
+
+	alan = 2
+	Grid(alan,0) = "SF_MIKTAR"
+	Grid(alan,1) = 20
+	Grid(alan,2) = "Miktar"
+	Grid(alan,4) = "N"
+
+	alan = 3
+	Grid(alan,0) = "SF_SF_UNIT"
+	Grid(alan,1) = 10
+	Grid(alan,2) = "Birim"
+	Grid(alan,4) = "C"
+		
+	alan = 4
+	Grid(alan,0) = "NOTES"
+	Grid(alan,1) = 30
+	Grid(alan,2) = "Açýklama"
+	Grid(alan,4) = "C"		
+
+	alan = 5
+	Grid(alan,0) = "RTESTARIH"
+	Grid(alan,1) = 18
+	Grid(alan,2) = "Teslim Tarihi"
+	Grid(alan,4) = "D"	
+	
+	alan = 6
+	Grid(alan,0) = "OR_FIYAT"
+	Grid(alan,1) = 20
+	Grid(alan,2) = "Birim Fiyat"
+	Grid(alan,4) = "N"
+
+	alan = 7
+	Grid(alan,0) = "OR_TUTAR"
+	Grid(alan,1) = 20
+	Grid(alan,2) = "Tutar"
+	Grid(alan,4) = "N"
+
+	alan = 8
+	Grid(alan,0) = "PRICEUNIT"
+	Grid(alan,1) = 10
+	Grid(alan,2) = "Birim"
+	Grid(alan,4) = "C"
+	
+	For i = 0 To UBound(Grid,1)
+		If Grid(i,4) = "N" Then
+			Grid(i,6) = 4
+		End If
+	Next
+	
+	'Mevcut alanlarýn toplam sutun geniþliklerini verir.
+	For i = 0 To UBound(Grid,1)
+		ToplamEn = ToplamEn + Grid(i,1)
+	Next
+	
+	ToplamEn = (ToplamEn+(cizgipayi/2)) / 3.22    '//  1 mm = 3.22 pixel ,  mm karþýlýðýný bulmak için 3.22 ye bölüyoruz.
+
+End Sub
+'---------------------------------------------------------------------------------------------------------------------------------------
+Sub KolonBasliklari
+
+	satirpozr = KolonBaslangic
+	Sol = SolMargin + cizgipayi
+
+	FontBoyu = FontAyarla(YatayBilgiAlani, ToplamEn, 10)
+
+	Oran = YatayBilgiAlani / ToplamEn
+	res = pe1.Line(satirpozr, SolMargin, 0, YatayBilgiAlani)
+
+	tekrar = 0
+	For u=0 To UBound(Grid,1)
+		SutunGenisligi = (Grid(u,1)  / 3.22) * Oran
+		If KolonBaslikSifirla = 1 Then
+			KolonBaslik = Grid(u,2)
+			
+			res = pe1.setalign("CENTER")
+			If SutunGenisligi > 0 And instr(1,Grid(u,2),"..") = 0 Then
+				res = pe1.setbold(1)
+				
+				If Grid(u,0) = "RTESTARIH" OR Grid(u,0) = "_S.NO" OR Grid(u,0) = "OR_FIYAT" Then 
+					ek=2
+					ek2=0
+				Else
+					ek=0
+					ek2=2
+				End If				
+				
+				res = pe1.write(satirpozr+3-ek, Sol, 2*SatirYuksekligi-cizgipayi-1+ek, SutunGenisligi-cizgipayi, KolonBaslik)
+				res = pe1.setbold(0)
+				Sol = Sol + SutunGenisligi
+				aracizgidikuzunluk = 2*SatirYuksekligi - cizgipayi+ek+ek2
+				
+				res = pe1.Line(pe1.GetTop-cizgipayi, SolMargin, aracizgidikuzunluk-ek2, 0)
+				res = pe1.Line(pe1.GetTop-ek2, Sol-(cizgipayi/2), aracizgidikuzunluk, 0)
+				res = pe1.Line(pe1.GetBottom, SolMargin, 0, YatayBilgiAlani)
+				
+				If Grid(u,0) = "OR_TUTAR" Then 
+					TutarKonum = Sol - SutunGenisligi
+					TutarKolonGenisligi = SutunGenisligi
+				End If
+				
+				If  Grid(u,0) = "PRICEUNIT" Then	ParaBirimiKolonGenisligi = SutunGenisligi
+							
+				If SutunGenisligi > 0 And instr(1,Grid(i,2),"..") = 0 Then
+					aracizgidikuzunluk = SatirYuksekligi + cizgipayi
+					
+					tablobaslangici = pe1.GetBottom+cizgipayi/2
+					
+					res = pe1.Line(tablobaslangici, SolMargin, 0, YatayBilgiAlani)
+
+					For uu = 1 to TabloSatirSayisi
+						If uu = 1 Then SatirBaslangic = pe1.GetBottom() - cizgipayi/2
+						
+						res = pe1.Line(tablobaslangici, SolMargin, aracizgidikuzunluk, 0)
+						res = pe1.Line(pe1.GetTop , Sol-(cizgipayi/2), aracizgidikuzunluk, 0)
+						res = pe1.Line(pe1.GetBottom, SolMargin, 0, YatayBilgiAlani)
+						tablobaslangici = pe1.GetBottom
+					Next
+					DataSatirSonu = pe1.GetBottom + cizgipayi
+				End If
+			End If
+		End If
+	Next
+		
+	KolonBaslikSifirla = 0
+
+End Sub
+'---------------------------------------------------------------------------------------------------------------------
+Sub Print_Form_Satir(satirNo)
+	
+	Sol = SolMargin + cizgipayi
+	FontBoyu = FontAyarla(YatayBilgiAlani, ToplamEn, FontSize)
+
+	Oran = (YatayBilgiAlani / ToplamEn)
+	res = pe1.selectfont("Arial", FontBoyu)
+	res = pe1.setbold(0)
+	res = pe1.setalign("LEFT")
+	
+	If SonSatir >= SayfaSonuBaslangicSatiri Then
+		Call Print_Form_SayfaSonu()
+		SiraNo = 1
+		res = pe1.PageBreak()
+		Call Print_Form_SayfaBasi()
+		Call KolonBasliklari
+		satirpozr = pe1.GetBottom - (cizgipayi/2)
+	Else
+		If SatirNo = 1 Then 
+			satirpozr = SatirBaslangic
+		Else
+			satirpozr = pe1.GetBottom - (cizgipayi/2) + (cizgipayi/2)
+		End If
+	End If
+	
+	Sol = SolMargin + cizgipayi
+	
+	For i=0 To UBound(Grid,1)
+		SutunGenisligi = (Grid(i,1)/3.22) * Oran
+		DegiskenAdi = Grid(i,0)
+		Degisken = Trim(STOK46T.GetFieldValue(DegiskenAdi, SatirNo))
+
+		res = pe1.SetAlign("LEFT")
+		
+		If Grid(i,4) = "N" Then
+			res = pe1.SetAlign("RIGHT")
+			Ondalik = Grid(i,6)
+			Degisken = Doc.NumFormat(Degisken, 20, Ondalik)
+		ElseIf Grid(i,4) = "D" Then
+			res = pe1.SetAlign("CENTER")
+			Degisken = Doc.StrToNorDate(Degisken)
+		End If
+
+		If Grid(i,0) = "_S.NO" Then
+			res = pe1.SetAlign("CENTER")
+			Degisken = satirNo
+		End If
+		
+		If Grid(i,0) = "SF_SF_UNIT" Then
+			res = pe1.SetAlign("CENTER")
+		End If
+		
+		If Grid(i,0) = "PRICEUNIT" Then
+			res = pe1.SetAlign("CENTER")
+		End If
+		
+		If Grid(i,0) = "RTESTARIH" Then
+			res = pe1.SetAlign("CENTER")
+		End If
+
+		If Grid(i,0) = "OR_FIYAT" Then
+			Degisken = Doc.NumFormat(Degisken, 20, 4)
+		End If
+
+		If Grid(i,0) = "OR_TUTAR" Then
+			Degisken = Doc.NumFormat(Degisken, 20, 2)
+		End If
+
+		If Grid(i,0) = "SF_MIKTAR" Then
+			Degisken = Doc.NumFormat(Degisken, 20, 0)
+		End If
+
+
+		If SutunGenisligi > 0 And instr(1,Grid(i,2),"..") = 0 Then
+			res = pe1.write(satirpozr+cizgipayi, Sol, SatirYuksekligi, SutunGenisligi-cizgipayi, Degisken)
+			Sol = Sol + SutunGenisligi
+		End If	
+	Next				
+	SonSatir = pe1.GetBottom() + SatirYuksekligi
+	
+End Sub
+
+'------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function FontAyarla(BasilacakAlan,ToplamGen,Font)
+	Oran = BasilacakAlan / ToplamGen
+	If Oran >= 1 Then
+		FontAyarla = Font
+	Else
+		If oran <=0.1 Then
+			FontAyarla = Round(0.1 * Font,0)
+		Else
+			FontAyarla = Round(Oran * Font,0)
+		End If
+	End If
+End Function
+'---------------------------------------------------------------------------------------------------------------------------
+Sub Print_Form_SayfaSonu()
+
+	'SATINALMA UYGULAMASI ÝÇÝN SABÝT ÇIKACAK AÇIKLAMALARI KTT DEN ÇEKER.
+	Set ACIKLAMA1 = Doc.RunSQLQuery("XXX1", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA1'")
+	Set ACIKLAMA2 = Doc.RunSQLQuery("XXX2", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA2'")
+	Set ACIKLAMA3 = Doc.RunSQLQuery("XXX3", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA3'")
+	Set ACIKLAMA4 = Doc.RunSQLQuery("XXX4", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA4'")
+	Set ACIKLAMA5 = Doc.RunSQLQuery("XXX5", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA5'")
+	Set ACIKLAMA6 = Doc.RunSQLQuery("XXX6", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA6'")
+	Set ACIKLAMA7 = Doc.RunSQLQuery("XXX7", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA7'")
+	Set ACIKLAMA8 = Doc.RunSQLQuery("XXX8", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA8'")
+	Set ACIKLAMA9 = Doc.RunSQLQuery("XXX9", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA9'")
+	Set ACIKLAMA10 = Doc.RunSQLQuery("XXX10", "SELECT ALAN02 FROM KTT_FORMTBL WHERE EVRAKNO=' SATINALMA' AND ALAN01 = 'ACIKLAMA10'")
+
+	If ACIKLAMA1.GetRecCount > 0 Then 	ACIKLAMA(1) = Trim(ACIKLAMA1.ALAN02(1))
+	If ACIKLAMA2.GetRecCount > 0 Then 	ACIKLAMA(2) = Trim(ACIKLAMA2.ALAN02(1))
+	If ACIKLAMA3.GetRecCount > 0 Then 	ACIKLAMA(3) = Trim(ACIKLAMA3.ALAN02(1))
+	If ACIKLAMA4.GetRecCount > 0 Then 	ACIKLAMA(4) = Trim(ACIKLAMA4.ALAN02(1))	
+	If ACIKLAMA5.GetRecCount > 0 Then 	ACIKLAMA(5) = Trim(ACIKLAMA5.ALAN02(1))	
+	If ACIKLAMA6.GetRecCount > 0 Then 	ACIKLAMA(6) = Trim(ACIKLAMA6.ALAN02(1))
+	If ACIKLAMA7.GetRecCount > 0 Then 	ACIKLAMA(7) = Trim(ACIKLAMA7.ALAN02(1))
+	If ACIKLAMA8.GetRecCount > 0 Then 	ACIKLAMA(8) = Trim(ACIKLAMA8.ALAN02(1))
+	If ACIKLAMA9.GetRecCount > 0 Then 	ACIKLAMA(9) = Trim(ACIKLAMA9.ALAN02(1))
+	If ACIKLAMA10.GetRecCount > 0 Then 	ACIKLAMA(10) = Trim(ACIKLAMA10.ALAN02(1))
+	
+	res = pe1.SetAlign("LEFT")
+
+	res = pe1.SetTransparentMode(1)
+		
+	GENISLIK7 = 10
+	GENISLIK8 = 110
+	
+	res = pe1.write(DataSatirSonu, SolMargin+cizgipayi/2 , SatirYuksekligi, 20, "AÇIKLAMA")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.3, SatirYuksekligi, 2, ":")
+	MusteriSiparisNo = Trim(TableE.CHSIPNO)
+	ACIKLAMAX = MusteriSiparisNo & " No'lu Verilen Sipariþ"
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, YatayBilgiAlani-20, ACIKLAMAX)
+	
+	res = pe1.settransparentmode(1)
+	res = pe1.box(DataSatirSonu, SolMargin, SatirYuksekligi, YatayBilgiAlani)
+
+	res = pe1.SetTransparentMode(1)
+	
+	TutarAlani = pe1.GetBottom
+	
+	res = pe1.setbold(1)
+	res = pe1.SetUnderlined(1)
+	
+	res = pe1.write(TutarAlani+1, SolMargin+cizgipayi/2 , SatirYuksekligi, GENISLIK7+GENISLIK8+2, 	ACIKLAMA(2))
+	res = pe1.setbold(0)
+	res = pe1.SetUnderlined(0)
+	
+		es = pe1.write(pe1.GetBottom+0.5, SolMargin+cizgipayi/2 , SatirYuksekligi, GENISLIK7, "NOT 1")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.3, SatirYuksekligi, 2, ":")
+
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, GENISLIK8, 	ACIKLAMA(3))
+	
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin+cizgipayi/2 , SatirYuksekligi, GENISLIK7, "NOT 2")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.3, SatirYuksekligi, 2, ":")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, GENISLIK8, 	ACIKLAMA(4))	
+
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin+cizgipayi/2 , SatirYuksekligi, GENISLIK7, "NOT 3")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.3, SatirYuksekligi, 2, ":")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+0.5, SatirYuksekligi, GENISLIK8, 	ACIKLAMA(5))	
+		
+	res = pe1.Line(TutarAlani+0.5, pe1.GetRight+0.5, 6.5*SatirYuksekligi, 0)
+	NotlarSagiDikCizgiAltKonum = pe1. GetBottom
+	NotlarSagiDikCizgiKonum = pe1.GetRight
+		
+	Set S46T = Doc.Select2G("ssefsf", "STOK46T", "", "", "PRICEUNIT", -1)
+	KayitSayisi = S46T.GetREcCount
+	If KayitSayisi > 0 Then
+		For i = 1 To KayitSayisi
+			ParaBirimi = Trim(S46T.PRICEUNIT(i))
+			If ParaBirimi = "TL" Then TL_TUTARI = Doc.NumFormat(S46T.OR_TUTAR(i), 20, 2) 
+			If ParaBirimi = "EUR" Then EUR_TUTARI = Doc.NumFormat(S46T.OR_TUTAR(i), 20, 2) 
+			If ParaBirimi = "USD" Then USD_TUTARI = Doc.NumFormat(S46T.OR_TUTAR(i), 20, 2) 
+		Next
+	End If		
+		
+	res = pe1.setalign("LEFT")
+	res = pe1.write(pe1.GetTop+cizgipayi, pe1.GetRight + cizgipayi , SatirYuksekligi, 29, "TL Tutarý")
+	res = pe1.setalign("RIGHT")
+
+	res = pe1.write(pe1.GetTop, TutarKonum , SatirYuksekligi, TutarKolonGenisligi-cizgipayi, TL_TUTARI)
+	res = pe1.setalign("CENTER")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+cizgipayi , SatirYuksekligi, ParaBirimiKolonGenisligi-cizgipayi, "TL")
+	
+	res = pe1.setalign("LEFT")
+	res = pe1.write(pe1.GetBottom+cizgipayi/2, NotlarSagiDikCizgiKonum + cizgipayi , SatirYuksekligi, 29, "Euro Tutarý")
+	res = pe1.setalign("RIGHT")
+	res = pe1.write(pe1.GetTop, TutarKonum , SatirYuksekligi, TutarKolonGenisligi-cizgipayi, EUR_TUTARI)
+	res = pe1.setalign("CENTER")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+cizgipayi , SatirYuksekligi, ParaBirimiKolonGenisligi-cizgipayi, "EUR")
+
+	res = pe1.setalign("LEFT")
+	res = pe1.write(pe1.GetBottom+cizgipayi/2, NotlarSagiDikCizgiKonum + cizgipayi , SatirYuksekligi, 29, "Usd Tutarý")
+	res = pe1.setalign("RIGHT")
+	res = pe1.write(pe1.GetTop, TutarKonum , SatirYuksekligi, TutarKolonGenisligi-cizgipayi, USD_TUTARI)
+	res = pe1.setalign("CENTER")
+	res = pe1.write(pe1.GetTop, pe1.GetRight+cizgipayi , SatirYuksekligi, ParaBirimiKolonGenisligi-cizgipayi, "USD")
+
+	res = pe1.settransparentmode(1)
+	res = pe1.box(TutarAlani+0.5, SolMargin, 6.5*SatirYuksekligi, YatayBilgiAlani)
+
+	SevkAdresAltKonum = pe1.GetBottom
+	res = pe1.write(SevkAdresAltKonum+cizgipayi, SolMargin + cizgipayi/2 , SatirYuksekligi, YatayBilgiAlani/2, "SÝPARÝÞÝ VEREN")
+		
+	res = pe1.SetTransparentMode(1)
+	res = pe1.write(pe1.GetBottom+0.5, SolMargin + cizgipayi/2 , SatirYuksekligi, YatayBilgiAlani/2, SIPIVEREN)
+
+	res = pe1.settransparentmode(1)
+	res = pe1.box(SevkAdresAltKonum+0.5, SolMargin, 6*SatirYuksekligi, YatayBilgiAlani/2)
+
+	res = pe1.write(SevkAdresAltKonum+cizgipayi, pe1.GetRight + cizgipayi/2 , SatirYuksekligi, YatayBilgiAlani/2, "SÝPARÝÞÝ ALAN (FÝRMA ONAYI)")
+	res = pe1.settransparentmode(1)
+	res = pe1.box(SevkAdresAltKonum+0.5, pe1.GetLeft-0.5, 6*SatirYuksekligi, YatayBilgiAlani/2)
+
+	SiparisOnayAltKonum = pe1.GetBottom
+
+	res = pe1.setalign("CENTER")
+	res = pe1.setbold(1)
+	res = pe1.Write(SiparisOnayAltKonum+cizgipayi, SolMargin+cizgipayi, SatirYuksekligi, YatayBilgiAlani-2*cizgipayi, IsYeriAdi)
+	res = pe1.setbold(0)	
+	res = pe1.Write(pe1.GetBottom+0.5, SolMargin+cizgipayi, SatirYuksekligi, YatayBilgiAlani-2*cizgipayi, Tumadres)
+	res = pe1.Write(pe1.GetBottom+0.5, SolMargin+cizgipayi, SatirYuksekligi, YatayBilgiAlani-2*cizgipayi, VergiAdiNo)
+
+	res = pe1.settransparentmode(1)
+	res = pe1.box(SiparisOnayAltKonum+0.5, SolMargin, 3.5*SatirYuksekligi, YatayBilgiAlani)
+	
+End Sub
+'-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Sub SayfaSayisi()
+	res = pe1.SelectFont("Arial",FontSize)
+	For i = 1 To pe1.GetPageCount()
+		res = pe1.GotoPage(i)
+		'res = pe1.WriteRTF(SayfaBoyu-AltMargin, SayfaEni-4*SagMargin, SatirYuksekligi, 6*SatirYuksekligi,"\b1 Sayfa  :  \b0 " & i & "  /  " & pe1.GetPageCount())
+	Next
+End Sub
+'--------------------------------------------------------------------------------------------------------------------------------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : EMTAELEKT_2014 / Uygulama : PFRM7S
+Makro Kodu : F-FORM
+Hangi Tablo için : PFRM7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public strfind(8)
+Sub PrintForm()
+	
+	Dim objDoc, objWord, Selection
+	Set objWord = CreateObject( "Word.Application" )
+	objWord.visible = True
+	Set objDoc = objWord.Documents.Add()
+	Set Selection = objWord.Selection
+	'objWord.Selection.EndKey 6,0
+	FirmKodu = Trim(Doc.Getd7FirmCode())
+	Uygulama = Trim(Doc.GetDocType)
+
+	Set PFR7SE = Doc.Select1("dd333d", "PFRM7SE", "", "EVRAKNO", -1)
+	'Set MKR7SE = Doc.Select1("dd333d", "MAKR7SE", "EVRAKNO = '_GNPRG1'", "", -1)
+	
+	KayitSayisi = PFR7SE.GetRecCount()
+	'-------------------------------------------------
+	'Satýr boþluk ayarýný yapar.
+	Selection.ParagraphFormat.LineSpacing = 10
+	objWord.ActiveDocument.ShowSpellingErrors = False
+	'----------------------------------------------
+	'Tab ayarýný yapar.
+	objWord.ActiveDocument.DefaultTabStop = 15
+	'---------------------------------------------
+	For i = 1 To KayitSayisi
+		EVRAKKODU_ORJ = Trim(PFR7SE.EVRAKNO(i))
+		If Left(EVRAKKODU_ORJ, 2) <> "++" Then
+			EVRAKKODU = Trim(PFR7SE.EVRAKNO(i))
+
+			Kodlar = ""
+			EKodlar = ""
+			Selection.Paragraphs.Alignment = 1   '1:wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			Selection.TypeText "Form Kaynak Kodu"
+			Selection.Typeparagraph
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.TypeText "Firma Kodu : " & FirmKodu  & " / " & "Uygulama : " &  Uygulama
+			Selection.Typeparagraph
+			Selection.TypeText "Makro Kodu : " & EVRAKKODU 
+			'------------------------
+		
+			'Selection.Paragraphs.Alignment = 1 wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			'2: wdAlignParagraphRight yani üst satýrdakini saga yaslar.
+			'3: wdAlignParagraphRight yani üst satýrdakini sola yaslar.
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.Typeparagraph
+			Selection.TypeText "Hangi Tablo için : " & Trim(PFR7SE.DOCTYPE(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Ýlave Hangi Uygulamalar için : " & Trim(PFR7SE.ADDDOCTYPES(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Açýklama : " & Trim(PFR7SE.ACIKLAMA(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Kod : "
+			Selection.Typeparagraph
+
+			Set PFR7ST = Doc.Select1("dd333d", "PFRM7ST", "EVRAKNO='"&EVRAKKODU&"'",">SRNUM", -1)
+
+			For k = 1 To PFR7ST.GetRecCount()
+				Selection.Font.Color = vbBlue
+				Kodlar = Kodlar & PFR7ST.SCRIPTTEXT_RO(k)
+			Next
+
+			Selection.TypeText Kodlar
+			Selection.Typeparagraph
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Font.Color = vbBlack
+			Set PFR7SE= Doc.Select1("dd333d", "PFRM7SE", "", "", -1)
+		
+			Selection.TypeText "----------------------------------------------------------------"
+			Selection.Typeparagraph
+		End If
+	Next
+	'--------------------------------------------------------------------------
+	'Font lara makyaj
+	For j = 1  To 8
+		strfind(1) = "Makro Kaynak Kodu"
+		strfind(2) = "Makro Kodu : "
+		strfind(3) = "Hangi Tablo için : "
+		strfind(4) = "Ýlave Hangi Uygulamalar için : "
+		strfind(5) = "Açýklama : "
+		strfind(6) = "Kod : "
+		strfind(7) = "Firma Kodu : "
+		strfind(8) = "Uygulama : "
+
+		Set objRange = objWord.ActiveDocument.Content
+		
+		With objRange.Find
+		.Text = strfind(j)
+		Do
+			.Execute
+			If .Found Then
+				objRange.Font.Color = vbRed
+				objRange.Font.Bold = True
+				'If j = 1 Then objWord.ParagraphFormat.Alignment = wdAlignParagraphCenter
+			End If
+			Loop While .Found
+			End With
+		Next
+		Selection.WholeStory
+		'----------------------------------------------------
+		'Satýr sonlarýndaki boþluðu alma
+		Selection.ParagraphFormat.SpaceAfter = 0.5
+		'---------------------------------------------------
+		'Sayfanýn kenarlarýný daralt
+		With objWord.ActiveDocument.PageSetup
+			.Orientation = wdOrientLandscape
+			bosluk = 15
+			.TopMargin = bosluk
+			.BottomMargin = bosluk
+			.LeftMargin = 43
+			.RightMargin = bosluk
+		End With
+		'--------------------------------------------------------------------------
+		'Satýr numaralarý ekler
+    With Selection.PageSetup
+        With .LineNumbering
+            .Active = True
+            .StartingNumber = 1
+            .CountBy = 1
+            .RestartMode = 1
+            .DistanceFromText = 0
+        End With
+		End With
+		'--------------------------------------------------------------------------
+		objWord.visible = True
+		desktoppath = CreateObject("WScript.Shell").SpecialFolders("Desktop")
+		objDoc.SaveAs(desktoppath & "\" & FirmKodu & "_" & Uygulama)
+		Msgbox "Masaüstüne kaydedildi..."
+		Set objDoc = Nothing
+		Set oWords = Nothing
+		Set objWord = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                    
+
+
+----------------------------------------------------------------
+

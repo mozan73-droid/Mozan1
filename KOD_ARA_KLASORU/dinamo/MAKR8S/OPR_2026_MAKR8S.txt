@@ -1,0 +1,2747 @@
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : MAKR7SE
+Hangi Tablo icin : MAKR7S
+Ilave Hangi Uygulamalar icin : 
+Aciklama : makr7s den otomatik güncellenmesi
+Kod : 
+Sub BeforeSave
+		Set M7SEB = Doc.GetTableObject("MAKR7SE_B")
+		Set M7SE = Doc.GetTableObject("MAKR7SE")
+		
+		KodX = Trim(M7SEB.SCRIPTTEXT)
+		MakroEvrakNo = Trim(M7SE.EVRAKNO)
+		
+		Set objFSO=CreateObject("Scripting.FileSystemObject")
+
+		DosyaTarihi = Replace(Doc.StrToNorDate(Doc.Bugun),"/","") 
+		DosyaSaati = Doc.Saat(6) 
+		
+		KlasorYolu = "C:\MACRORALARIM_AUTOSAVED"
+		
+		'**********************************
+		if not objFSO.FolderExists(KlasorYolu) then
+			Set f = objFSO.CreateFolder(KlasorYolu)
+			if f is nothing then
+				k = Doc.d7Msgbox("Klasör yaratýlamadý" & vbcrlf & "Ýþlem kesilmiþtir","Freedom",MB_OK)
+				exit sub		
+			end if
+		End If
+		'**********************************		
+		
+		TmpDoyaAdiKod = KlasorYolu & "\" & MakroEvrakNo & "_" & Doc.Getd7FirmCode() & "_" & DosyaTarihi & DosyaSaati & "_onceki.txt"
+
+		Set objFile = objFSO.CreateTextFile(TmpDoyaAdiKod, True)
+		objFile.Write KodX & vbCrLf 
+		objFile.Close
+		
+		Doc.d7WrnBox TmpDoyaAdiKod & vbcrlf & vbcrlf & "Dosyasý [C:\MACRORALARIM_AUTOSAVED] klasörüne Kaydetme Öncesinin Hali Kaydedildi.", "", ok_cancel, 1
+End Sub
+'----------------------------------
+Sub AfterSave
+		Set M7SEB = Doc.GetTableObject("MAKR7SE_B")
+		Set M7SE = Doc.GetTableObject("MAKR7SE")
+		
+		KodX = Trim(M7SEB.SCRIPTTEXT)
+		MakroEvrakNo = Trim(M7SE.EVRAKNO)
+			
+		Set objFSO=CreateObject("Scripting.FileSystemObject")
+
+		DosyaTarihi = Replace(Doc.StrToNorDate(Doc.Bugun),"/","") 
+		DosyaSaati = Doc.Saat(6) 
+		
+		KlasorYolu = "C:\MACRORALARIM_AUTOSAVED"
+		
+		'**********************************
+		if not objFSO.FolderExists(KlasorYolu) then
+			Set f = objFSO.CreateFolder(KlasorYolu)
+			if f is nothing then
+				k = Doc.d7Msgbox("Klasör yaratýlamadý" & vbcrlf & "Ýþlem kesilmiþtir","Freedom",MB_OK)
+				exit sub		
+			end if
+		End If
+		'**********************************
+		
+		TmpDoyaAdiKod = KlasorYolu & "\" & MakroEvrakNo & "_" & Doc.Getd7FirmCode() & "_" & DosyaTarihi & DosyaSaati & "_mevcut.txt"
+
+		Set objFile = objFSO.CreateTextFile(TmpDoyaAdiKod, True)
+		objFile.Write KodX & vbCrLf 
+		objFile.Close
+		
+		'Doc.d7WrnBox TmpDoyaAdiKod & vbcrlf & vbcrlf & "Dosyasý [C:\MACRORALARIM_AUTOSAVED] klasörüne Þimdi Hali (Yedeði) Kaydedildi.", "", ok_cancel, 1
+
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : MMPS10-01
+Hangi Tablo icin : MMPS10
+Ilave Hangi Uygulamalar icin : 
+Aciklama : Müþteriyi, PartiNoyu, tarihleri yazar ve Gerçekleþme tarihi seçilmiþmi takibini yapar.
+Kod : 
+' Sub ZU_MMPS10T1_AREA_1_Calc
+	' Dim RS_MMPS10T
+	' Set RS_MMPS10T=Doc.GetTableObject("MMPS10T")
+	' RS_MMPS10T.ZU_MMPS10T1_AREA_1 = Doc.DRound(RS_MMPS10T.ZU_MMPS10T1_WIDTH_1 * RS_MMPS10T.ZU_MMPS10T1_LENGHT_1)
+' End Sub
+' '---------------------------------------------------------
+' Sub ZU_MMPS10T1_WIDTH_1_AfterValidate
+	' Call ZU_MMPS10T1_AREA_1_Calc
+' End Sub
+' '---------------------------------------------------------
+' Sub ZU_MMPS10T1_LENGHT_1_AfterValidate
+	' Call ZU_MMPS10T1_AREA_1_Calc
+' End Sub
+' '---------------------------------------------------------
+' Sub ZU_MMPS10T1_ENTEGRATOR_KODU_AfterValidate
+	' Call ZU_MMPS10T1_ENTEGRATOR_ADI_Calc
+' End Sub
+' '---------------------------------------------------------
+' Sub ZU_MMPS10T1_PERS00_ABC_AfterValidate
+	' Call ZU_MMPS10T1_PERS00_ABC_PERS00_REC_Calc
+' End Sub
+'---------------------------------------------------------
+' Sub AfterLoad
+	' Call ZU_MMPS10T1_ENTEGRATOR_ADI_Calc
+	' Call ZU_MMPS10T1_PERS00_ABC_PERS00_REC_Calc
+' End Sub
+' '---------------------------------------------------------
+' Sub ZU_MMPS10T1_PERS00_ABC_PERS00_REC_Calc
+	' Dim RS_MMPS10T
+	' Set RS_MMPS10T=Doc.GetTableObject("MMPS10T")
+	' Dim ret
+	' ret = Doc.ReadBinrec(ThisTableName, "ZU_MMPS10T1_PERS00_ABC_PERS00_REC", -1, "PERS00", RS_MMPS10T.ZU_MMPS10T1_PERS00_ABC, "")
+' End Sub
+'---------------------------------------------------------
+' Sub ZU_MMPS10T1_ENTEGRATOR_ADI_Calc
+	' Dim RS_MMPS10T
+	' Set RS_MMPS10T=Doc.GetTableObject("MMPS10T")
+	' RS_MMPS10T.ZU_MMPS10T1_ENTEGRATOR_ADI = Doc.GetGecoValue("|EINVSNDP","AD",RS_MMPS10T.ZU_MMPS10T1_ENTEGRATOR_KODU,-1)
+' End Sub
+'---------------------------------------------------------
+Sub M10T_SatirKTALariDoldur
+	Set M10E = Doc.GetTableObject("MMPS10E")
+	
+	Dim KLP_KODU_VAL(6)
+	Dim OPTALIMATI_VAL(6)
+	Dim KLP_SERINO_VAL(6)
+	Dim KLP_KLT_OP_VAL(6)
+	Dim KLP_ADI_VAL(6)
+	
+	Set M10T_H_Stack = Doc.Select2("aaafsdsf", "MMPS10T", "R_KAYNAKTYPE='H' ", "", -1)
+	TOP_H_SAYI_VAL = 0
+	
+	If M10T_H_Stack.GetRecCount > 0 Then
+		TOP_H_SAYI_VAL = M10T_H_Stack.GetRecCount
+	End If
+	
+	Set M10T_H_Stack = Nothing
+	'*******************************************
+	Set M10T_I_Stack = Doc.Select2("fsdf", "MMPS10T", "R_KAYNAKTYPE='I' ", "", -1)
+	TOP_I_SAYI_VAL = 0
+	
+	If M10T_I_Stack.GetRecCount > 0 Then
+		TOP_I_SAYI_VAL = M10T_I_Stack.GetRecCount
+	End If
+
+	Set M10T_I_Stack = Nothing
+	'*******************************************
+
+	Set M10T = Doc.GetTableObject("MMPS10T")
+
+	OpSiraNo = 0 
+
+	For i = 1 to M10T.GetRowCount
+		If M10T.R_KAYNAKTYPE(i) = "I" Then
+			OpSiraNo = OpSiraNo+1
+			M10T.SetCurrentRow i
+
+			MAMULADI_VAL = 	""
+			MAMULADI2_VAL = ""
+			HEDEFURUNKODU_VAL = ""
+			KAYNAK_BIRIM_VAL = ""
+			TAKMALAR_VAL = ""
+			
+			TEZGAHADI_VAL = ""
+			HUCREADI_VAL = ""
+			KIOSNO_VAL = ""
+			TEZGAHTIPI_VAL = ""
+			TEZFOTO1_VAL = ""
+			RESIM1_VAL = "" 
+			KACINCIOPR_VAL = ""
+
+			KT100DE100_VAL = ""
+			RWTALIMAT_VAL = ""
+
+			For j = 1 To 6
+				KLP_KODU_VAL(j) = ""
+				OPTALIMATI_VAL(j) = ""
+				KLP_SERINO_VAL(j) = ""
+				KLP_KLT_OP_VAL(j) = ""
+				KLP_ADI_VAL(j) = ""
+			Next
+		
+			HedefUrunKodu = M10T.R_YMAMULKODU(i)
+			TezgahKoduVal = M10T.R_KAYNAKKODU(i)
+			OperasyonSirasiVal = OpSiraNo 
+			KACINCIOPR_VAL = OperasyonSirasiVal & "/" & TOP_I_SAYI_VAL
+		
+			TezgahKoduVar = True
+
+			CARIADI_VAL = Trim(Doc.GetKartValue("CARI00", "AD", M10T.R_MUSTERIKODU(i), -1))
+			OPRYNADI_VAL = Trim(Doc.GetKartValue("IMLT01", "AD", M10T.R_OPERASYON(i), -1))
+			
+		 	If Trim(HedefUrunKodu) <> "" Then				
+				SQL = "SELECT STOK00.KOD, "
+				SQL = SQL & "  STOK00.AD, "
+				SQL = SQL & "  STOK00.NAME2, "
+				SQL = SQL & "  STOK00.TSENO, "
+				SQL = SQL & "  STOK00.IUNIT, "
+				SQL = SQL & "  STOK00.REFTEXT01, "
+				SQL = SQL & "  '\\192.168.1.220\d7s\IMAGES\' || Trim(STOK0P.FULLFILENAME1) RESIM1, "
+				SQL = SQL & "  MAX(DECODE(Trim(ATCDOC.GK_1), 'KT_%100', ATCDOC.FULLFILENAME))    AS KT100DE100, "
+				SQL = SQL & "MAX(DECODE(Trim(ATCDOC.GK_1), 'RW_TALIMAT', ATCDOC.FULLFILENAME)) AS RWTALIMAT "
+			
+				SQL = SQL & "FROM STOK00 "
+
+				SQL = SQL & "LEFT JOIN ATCDOC ON ATCDOC.EVRAKNO = STOK00.KOD AND ATCDOC.XEVRAKTYPE = 'STOK00' "
+				SQL = SQL & "LEFT JOIN STOK0P ON STOK0P.EVRAKNO = STOK00.KOD AND STOK0P.SUBSRNUM = '000001' "
+			
+				SQL = SQL & " WHERE 1=1 "
+				SQL = SQL & " AND STOK00.KOD = '"& HedefUrunKodu &"' "
+
+				SQL = SQL & "GROUP BY STOK00.KOD, "
+				SQL = SQL & "  STOK00.AD, "
+				SQL = SQL & "  STOK00.NAME2, "
+				SQL = SQL & "  STOK00.TSENO, "
+				SQL = SQL & "  STOK00.IUNIT, "
+				SQL = SQL & "  STOK00.REFTEXT01, "
+				SQL = SQL & "  STOK0P.FULLFILENAME1 "
+
+				Set S00 = Doc.RunSQLQuery("STOK00DB", SQL)
+				S00.SetCurrentRow(1)
+	
+				MAMULADI_VAL = Trim(S00.AD)
+				MAMULADI2_VAL = Trim(S00.NAME2) 
+				KAYNAK_BIRIM_VAL = Trim(S00.IUNIT) 
+				TAKMALAR_VAL = Trim(S00.REFTEXT01)
+				KT100DE100_VAL = Trim(S00.KT100DE100)
+				RWTALIMAT_VAL = Trim(S00.RWTALIMAT)
+				RESIM1_VAL = Trim(S00.RESIM1)
+				
+				Set S00 = Nothing			
+			End If
+		
+			'**********************************
+			If Trim(TezgahKoduVal) <> "" Then
+				SQL = "SELECT IMLT00.KOD, IMLT00.AD, IMLT00.GK_3, IMLT00.GK_6, IMLT00.GK_4, UFLD02E.QS_VALUE TEZFOTO "
+				SQL = SQL & " FROM IMLT00 "
+
+				SQL = SQL & " LEFT JOIN UFLD02E ON UFLD02E.TABLE1 = 'IMLT00' AND Trim(UFLD02E.KRITER) = '"& Trim(TezgahKoduVal) &"' AND QS_VARCODE = 'FOTO_1' "
+
+				SQL = SQL & " WHERE IMLT00.KOD = '"& Trim(TezgahKoduVal) &"' "
+							
+				Set IM00DB = Doc.RunSQLQuery("IM00_DB", SQL)
+				IM00DB.SetCurrentRow(1)
+
+				TEZGAHADI_VAL = Trim(IM00DB.AD)
+				HUCREADI_VAL = Trim(IM00DB.GK_3)
+				KIOSNO_VAL = Trim(IM00DB.GK_6)
+
+				TEZGAHTIPI_VAL = Trim(IM00DB.GK_4)
+				TEZFOTO1_VAL = Trim(IM00DB.TEZFOTO )
+			
+				Set IM00 = Nothing
+			End If
+			'**************************************************	
+			'operasyon talimatlarý
+			
+			For j = 1 To 6
+				If j = 1 Then
+					FieldName = "KALIPKODU"
+					FieldValue = Trim(M10T.GetFieldValue(FieldName, i))
+
+				Else			
+					Set M10T3 = Doc.Select1("MMPS10T3_DB", "MMPS10T3", "JOBNO='"& M10T.JOBNO(i) &"' ", "", -1)
+					
+					If M10T3.GetRecCount = 0 Then
+						FieldValue = ""
+					ElseIf M10T3.GetRecCount > j-1 Then
+						
+						FieldValue = Trim(M10T3.SRVPC0_CODE(j))
+					End If
+				End If
+						
+				If FieldValue <> "" Then
+					KLP_KODU_VAL(j) = FieldValue 
+					OPTALIMATI_VAL(j) = Trim(Doc.GetDBFieldValue("SRVPC0","REFTEXT01", FieldValue, ""))
+
+					KLP_SERINO_VAL(j) = Trim(Doc.GetDBFieldValue("SRVPC0", "SERINO", FieldValue, ""))
+					KLP_KLT_OP_VAL(j) = Trim(Doc.GetUDFValue("SVPC0", FieldValue, "KALITEOPNO", 0)) & " - " & Trim(Doc.GetUDFValue("SVPC0", FieldValue, "KALITOPADI", 0))
+					KLP_ADI_VAL(j) = Trim(Doc.GetDBFieldValue("SRVPC0", "AD1", FieldValue, ""))
+				End If
+
+				FieldValue = ""
+
+			Next			
+			'**************************************************************		
+		
+			Set ZUMMPS10T = Doc.GetTableObject("ZU_MMPS10T")
+
+			ZUMMPS10T.DeleteRow_NOUI(1)
+	
+			SatirNo = ZUMMPS10T.AddRow
+			ZUMMPS10T.SetCurrentRow SatirNo 
+		
+			ZUMMPS10T.TEZGAHADI = TEZGAHADI_VAL
+			ZUMMPS10T.HUCREADI = HUCREADI_VAL
+
+			ZUMMPS10T.KIOSNO = KIOSNO_VAL
+			ZUMMPS10T.TEZGAHTIPI = TEZGAHTIPI_VAL
+			ZUMMPS10T.TEZFOTO1 = TEZFOTO1_VAL
+		
+			ZUMMPS10T.MAMULADI = MAMULADI_VAL
+			ZUMMPS10T.MAMULADI2 = MAMULADI2_VAL
+			ZUMMPS10T.HEDEFURUN = HedefUrunKodu
+			ZUMMPS10T.KAYNAK_BIR = KAYNAK_BIRIM_VAL
+			ZUMMPS10T.TAKMALAR = TAKMALAR_VAL				
+			ZUMMPS10T.RESIM1 = RESIM1_VAL				
+		
+			ZUMMPS10T.KT100DE100 = KT100DE100_VAL				
+			ZUMMPS10T.RWTALIMAT = RWTALIMAT_VAL				
+
+			ZUMMPS10T.OPRYNADI = OPRYNADI_VAL
+			ZUMMPS10T.CARIADI = CARIADI_VAL
+		
+			ZUMMPS10T.KACINCIOPR = KACINCIOPR_VAL
+			ZUMMPS10T.TOP_I_SAYI = TOP_I_SAYI_VAL
+			ZUMMPS10T.TOP_H_SAYI = TOP_H_SAYI_VAL
+			ZUMMPS10T.OPSIRASI = OperasyonSirasiVal
+		
+			For j = 1 To 6
+				ZUMMPS10T.SetFieldValue "KLP_KODU_" & j, SatirNo,KLP_KODU_VAL(j)
+				ZUMMPS10T.SetFieldValue "OPTAL_" & j, SatirNo, OPTALIMATI_VAL(j)
+
+'msgbox "sýrano: " & j & "/6" & "talimat : " & OPTALIMATI_VAL(j)
+
+				ZUMMPS10T.SetFieldValue "KLPSERINO" & j, SatirNo, KLP_SERINO_VAL(j)
+				ZUMMPS10T.SetFieldValue "KLPKLT_OP" & j, SatirNo, KLP_KLT_OP_VAL(j)
+				ZUMMPS10T.SetFieldValue "KLP_ADI_" & j, SatirNo, KLP_ADI_VAL(j)
+			Next
+			
+			'********************************************************
+			'Operasyon sonunda elde edilen ürünler
+			URUNLER_VAL = ""
+		
+			If Left(Trim(HedefUrunKodu), 1) = "C" and OperasyonSirasiVal < TOP_I_SAYI_VAL Then
+				URUNLER_VAL = "'" & HedefUrunKodu & "'" 
+			Else
+				Set M10TM_Stack = Doc.Select2("aaafDDsdsf", "MMPS10TM", "", "", -1)
+
+				If M10TM_Stack.GetRecCount > 0 Then
+					For n = 1 To M10TM_Stack.GetRecCount
+						UrunKoduVal = M10TM_Stack.MAMULSTOKKODU(n)
+				
+						If M10TM_Stack.GetRecCount = 1 Then
+							URUNLER_VAL = "'" & UrunKoduVal & "'" 
+						Else
+							URUNLER_VAL = URUNLER_VAL & "'" & UrunKoduVal & "'" 
+							
+							If n < M10TM_Stack.GetRowCount Then URUNLER_VAL = URUNLER_VAL & ","
+						End If
+					Next
+
+					Set M10TM_Stack = Nothing
+				End If
+			End If
+		
+			ZUMMPS10T.URUNLER = URUNLER_VAL
+		End If
+	Next	
+
+	'Set M10E = Doc.GetTableObject("MMPS10E")
+
+	'res = Doc.UFLD00_CreateEditTable("AAABBB", "MMPS10E", M10E.EVRAKNO)
+	'Set KTA = Doc.GetTableObject("AAABBB")
+
+	'KTA.SetFieldValue "URUNLER", -1, URUNLER_VAL
+	'KTA.Exec "SAVE"
+
+	'Set KTA = Nothing
+End Sub
+'------------------------------------------------------------------------------
+Function BeforeSave
+	'Call ZU_MMPS10T1_AREA_1_Calc
+
+	Set M10E = Doc.GetTableObject("MMPS10E")
+	
+	If Len(Trim(M10E.EVRAKNO)) <> 5 Then
+		msgbox "Ýþ Emri Evrak No 5 Hane Olmalýdýr."
+		
+		BeforeSave="CANCELWITHOUTERRORMSG"
+		Exit Function
+	End If
+
+	Set M10TM = Doc.GetTableObject("MMPS10TM")
+	Set M10T = Doc.GetTableObject("MMPS10T")
+
+	For i = 1 to M10TM.GetRowCount()
+		NihaiUrunKodu = Trim(Doc.GetDBFieldValue("STOK00", "TSENO", M10TM.MAMULSTOKKODU(i), ""))
+		
+		Set S0GT = Doc.Select1("ssee", "STOK0GT", "STOKCODE='" & NihaiUrunKodu & "' ", "", -1)
+
+		If S0GT.GetRowCount > 0 Then
+			Musteri = S0GT.KOD(1)
+		Else
+			Musteri = ""
+		End If
+
+		If Trim(Musteri) <> "" Then 
+			M10TM.SetFieldValueNV "MUSTERIKODU", i , Musteri
+		Else
+			If Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YAI" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MAI" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FAI" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CAI" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-002"
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YON" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MON" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FON" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CON" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-001"
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YDS" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MDS" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FDS" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CDS" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-803"
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YKN" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MKN" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FKN" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CKN" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-033"
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YCV" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MCV" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FCV" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CCV" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-829"			
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YTC" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MTC" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FTC" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CTC" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-133"			
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3))= "YOP" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MOP" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FOP" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "COP" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-137"
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YLG" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MLG" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FLG" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CLG" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-142"							
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YBW" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MBW" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FBW" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CBW" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-042"				
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YDD" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MDD" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FDD" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CDD" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-043"		
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YSS" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MSS" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FSS" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CSS" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-032"															
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YTK" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MTK" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FTK" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CTK" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-030"															
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YNC" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MNC" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FNC" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CNC" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-011"				
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YNK" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MNK" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) ="FNK" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CNK" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-705"					
+			ElseIf Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "YVN" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "MVN" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "FVN" Or Trim(Left(M10TM.MAMULSTOKKODU(i),3)) = "CVN" Then 
+				M10TM.SetFieldValueNV "MUSTERIKODU", i , "120-01-037"												
+			End If
+		End If
+	Next
+
+	If Trim(M10E.PLBTARIH_OFO) = "" Then M10E.PLBTARIH_OFO = M10E.EGBTARIH_OFO
+	If Trim(M10E.REBTARIH_OFO) = "" Then M10E.REBTARIH_OFO = M10E.EGBTARIH_OFO
+
+	Call M10T_SatirKTALariDoldur
+
+End Function
+'----------------------------------------------
+Function BeforePrint()
+	Set M10TM = Doc.GetTableObject("MMPS10TM")
+	Set M10E = Doc.GetTableObject("MMPS10E")
+
+	M10TM.SafePack
+	For i = 1 to M10TM.GetRowCount()
+		If trim(M10TM.MUSTERIKODU(i))="" Then
+			beforeprint=1
+			
+			MSGBOX "MÜÞTERÝ SEÇÝN. ÝÞLEM ÝPTAL EDÝLDÝ."
+			Exit Function
+		End if
+	Next
+End Function
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : MMPS10-02
+Hangi Tablo icin : MMPS10T
+Ilave Hangi Uygulamalar icin : 
+Aciklama : SATIRA EKLENEN EXTENSION ALAN ÖRNEÐÝ
+Kod : 
+Sub ZU_MMPS10T1_AREA_1_Calc
+	Dim RS_MMPS10T
+	Set RS_MMPS10T=Doc.GetTableObject("MMPS10T")
+	RS_MMPS10T.ZU_MMPS10T1_AREA_1 = Doc.DRound(RS_MMPS10T.ZU_MMPS10T1_WIDTH_1 * RS_MMPS10T.ZU_MMPS10T1_LENGHT_1)
+End Sub
+'---------------------------------------------------------
+Sub ZU_MMPS10T1_WIDTH_1_AfterValidate
+	Call ZU_MMPS10T1_AREA_1_Calc
+End Sub
+'---------------------------------------------------------
+Sub ZU_MMPS10T1_LENGHT_1_AfterValidate
+	Call ZU_MMPS10T1_AREA_1_Calc
+End Sub
+'---------------------------------------------------------
+Sub ZU_MMPS10T1_ENTEGRATOR_KODU_AfterValidate
+	Call ZU_MMPS10T1_ENTEGRATOR_ADI_Calc
+End Sub
+'---------------------------------------------------------
+Sub ZU_MMPS10T1_PERS00_ABC_AfterValidate
+	Call ZU_MMPS10T1_PERS00_ABC_PERS00_REC_Calc
+End Sub
+'---------------------------------------------------------
+Sub AfterLoad
+	Call ZU_MMPS10T1_ENTEGRATOR_ADI_Calc
+	Call ZU_MMPS10T1_PERS00_ABC_PERS00_REC_Calc
+End Sub
+'---------------------------------------------------------
+Sub ZU_MMPS10T1_PERS00_ABC_PERS00_REC_Calc
+	Dim RS_MMPS10T
+	Set RS_MMPS10T=Doc.GetTableObject("MMPS10T")
+	Dim ret
+	ret = Doc.ReadBinrec(ThisTableName, "ZU_MMPS10T1_PERS00_ABC_PERS00_REC", -1, "PERS00", RS_MMPS10T.ZU_MMPS10T1_PERS00_ABC, "")
+End Sub
+'---------------------------------------------------------
+Sub ZU_MMPS10T1_ENTEGRATOR_ADI_Calc
+	Dim RS_MMPS10T
+	Set RS_MMPS10T=Doc.GetTableObject("MMPS10T")
+	RS_MMPS10T.ZU_MMPS10T1_ENTEGRATOR_ADI = Doc.GetGecoValue("|EINVSNDP","AD",RS_MMPS10T.ZU_MMPS10T1_ENTEGRATOR_KODU,-1)
+End Sub
+'---------------------------------------------------------
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : MMPS10T
+Hangi Tablo icin : 
+Ilave Hangi Uygulamalar icin : 
+Aciklama : DÝNAMO GEÇÝÞ : HANGÝ UYGULAMA : MMPS10
+Kod : 
+Function beforeSave() 
+
+	Dim rs_MMPS10T,i
+	Set rs_MMPS10T = Doc.GetRowSetObject("MMPS10T")
+	For i = 1 To rs_MMPS10T.GetREcCount()
+			rs_MMPS10T.SetCurrentRow i 
+			if TRIM(rs_MMPS10T.R_KAYNAKTYPE) = "I" Then 
+				Dim rs_ZU_MMPS10T
+				Set rs_ZU_MMPS10T = Doc.GetRowSetObject("ZU_MMPS10T")
+				rs_ZU_MMPS10T.SafePack()
+				if rs_ZU_MMPS10T.GetRecCount()  = 0 Then 
+					rs_ZU_MMPS10T.AddAndGoToRow()
+					rs_ZU_MMPS10T.TEZGAHADI = rs_MMPS10T.KAYNAK_AD
+	
+				End If 
+
+			End If 
+	Next 
+
+End Function
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : SFDC32-01
+Hangi Tablo icin : SFDC32
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Function BeforeSave
+	Set objNetwork = CreateObject("Wscript.Network")
+	GetTerminalUserName = Trim(objNetwork.UserName)
+	
+	Set S32E = Doc.GetTableObject("SFDC32E")
+	Set S32T = Doc.GetTableObject("SFDC32T")
+	Set S32D = Doc.GetTableObject("SFDC32D")
+	Set S20S = Doc.GetTableObject("SFDC20S")
+	Set S32O = Doc.GetTableObject("SFDC32O")
+	
+	MpsNoVal = S32E.MPSNO		
+	JobNoVal = S32E.JOBNO		
+	TezgahKoduVal = S32E.X_T_ISMERKEZI
+	
+	If Trim(MpsNoVal) <> "" Then
+		If Not MPSEvrakAcikmi(Trim(MpsNoVal)) Then 
+			Doc.d7WrnBox Trim(MpsNoVal) & " Numaralý MPS Açýk. Kaydedilmeden Ýptal Edildi.", "Freedom ERP Uyarý", ok_cancel, 1
+
+			BeforeSave = "CANCELWITHOUTERRORMSG"
+			Exit Function
+		End If	
+	End If		
+		
+	S20S.SafePack
+	S32D.SafePack
+	S32T.SafePack
+	
+	'************************* Kaçincý Operasyon *****************************
+	KacinciOperasyon = Trim(S32E.REFTEXT01)
+	'******************************************************
+
+	OperatorSayisi = S32E.OPERATOR_SAYISI
+		
+	If Trim(S32E.RECTIME2) <> "" Then	
+		If S32E.TARIH < "2024/03/11" or S32E.TARIH >= "2024/04/15" Then
+			Call PlanliDurusHesapla_Ramazan_Donemi_Harici(S32E)
+			
+		ElseIf S32E.TARIH >= "2024/03/11" and S32E.TARIH <= "2024/04/09" Then
+			Call PlanliDurusHesapla_Ramazan_Donemi(S32E)
+		End If
+	End If 
+	
+	'*****************************************
+
+	EldeEdilenUrunSayisi = S32T.GetRecCount
+		
+	If S32O.SUMOF("REFNUM01") = 0 Then					
+		OperatorYeniUretilenMiktar = S32E.SF_MIKTAR
+	Else
+		OperatorYeniUretilenMiktar = S32O.SUMOF("REFNUM01")
+		
+		If OperatorYeniUretilenMiktar = 0 Then
+			OperatorYeniUretilenMiktar = S32E.SF_MIKTAR
+		End If
+	End If
+	
+	If OperatorYeniUretilenMiktar > 0 Then
+		S32E.SF_MIKTAR = OperatorYeniUretilenMiktar 
+	Else
+		If Trim(S32E.REFTEXT02) <> "E" Then
+			If S32E.SF_MIKTAR = 0 Then
+				If Trim(S32E.RECTIME2) <> "" Then
+
+					S32E.SF_MIKTAR = 1
+
+				End If
+			End If
+		End If
+	End If
+	
+	FireVar = False
+	
+	If S20S.GetRecCount > 0 Then
+		Doc.CreateTableObject "ZZZ=SFDC20S","TMPCOPY"		
+		Set S20S_X = Doc.GetTableObject("ZZZ")
+		
+		S20S_X.CopyTable(S20S)
+	
+		S20S.Empty
+		
+		FireVar = True
+	End If
+
+	'Call PlanliDuruslariYaz
+	'*************************************
+
+	If S32D.GetRecCount > 0 Then
+		For i = 1 To S32D.GetRecCount
+			If Trim(S32D.BASLANGIC_SAAT(i)) <> "" and Trim(S32D.BITIS_SAAT(i)) <> "" Then
+				S32D.SURE(i) = Doc.DTDTDif1(S32D.BASLANGIC_TARIH(i), S32D.BASLANGIC_SAAT(i), S32D.BITIS_TARIH(i), S32D.BITIS_SAAT(i))
+			End If
+		Next
+	End If
+	
+	'********* CMD_MPS_MAMULLERI komutunun yerini deðiþtirme. For S32T / Next  den önce olacak. Lot No yu siliyor öbür türlü **************************
+	
+	LotNoVal = GetLotNo(MpsNoVal, KacinciOperasyon) 	
+	
+	Doc.RunCommand "CMD_MPS_MAMULLERI"
+		
+	'***********************************
+
+	S32E.SURE = Doc.DTDTDif1(S32E.RECTARIH1, S32E.RECTIME1, S32E.RECTARIH2, S32E.RECTIME2)
+
+	Doc.RunCommand "CMD_MIKTAR_VE_SURELERI_YENIDEN_HESAPLA"
+	Doc.RunCommand "CMD_SURE_KAYITLARI"		
+	
+	
+	If Left(S32E.STOK_CODE, 1) = "C" Then
+		If SonOpMu(MpsNoVal, JobNoVal) Then
+
+			BOMEldeEdilenStokKodu = S32E.STOK_CODE
+				
+			SQL = "SELECT BOMU01TM.RECETECODE, "
+			SQL = SQL & "  BOMU01TM.MAMULCODE, "
+			SQL = SQL & "  BOMU01TM.MAMULMIKTAR, "
+			SQL = SQL & "  BOMU01TM.RECETEMIKTAR, "
+			SQL = SQL & "  (BOMU01TM.MAMULMIKTAR / BOMU01TM.RECETEMIKTAR) ORAN "
+
+			SQL = SQL & " FROM BOMU01TM "
+
+			SQL = SQL & " LEFT JOIN BOMU01E ON BOMU01E.EVRAKNO = BOMU01TM.EVRAKNO "
+
+			SQL = SQL & " WHERE RECETECODE  = '"& BOMEldeEdilenStokKodu &"' "
+			SQL = SQL & " AND BOMU01E.AKTIF_PASIF = '*'"
+
+			Set B01TMSQL = Doc.RunSQLQuery("B01TM_SQL", SQL)
+
+			If B01TMSQL.GetRecCount = 0 Then
+				msgbox "Çoklu Ürün Aðacýný Kontrol Edin."
+					
+				Exit Function
+			End If
+
+			For i = 1 To S32T.GetRecCount
+				If Trim(S32T.KOD(i)) <> "" Then
+					S32T.URETIMFISIVAR(i) = "H"
+					
+					If Trim(TezgahKoduVal) = "TEZ-RW" Then
+						RWLotnoVal = Trim(Doc.GetDBFieldValue("MMPS10E", "NOTLAR_1", MpsNoVal, ""))
+						RWLotnoVal = Trim(Mid(RWLotnoVal, 2, 11))
+						
+						RWLotnoVal = Trim(MPSNoVal) & Trim(Mid(RWLotnoVal, 6, 5))
+						
+						LotNoVal = RWLotnoVal
+					End If
+					
+					S32T.LOTNUMBER(i) = LotNoVal
+				
+					If Trim(S32E.REFTEXT02) <> "E" Then
+						If OperatorYeniUretilenMiktar > 0 Then
+							For j = 1 To B01TMSQL.GetRecCount
+								If Trim(S32T.KOD(i)) = Trim(B01TMSQL.MAMULCODE(j)) Then
+									KatsayiVal = B01TMSQL.ORAN(j)
+									
+									S32T.SF_MIKTAR(i) = OperatorYeniUretilenMiktar * KatsayiVal			
+								End If
+							Next
+						End If
+					End If
+				End If
+			Next
+				
+			Set B01TMSQL = Nothing
+			
+		Else
+			S32T.Empty
+			
+			SatirNo = S32T.AddRow
+			S32T.SetCurrentRow SatirNo 
+			
+			S32T.KOD = S32E.STOK_CODE
+			
+			If Trim(TezgahKoduVal) = "TEZ-RW" Then
+				RWLotnoVal = Trim(Doc.GetDBFieldValue("MMPS10E", "NOTLAR_1", MpsNoVal, ""))
+				RWLotnoVal = Trim(Mid(RWLotnoVal, 2, 11))
+				
+				RWLotnoVal = Trim(MPSNoVal) & Trim(Mid(RWLotnoVal, 6, 5))
+				
+				LotNoVal = RWLotnoVal
+			End If	
+			
+			S32T.LOTNUMBER = LotNoVal
+			
+			If Trim(S32E.REFTEXT02) <> "E" Then
+				If OperatorYeniUretilenMiktar > 0 Then
+					S32T.SF_MIKTAR = OperatorYeniUretilenMiktar
+				End If
+			End If
+			
+			S32T.SafePack
+		End If
+	Else
+		For i = 1 To S32T.GetRecCount
+			S32T.URETIMFISIVAR(i) = "H"
+			
+			If Trim(TezgahKoduVal) = "TEZ-RW" Then
+				RWLotnoVal = Trim(Doc.GetDBFieldValue("MMPS10E", "NOTLAR_1", MpsNoVal, ""))
+				RWLotnoVal = Trim(Mid(RWLotnoVal, 2, 11))
+				RWLotnoVal = Trim(MPSNoVal) & Trim(Mid(RWLotnoVal, 6, 5))
+				
+				LotNoVal = RWLotnoVal
+			End If
+					
+			S32T.LOTNUMBER(i) = LotNoVal
+			
+			If Trim(S32E.REFTEXT02) <> "E" Then
+				If OperatorYeniUretilenMiktar > 0 Then
+					S32T.SF_MIKTAR(i) = OperatorYeniUretilenMiktar
+				End If
+			End If
+		Next
+	End If
+	
+	'aþaðýdakinin yerini deðiþtirme. Doc.RunCommand "CMD_MPS_MAMULLERI" önce çalýþýrsa bu tabloyu siliyor.
+	
+	If FireVar Then
+		For i = 1 To S20S_X.GetRecCount
+			SatirNo = S20S.AddRow
+			S20S.SetCurrentRow SatirNo
+			
+			S20S.SEBEP = S20S_X.SEBEP(i)
+			S20S.SEBEP_AD = S20S_X.SEBEP_AD(i)
+			S20S.KOD = S20S_X.KOD(i)
+			S20S.KOD_AD = S20S_X.KOD_AD(i)
+			S20S.LOTNUMBER = S20S_X.LOTNUMBER(i)
+			S20S.SERINO = S20S_X.SERINO(i)
+			S20S.SF_MIKTAR = S20S_X.SF_MIKTAR(i)
+
+			S20S.NOTES = S20S_X.NOTES(i)
+			S20S.GK_1 = S20S_X.GK_1(i)
+			S20S.GK_2 = S20S_X.GK_2(i)	
+		Next	
+	End If
+	
+End Function
+'----------------------------------------------------------
+Sub AfterLoad
+
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+
+	Set SF32E = Doc.GetTableObject("SFDC32E")
+	Set SF32O = Doc.GetTableObject("SFDC32O")
+	Set SF32T = Doc.GetTableObject("SFDC32T")
+
+	SF32T.SafePack
+	SF32O.SafePack
+	
+	If SF32O.GetRecCount = 0 Then Exit Sub
+	
+	For i = 1 To SF32T.GetRecCount
+		If SF32T.URETIMFISIVAR(i) = "E" Then
+			SF32T.URETIMFISIVAR(i) = "H"
+		End If
+			
+		SetS20TDB = Doc.Select1("S20T_DB", "STOK20T", "W_FIRMA = '"& Doc.Getd7FirmCode &"' & W_APP = 'SFDC32' & W_TABLE = 'SFDC32_T' & W_EVRAKTYPE = 'S4' & W_EVRAKNO = '"& SF32E.EVRAKNO &"' & W_TRNUM = '"& SF32T.TRNUM(i) &"' ", "<EVRAKNO", -1)
+
+		If S20TDB.GetRecCount > 0 Then
+			'SF32T.URFISNO(i) = Trim(S20TDB.EVRAKNO(1))  'DÝNAMODA SATIR KTASINI EKRANA GETÝREMEDÝÐÝMÝZDEN ÝPTAL
+
+			'SF32T.URETIMFISIVAR(i) = "E"  ' 'tekrarlý kayýdý engellediði için iptal edildi.
+		Else
+			'SF32T.URFISNO(i) = "" 'DÝNAMODA SATIR KTASINI EKRANA GETÝREMEDÝÐÝMÝZDEN ÝPTAL
+
+			
+			If SF32T.URETIMFISIVAR(i) = "E" Then
+				SF32T.URETIMFISIVAR(i) = "H"
+			End If
+		End If
+	Next
+	
+	SF32T.SetCurrentRow 1
+
+End Sub
+'------------------------------------------------------------------------
+Sub PlanliDurusHesapla_Ramazan_Donemi(S32E)
+	'ramazan dönemi
+	
+	If Trim(Doc.GetPDocPType0) <> "_GNPRG145" Then
+		If Doc.DataEntryMode = "GUI" Then 
+			'If S32E.NOMOLA = "E" Then
+			'	Exit Sub
+			'End If 
+		End If
+	End If
+	'******************************************
+	BaslamaTarihi_Tez = S32E.RECTARIH1
+
+	Set tarih_tez = Doc.CreateSObject("d7Date")
+	tarih_tez.SetDate(BaslamaTarihi_Tez)
+	GunAdival_Tez = tarih_tez.GetDowStr
+	'******************************************
+	
+	BaslamaSaati_Tez = S32E.RECTIME1
+	BitisSaati_Tez = S32E.RECTIME2
+		
+	If GunAdival_Tez = "Cmt" or GunAdival_Tez = "Paz" Then
+		If GunAdival_Tez = "Cmt" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "10:30" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez1 >= "10:45" And BitisSaati_Tez <= "13:00" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez >= "13:00" And BitisSaati_Tez <= "14:30" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:00" Then
+				Exit Sub
+			End If
+			
+		ElseIf GunAdival_Tez = "Paz" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "13:00" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez >= "13:30" And BitisSaati_Tez <= "17:00" Then
+				Exit Sub
+			End If
+			
+		End If
+	Else
+		If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "10:30" Then
+			Exit Sub
+		ElseIf BaslamaSaati_Tez1 >= "10:45" And BitisSaati_Tez <= "13:00" Then
+			Exit Sub
+		ElseIf BaslamaSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then
+			Exit Sub
+		ElseIf BaslamaSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:10" Then
+			Exit Sub
+		End If
+	End If
+
+	Set S32O = Doc.GetTableObject("SFDC32O")		
+	Set S32D = Doc.GetTableObject("SFDC32D")		
+	S32D.SafePack
+	
+	For i = 1 to S32O.GetRecCount
+		If Trim(S32O.BITIS_SAAT(i)) <> "" Then
+			S32O.REFNUM02(i) = 0
+		
+			'******************************************
+			BaslamaTarihi_Opr = S32O.BASLANGIC_TARIH
+			
+			Set tarih_opr = Doc.CreateSObject("d7Date")
+			tarih_opr.SetDate(BaslamaTarihi_Opr)
+			GunAdival_Opr = tarih_opr.GetDowStr
+			'******************************************
+	
+			BaslamaSaati_Oprt = S32O.BASLANGIC_SAAT(i)
+			BitisSaati_Oprt = S32O.BITIS_SAAT(i)
+			DurusSuresi_sa= 0
+
+			PasGec = False
+			
+			'****************************************************************************
+			If GunAdival_Opr = "Cmt" or GunAdival_Opr = "Paz" Then
+				If GunAdival_Opr = "Cmt" Then
+					If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "10:30" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "13:00" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "14:30" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:00" Then
+						PasGec = True
+					End If
+					
+				ElseIf GunAdival_Opr = "Paz" Then
+				
+					If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "13:00" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "16:30" Then
+						PasGec = True
+					End If
+					
+				End If
+			Else
+				If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "10:30" Then
+					PasGec = True
+				ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "13:00" Then
+					PasGec = True
+				ElseIf BaslamaSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+					PasGec = True
+				ElseIf BaslamaSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:10" Then
+					PasGec = True
+				End If
+			End If			
+				
+			'****************************************************************************
+			
+			If Not PasGec Then 
+			
+				If GunAdival_Opr = "Cmt" or GunAdival_Opr = "Paz" Then
+					If GunAdival_Opr = "Cmt" Then
+						If BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:35" Then
+							DurusSuresi_sa = 0.25 	'(çay1 : 0,25)
+						
+						ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "14:35" Then
+							DurusSuresi_sa = 0.75		'(çay1 : 0,25 + öðle : 0,50)
+						
+						ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:15" Then
+							DurusSuresi_sa = 1.00		'(çay1 : 0,25 + öðle : 0,50 + çay2 : 0,25)
+							
+						ElseIf BaslamaSaati_Oprt >= "10:45" And BaslamaSaati_Oprt <= "12:30" And BitisSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:15" Then
+							DurusSuresi_sa = 0.75		'(öðle : 0,50 + çay2 : 0,25)
+						
+						ElseIf BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "17:05" Then
+							If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:35" Then
+								DurusSuresi_sa = 0.25		'(çay1 : 0,25)
+						
+							ElseIf BaslamaSaati_Oprt <= "10:35" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "14:35" Then
+								DurusSuresi_sa = 0.75			'(çay1 : 0,25 + öðle : 0,50)
+						
+							ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "14:35" Then
+								DurusSuresi_sa = 0.5			'(öðle : 0,50)
+						
+							ElseIf BaslamaSaati_Oprt >= "13:00" And BitisSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:15" Then
+								DurusSuresi_sa = 0.25
+							End If
+						End If
+						
+						If DurusSuresi_sa	> 0 Then
+							S32O.REFNUM02(i) = DurusSuresi_sa
+						End If				
+					
+					ElseIf GunAdival_Opr = "Paz" Then
+					
+						If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "16:35" Then
+							If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "16:35" Then
+								DurusSuresi_sa = 0.5		'(öðle : 0,5)
+							End If
+					
+							If DurusSuresi_sa	> 0 Then
+								S32O.REFNUM02(i) = DurusSuresi_sa
+							End If					
+						End If
+						
+					End If
+				Else
+				
+					If BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:45" Then
+						'öðleden önce çay molasý 15 dk
+						DurusSuresi_sa = 0.25
+					
+					ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+						DurusSuresi_sa = 0.75
+					
+					ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+						DurusSuresi_sa = 1
+					
+					ElseIf BaslamaSaati_Oprt >= "10:45" And BaslamaSaati_Oprt <= "12:45" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+						DurusSuresi_sa = 0.75
+					
+					ElseIf BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "18:15" Then
+					
+						If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:45" Then
+							DurusSuresi_sa = 0.25
+					
+						ElseIf BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "15:35" Then
+							DurusSuresi_sa = 0.75				
+					
+						ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+							DurusSuresi_sa = 0.5
+					
+						ElseIf BaslamaSaati_Oprt >= "13:30" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+							DurusSuresi_sa = 0.25
+						End If
+						
+					End If
+					
+					If DurusSuresi_sa	> 0 Then
+						S32O.REFNUM02(i) = DurusSuresi_sa
+					End If
+					
+				End If
+				
+			End If
+		End If
+	Next
+
+	'tezgah duruþlarýný yaz
+	'-------------------------------------------
+	Dim Mola(9)
+
+	For i = 1 To 9
+		Mola(i) = ""
+	Next
+	
+	If GunAdival_Tez = "Cmt" or GunAdival_Tez = "Paz" Then
+		If GunAdival_Tez = "Cmt" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:35" Then
+				Mola(5) = "2ÇM1" 
+			
+			ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "13:00" And BitisSaati_Tez <= "14:35" Then
+				Mola(5) = "2ÇM1" 		
+				Mola(6) = "2ÖY1" 
+				
+			ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:15" Then
+				Mola(5) = "2ÇM1" 		
+				Mola(6) = "2ÖY1" 
+				Mola(7) = "2ÇM2" 
+				
+			ElseIf BaslamaSaati_Tez >= "10:45" And BaslamaSaati_Tez <= "12:30" And BitisSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:15" Then
+				Mola(6) = "2ÖY1" 
+				Mola(7) = "2ÇM2" 
+				
+			ElseIf BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "17:05" Then
+				If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:35" Then
+					Mola(5) = "2ÇM1" 
+			
+				ElseIf BaslamaSaati_Tez <= "10:35" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "14:35" Then
+					Mola(6) = "2ÖY1" 
+					Mola(7) = "2ÇM2" 
+			
+				ElseIf BaslamaSaati_Tez >= "10:45" And BitisSaati_Tez >= "13:00" And BitisSaati_Tez <= "14:35" Then
+					Mola(6) = "2ÖY1" 
+			
+				ElseIf BaslamaSaati_Tez >= "13:00" And BitisSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:15" Then
+					Mola(7) = "2ÇM2" 
+				End If
+			End If
+					
+		ElseIf GunAdival_Opr = "Paz" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "16:35" Then
+				If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez >= "13:00" And BitisSaati_Tez <= "16:35" Then
+					Mola(8) = "3ÖY1"
+				End If
+			End If
+		End If
+		
+	Else
+		If BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:450" Then
+			Mola(1) = "1ÇM1"
+		ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then
+			Mola(1) = "1ÇM1"
+			Mola(3) = "1ÖY1"
+		ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+			Mola(1) = "1ÇM1"
+			Mola(3) = "1ÖY1"
+			Mola(2) = "1ÇM2"
+		ElseIf BaslamaSaati_Tez >= "10:45" And BaslamaSaati_Tez <= "12:45" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+			Mola(3) = "1ÖY1"
+			Mola(2) = "1ÇM2"
+		ElseIf BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "18:15" Then
+			If BaslamaSaati_Tez >= "08:00" AndBitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:45" Then
+				If BaslamaSaati_Tez <= "10:30" Then
+					Mola(1) = "1ÇM1"
+				End If
+			ElseIf BaslamaSaati_Tez >= "10:45" And BitisSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then
+				Mola(3) = "1ÖY1"
+			ElseIf BaslamaSaati_Tez >= "13:30" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+				Mola(2) = "1ÇM2"
+			End If
+		End If
+	End If
+	
+	For i = 1 To S32D.GetRecCount
+		If Trim(S32D.DURMA_SEBEBI_ST(i)) = "P" Then 
+			S32D.DURMA_SEBEBI(i) = ""
+		End If
+	Next
+	
+	S32D.SafePack()
+	
+	For i = 1 to 9
+		If Trim(Mola(i)) <> "" Then
+			SatirNo = S32D.Addrow
+			S32D.SetCurrentRow SatirNo
+			
+			S32D.DURMA_SEBEBI = Mola(i)
+
+			Doc.CallFieldAfterValidate_Row S32D.GetAppName(), "DURMA_SEBEBI", satirNo
+		End If
+	Next
+
+	S32D.SafePack()
+End Sub
+'------------------------------------------------
+Sub AfterSave
+
+	'If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	'If Trim(Doc.Getd7UserName) <> "D7KSUPER"	 Then Exit Sub
+		
+
+	Set S32E = Doc.GetTableObject("SFDC32E")
+
+	If S32E.D7_AKSIYON = "E" Then
+		Set S32EDB = Doc.Select1("fdsfsd", "SFDC32E", "D7_AKSIYON <> 'E' & JOBNO='"& S32E.JOBNO &"' & EVRAKNO<>'"& S32E.EVRAKNO &"' & RECTARIH1 <= '"& Doc.Bugun &"' ", "", -1)
+		
+		If S32EDB.GetRecCount > 0 Then
+		
+			Set Doc1 = Doc.CreateDocumentNoUI("SFDC32", "")
+			Set S32E_doc1 = Doc1.GetTableObject("SFDC32E")
+
+			For i = 1 To S32EDB.GetRecCount 
+				Doc1.Load_Voucher S32EDB.EVRAKNO(i)
+				
+				If S32E_doc1.D7_AKSIYON = "E" Then 
+					S32E_doc1.D7_AKSIYON = "E"
+				
+					Doc1.Save_Voucher
+					Doc1.LoadEmpty_Voucher
+				Else
+					Doc1.LoadEmpty_Voucher
+				End If
+				
+				If i < S32EDB.GetRecCount Then Exit For
+			Next
+			
+			Set Doc1 = Nothing
+		End If
+	End If
+		
+	'***************** fire bilgileri *************************************	
+	FireVar_Val = "H"
+	FireMiktari_Val = 0
+	
+	Set S32SSTACK = Doc.Select2G("S32S_STACK", "SFDC20S", "", "", "EVRAKNO", -1)
+	
+	If S32SSTACK.GetRecCount > 0 Then
+		FireVar_Val = "E"
+		FireMiktari_Val = S32SSTACK.SF_MIKTAR(1)
+	End If
+	
+	Set S32SSTACK = Nothing
+	'***************** durus bilgileri *************************************	
+	
+	DurusBaslamaSaati_Val = ""
+	DurusAciklama_Val = ""
+	DurusOncesiOperatorKodu_Val = ""
+	DurusVar_Val = "H"
+		
+	Set S32DSTACK = Doc.Select2("S32D_STACK", "SFDC32D", "BASLANGIC_TARIH <> '"& Space(10) &"' & BASLANGIC_SAAT <> '"& Space(5) &"' & BITIS_SAAT = '"& Space(5) &"' ", "", -1)
+
+	If S32DSTACK.GetRecCount > 0 Then		
+		For i = 1 To S32DSTACK.GetRecCount
+			If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "1AMY" Then
+				If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "1ÇM1" Then
+					If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "1ÇM2" Then
+						If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "1ÖY1" Then
+							If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "1ÖY2" Then
+								If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "2ÇM1" Then
+									If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "2ÇM2" Then
+										If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "2ÖY1" Then
+											If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "2ÖY1" Then
+												If Trim(S32DSTACK.DURMA_SEBEBI(i)) <> "3ÖY1" Then
+												
+													DurusAciklama_Val = Trim(Doc.GetGecoValue("DURMAS", "AD", S32DSTACK.DURMA_SEBEBI(1), -1))
+													DurusBaslamaSaati_Val = S32DSTACK.BASLANGIC_SAAT(1)
+													DurusVar_Val = "E"
+
+													Set S32OSTACK2 = Doc.Select2G("S32O_STACK2", "SFDC32O", "", "", "OPERATOR", -1)
+													
+													For j = 1 To S32OSTACK2.GetRecCount
+														'******************************************************************
+														If S32OSTACK2.GetRecCount = 1 Then
+															DurusOncesiOperatorKodu_Val = Trim(S32OSTACK2.OPERATOR_PERS00_AD(j)) 
+														Else
+															DurusOncesiOperatorKodu_Val = Trim(S32OSTACK2.OPERATOR_PERS00_AD(j)) & ", " & DurusOncesiOperatorKodu_Val
+														End If
+														'******************************************************************
+													Next
+													
+												End If
+											End If
+										End If
+									End If
+								End If
+							End If
+						End If
+					End If
+				End If
+			End If
+		Next
+	End If	
+	
+	Set S3DSSTACK = Nothing
+	'************** operatörler ****************************	
+	Set S32OSTACK = Doc.Select2G("S32O_STACK", "SFDC32O", "BITIS_SAAT='"& Space(5) &"' ", "", "OPERATOR", -1)
+
+	Operators_Val = ""
+	OperatorFotos_Val = ""
+	OperatorSayisi = S32OSTACK.GetRecCount
+	
+	For i = 1 To S32OSTACK.GetRecCount
+		OperatorKodu_Val = S32OSTACK.OPERATOR(i)
+
+		'******************************************************************
+		If S32OSTACK.GetRecCount = 1 Then
+			Operators_Val = Trim(S32OSTACK.OPERATOR_PERS00_AD(i)) 
+			OperatorFotos_Val = Trim(Doc.GetUDFValue("PERS00", OperatorKodu_Val, "FOTO_1",0))
+		Else
+			Operators_Val = Trim(S32OSTACK.OPERATOR_PERS00_AD(i)) & ", " & Operators_Val
+			OperatorFotos_Val = Trim(Doc.GetUDFValue("PERS00", OperatorKodu_Val, "FOTO_1",0)) & ", " & OperatorFotos_Val
+		End If
+		'******************************************************************
+	Next
+
+	Set S32OSTACK = Nothing
+	
+	If Operators_Val <> "" or DurusVar_Val = "E" or FireVar_Val = "E" Then
+		res = Doc.UFLD00_CreateEditTable("ASSScc", "SFDC32E", S32E.EVRAKNO)
+		Set KTA = Doc.GetTableObject("ASSScc")
+		
+		If Operators_Val <> "" Then
+			KTA.SetFieldValue "OPERATORS", -1, Operators_Val
+			KTA.SetFieldValue "OP_FOTOS", -1, OperatorFotos_Val
+			
+			KTA.SetFieldValue "DURBASSAAT", -1, ""
+			KTA.SetFieldValue "DURUSNEDEN", -1, ""
+			KTA.SetFieldValue "DURUSOPS", -1, ""
+			KTA.SetFieldValue "DURUS", -1, ""			
+			
+			If OperatorSayisi > 1 Then
+				KTA.SetFieldValue "OP_FOTOS", -1, Doc.Getd7Directory_DataRoot & "images\cokluoperator_foto.jpg"
+			End If
+			
+		ElseIf DurusVar_Val = "E" Then
+			KTA.SetFieldValue "DURBASSAAT", -1, DurusBaslamaSaati_Val
+			KTA.SetFieldValue "DURUSNEDEN", -1, DurusAciklama_Val
+			KTA.SetFieldValue "DURUSOPS", -1, DurusOncesiOperatorKodu_Val
+			KTA.SetFieldValue "DURUS", -1, DurusVar_Val
+			KTA.SetFieldValue "OPERATORS", -1, ""
+			KTA.SetFieldValue "OP_FOTOS", -1, Doc.Getd7Directory_DataRoot & "images\durus_foto.jpg"
+			
+		ElseIf FireVar_Val = "E" Then
+			KTA.SetFieldValue "FIREVARYOK", -1, FireVar_Val
+			KTA.SetFieldValue "FIREMIKTAR", -1, FireMiktari_Val
+		End If
+		
+		KTA.Exec "SAVE"
+				
+		Set KTA = Nothing
+	End If
+		
+End Sub
+'------------------------------------------
+Function MPSEvrakAcikmi(TREvrakNo)
+	MPSEvrakAcikmi = False
+	If Trim(TREvrakNo) = "" Then Exit Function
+	If Trim(Doc.GetDBFieldValue("MMPS10E", "EVRAKNO", Doc.RightJustify(Trim(TREvrakNo), 10), "")) = "" Then Exit Function
+	Set D7W = Doc.Select1("sef3332fs", "D7WLOCK",	"LOCKDOC='MMPS10E' & LOCKVOUCHER='"&Doc.RightJustify(Trim(TREvrakNo), 50)&"'", "", -1)
+	If D7W.GetRowCount() > 0 Then Exit Function
+	MPSEvrakAcikmi = True
+End Function
+'-----------------------------
+Function BeforeDelete
+	Set S32E = Doc.GetTableObject("SFDC32E")
+	Set S32T = Doc.GetTableObject("SFDC932T")
+
+	If Trim(S32E.EVRAKNO) = "00001" Then 
+		'Doc.d7MsgBox Trim(S32E.EVRAKNO) & " No' lu Evrak Silinemez", "Ýþlem Kesildi.", MB_OK
+		
+		'BeforeDelete = "CANCELWITHOUTERRORMSG"
+		'Exit Function
+	End If
+
+	'---------------------------------------------------------------		
+		
+	If Trim(Doc.Getd7UserName) <> "D7KSUPER" Then	
+		If Trim(Doc.Getd7UserName) <> "NAZLICAN" Then	
+			If Trim(S32E.VARDIYA) = "TS" Then
+				msgbox "ERP TEST' leri için açýlan bu evraðý silme yetkiniz yok."
+				
+				BeforeDelete = "CANCELWITHOUTERRORMSG"
+				Exit Function
+			End If
+		End If
+	End If
+	
+	Set S20T = Doc.Select1G("AAAAsdgh", "STOK20T", "W_EVRAKNO='" & S32E.EVRAKNO & "' ", "", "EVRAKNO", -1)
+
+	If S20T.GetRecCount > 0 Then
+		Set Doc2 = Doc.CreateDocumentNoUI("STOK20", "")
+	
+		For i = 1 To S20T.GetRecCount
+			Doc2.Load_Voucher S20T.EVRAKNO(i)
+			Doc2.Delete_Voucher
+		Next
+		
+		Set Doc2 = Nothing
+	EndIf
+	
+	If Trim(S32E.EVRAKNO) = "28212" Then
+		If Trim(Doc.Getd7UserName) <> "D7KSUPER" Then
+			msgbox "Bu evrak silinemez."
+			
+			BeforeDelete = "CANCELWITHOUTERRORMSG"
+			Exit Function
+		End If
+	End If
+	
+End Function
+'------------------------------------------------------
+Function SonOpMu(MPSNo, JobNo)
+	SonOpMu = False
+	SrNum = Doc.GetDBFieldValue("MMPS10T", "SRNUM", JobNo, "JOBNO")
+	If Trim(SrNum) = "" Then Exit Function
+
+	Set M10T = Doc.Select1("f23f23sdgh", "MMPS10T", "EVRAKNO='" & MPSNo & "'&R_KAYNAKTYPE='I'&SRNUM>'" & SrNum & "'", "<SRNUM", -1)
+
+	If M10T.GetRowCount() = 0 Then
+		SonOpMu = True
+	End If
+End Function
+'----------------------------------------------------
+Function GetLotNo(MpsNoVal, OperasyonSiraNo)
+	'eðer kacýncýoperasyon bilgisi hatalý yani 0 gelirse 1 olarak alsýn. sonra burayý kontrol et.
+	
+	If OperasyonSiraNo = "" Then OperasyonSiraNo = "1"
+	
+	If Left(OperasyonSiraNo, 1) = Right(OperasyonSiraNo, 1) Then
+		EvrakTarihi = Doc.Bugun
+		
+		ay	= Mid(EvrakTarihi,6,2)
+		yil	= Mid(EvrakTarihi,3,2)
+			
+		If Len(gun) < 2 Then gun = "0" & gun
+		If Len(ay) < 2 Then ay = "0" & ay
+			
+		GetLotNo = Trim(MPSNoVal) & "-P" & yil & ay 
+	Else
+		GetLotNo = Trim(MPSNoVal) & "-" & Left(OperasyonSiraNo, 1) & "/" & Right(OperasyonSiraNo, 1)
+	End If	
+End Function
+'------------------------------------------------------------------------------
+Sub PlanliDurusHesapla_Ramazan_Donemi_Harici	(S32E)
+
+	'If Trim(Doc.GetPDocPType0) <> "_GNPRG145" Then    'BU DÝNAMODA YOK sonra bak.
+		If Doc.DataEntryMode = "GUI" Then 
+			'If S32E.NOMOLA = "E" Then
+			
+			'	Exit Sub
+			'End If 
+		End If
+	'End If
+	'******************************************
+	BaslamaTarihi_Tez = S32E.RECTARIH1
+
+	Set tarih_tez = Doc.CreateSObject("d7Date")
+	tarih_tez.SetDate(BaslamaTarihi_Tez)
+	GunAdival_Tez = tarih_tez.GetDowStr
+	'******************************************
+	
+	BaslamaSaati_Tez = S32E.RECTIME1
+	BitisSaati_Tez = S32E.RECTIME2
+	
+	If S32E.DAKIKA <= 5 Then Exit Sub
+	
+	If GunAdival_Tez = "Cmt" or GunAdival_Tez = "Paz" Then
+		If GunAdival_Tez = "Cmt" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "10:30" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez1 >= "10:45" And BitisSaati_Tez <= "12:30" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez >= "13:00" And BitisSaati_Tez <= "14:30" Then
+				Exit Sub
+			ElseIf BaslamaSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:00" Then
+				Exit Sub
+			End If
+			
+		ElseIf GunAdival_Tez = "Paz" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "12:30" Then
+				Exit Sub
+				
+			ElseIf BaslamaSaati_Tez >= "13:00" And BitisSaati_Tez <= "16:30" Then
+				Exit Sub
+			End If
+			
+		End If
+	Else
+		If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "10:30" Then
+			Exit Sub
+		ElseIf BaslamaSaati_Tez1 >= "10:45" And BitisSaati_Tez <= "12:45" Then
+			Exit Sub
+		ElseIf BaslamaSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then
+			Exit Sub
+		ElseIf BaslamaSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+			Exit Sub
+		End If
+	End If
+
+	Set S32O = Doc.GetTableObject("SFDC32O")		
+	Set S32D = Doc.GetTableObject("SFDC32D")		
+	S32D.SafePack
+	
+	For i = 1 to S32O.GetRecCount
+		If Trim(S32O.BITIS_SAAT(i)) <> "" Then
+			S32O.REFNUM02(i) = 0
+		
+			'******************************************
+			BaslamaTarihi_Opr = S32O.BASLANGIC_TARIH
+			
+			Set tarih_opr = Doc.CreateSObject("d7Date")
+			tarih_opr.SetDate(BaslamaTarihi_Opr)
+			GunAdival_Opr = tarih_opr.GetDowStr
+			'******************************************
+	
+			BaslamaSaati_Oprt = S32O.BASLANGIC_SAAT(i)
+			BitisSaati_Oprt = S32O.BITIS_SAAT(i)
+			DurusSuresi_sa = 0
+
+			PasGec = False
+			
+			'****************************************************************************
+			If S32O.DAKIKA(i) <= 5 Then PasGec = True
+			'****************************************************************************
+			If GunAdival_Opr = "Cmt" or GunAdival_Opr = "Paz" Then
+				If GunAdival_Opr = "Cmt" Then
+				
+					If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "10:30" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:30" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "14:30" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:00" Then
+						PasGec = True
+					End If
+					
+				ElseIf GunAdival_Opr = "Paz" Then
+				
+					If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "12:30" Then
+						PasGec = True
+					ElseIf BaslamaSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "16:30" Then
+						PasGec = True
+					End If
+					
+				End If
+			Else
+				If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "10:30" Then
+					PasGec = True
+				ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:45" Then
+					PasGec = True
+				ElseIf BaslamaSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+					PasGec = True
+				ElseIf BaslamaSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+					PasGec = True
+				End If
+			End If			
+				
+			'****************************************************************************
+
+			If Not PasGec Then 
+			
+				If GunAdival_Opr = "Cmt" or GunAdival_Opr = "Paz" Then
+					If GunAdival_Opr = "Cmt" Then
+						If BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:35" Then
+							DurusSuresi_sa = 0.25 	'(çay1 : 0,25)
+						
+						ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "14:35" Then
+							DurusSuresi_sa = 0.75		'(çay1 : 0,25 + öðle : 0,50)
+						
+						ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:15" Then
+							DurusSuresi_sa = 1.00		'(çay1 : 0,25 + öðle : 0,50 + çay2 : 0,25)
+							
+						ElseIf BaslamaSaati_Oprt >= "10:45" And BaslamaSaati_Oprt <= "12:30" And BitisSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:15" Then
+							DurusSuresi_sa = 0.75		'(öðle : 0,50 + çay2 : 0,25)
+						
+						ElseIf BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "17:05" Then
+							If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:35" Then
+								DurusSuresi_sa = 0.25		'(çay1 : 0,25)
+						
+							ElseIf BaslamaSaati_Oprt <= "10:35" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "14:35" Then
+								DurusSuresi_sa = 0.75			'(çay1 : 0,25 + öðle : 0,50)
+						
+							ElseIf BaslamaSaati_Oprt >= "10:45" And BitisSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "14:35" Then
+								DurusSuresi_sa = 0.5			'(öðle : 0,50)
+						
+							ElseIf BaslamaSaati_Oprt >= "13:00" And BitisSaati_Oprt >= "14:45" And BitisSaati_Oprt <= "17:15" Then
+								DurusSuresi_sa = 0.25
+							End If
+						End If
+						
+						If DurusSuresi_sa	> 0 Then
+							S32O.REFNUM02(i) = DurusSuresi_sa
+						End If				
+					
+					ElseIf GunAdival_Opr = "Paz" Then
+					
+						If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "16:35" Then
+							If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt >= "13:00" And BitisSaati_Oprt <= "16:35" Then
+								DurusSuresi_sa = 0.5		'(öðle : 0,5)
+							End If
+					
+							If DurusSuresi_sa	> 0 Then
+								S32O.REFNUM02(i) = DurusSuresi_sa
+							End If					
+						End If
+						
+					End If
+				Else
+
+					If BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:45" Then
+						DurusSuresi_sa = 0.25
+
+					ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+						DurusSuresi_sa = 1.00
+					
+					ElseIf BaslamaSaati_Oprt >= "08:00" And BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+						DurusSuresi_sa = 1.25
+
+					ElseIf BaslamaSaati_Oprt >= "10:48" And BaslamaSaati_Oprt <= "12:45" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+						DurusSuresi_sa = 1.00
+
+					ElseIf BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt <= "18:15" Then
+
+						If BaslamaSaati_Oprt >= "08:00" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "12:45" Then
+							DurusSuresi_sa = 0.25
+
+						ElseIf BaslamaSaati_Oprt <= "10:30" And BitisSaati_Oprt >= "10:45" And BitisSaati_Oprt <= "15:35" Then
+							DurusSuresi_sa = 1		
+
+						ElseIf BaslamaSaati_Oprt >= "10:48" Then
+			
+							If BaslamaSaati_Opr <= "12:45" and BitisSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+								DurusSuresi_sa = 0.75
+								
+							ElseIf BaslamaSaati_Opr >= "13:25" and BitisSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+								DurusSuresi_sa = 0
+	
+							ElseIf BaslamaSaati_Opr >= "13:33" and BitisSaati_Oprt >= "13:30" And BitisSaati_Oprt <= "15:30" Then
+								DurusSuresi_sa = 0.75
+
+							ElseIf BaslamaSaati_Oprt >= "13:33" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+								DurusSuresi_sa = 0.25
+								
+							End If
+						
+						ElseIf BaslamaSaati_Oprt >= "13:33" And BitisSaati_Oprt >= "15:45" And BitisSaati_Oprt <= "18:15" Then
+							DurusSuresi_sa = 0.25
+						End If
+					End If
+					
+					If DurusSuresi_sa	> 0 Then
+						S32O.REFNUM02(i) = DurusSuresi_sa
+					End If
+					
+				End If
+				
+			End If
+		End If
+	Next
+
+	'tezgah duruþlarýný yaz
+	'-------------------------------------------
+	Dim Mola(9)
+
+	For i = 1 To 9
+		Mola(i) = ""
+	Next
+	
+	If GunAdival_Tez = "Cmt" or GunAdival_Tez = "Paz" Then
+		If GunAdival_Tez = "Cmt" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:35" Then
+				Mola(5) = "2ÇM1" 
+			
+			ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "13:00" And BitisSaati_Tez <= "14:35" Then
+				Mola(5) = "2ÇM1" 		
+				Mola(6) = "2ÖY1" 
+				
+			ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:15" Then
+				Mola(5) = "2ÇM1" 		
+				Mola(6) = "2ÖY1" 
+				Mola(7) = "2ÇM2" 
+				
+			ElseIf BaslamaSaati_Tez >= "10:45" And BaslamaSaati_Tez <= "12:30" And BitisSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:15" Then
+				Mola(6) = "2ÖY1" 
+				Mola(7) = "2ÇM2" 
+				
+			ElseIf BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "17:05" Then
+				If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:35" Then
+					Mola(5) = "2ÇM1" 
+			
+				ElseIf BaslamaSaati_Tez <= "10:35" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "14:35" Then
+					Mola(6) = "2ÖY1" 
+					Mola(7) = "2ÇM2" 
+			
+				ElseIf BaslamaSaati_Tez >= "10:45" And BitisSaati_Tez >= "13:00" And BitisSaati_Tez <= "14:35" Then
+					Mola(6) = "2ÖY1" 
+			
+				ElseIf BaslamaSaati_Tez >= "13:00" And BitisSaati_Tez >= "14:45" And BitisSaati_Tez <= "17:15" Then
+					Mola(7) = "2ÇM2" 
+				End If
+			End If
+					
+		ElseIf GunAdival_Opr = "Paz" Then
+		
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "16:35" Then
+				If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez >= "13:00" And BitisSaati_Tez <= "16:35" Then
+					Mola(8) = "3ÖY1"
+				End If
+			End If
+		End If
+		
+	Else
+		
+		If BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:45" Then
+			Mola(1) = "1ÇM1"
+		ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then
+			Mola(1) = "1ÇM1"
+			Mola(3) = "1ÖY1"
+		ElseIf BaslamaSaati_Tez >= "08:00" And BaslamaSaati_Tez <= "10:30" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+			Mola(1) = "1ÇM1"
+			Mola(3) = "1ÖY1"
+			Mola(2) = "1ÇM2"
+		ElseIf BaslamaSaati_Tez>= "10:45" And BaslamaSaati_Tez <= "12:45" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+			Mola(3) = "1ÖY1"
+			Mola(2) = "1ÇM2"
+		ElseIf BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez <= "18:15" Then
+
+			If BaslamaSaati_Tez >= "08:00" And BitisSaati_Tez >= "10:45" And BitisSaati_Tez <= "12:45" Then
+				If BaslamaSaati_Tez <= "10:30" Then
+					Mola(1) = "1ÇM1"
+				End If
+			ElseIf BaslamaSaati_Tez >= "10:45" Then
+				If BaslamaSaati_Tez <= "13:30" and BitisSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then 
+					
+				ElseIf BitisSaati_Tez >= "13:30" And BitisSaati_Tez <= "15:30" Then
+					Mola(3) = "1ÖY1"
+					
+				ElseIf BaslamaSaati_Tez >= "13:30" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+					Mola(3) = "1ÇM2"	
+					
+				End If
+			ElseIf BaslamaSaati_Tez >= "13:30" And BitisSaati_Tez >= "15:45" And BitisSaati_Tez <= "18:15" Then
+				Mola(2) = "1ÇM2"
+			End If
+		End If
+	End If
+	
+	For i = 1 To S32D.GetRecCount
+		If Trim(S32D.DURMA_SEBEBI_ST(i)) = "P" Then 
+			S32D.DURMA_SEBEBI(i) = ""
+		End If
+	Next
+	
+	S32D.SafePack()
+	
+	For i = 1 to 9
+		If Trim(Mola(i)) <> "" Then
+			SatirNo = S32D.Addrow
+			S32D.SetCurrentRow SatirNo
+			
+			S32D.DURMA_SEBEBI = Mola(i)
+
+			Doc.CallFieldAfterValidate_Row S32D.GetAppName(), "DURMA_SEBEBI", satirNo
+		End If
+	Next
+
+	S32D.SafePack()
+End Sub
+'------------------------------------------------
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : SRVPC0
+Hangi Tablo icin : SRVPC0
+Ilave Hangi Uygulamalar icin : 
+Aciklama : KALIP KARTI AÇILINCA STOK KARTINA KAYDEDER.
+Kod : 
+Sub AFTERNOTIFICATION(ByVal Notification_Type)
+
+	'msgbox Notification_Type
+
+	If Notification_Type = "AFTER_DOCUMENT_INIT_S" Then 
+		Call InitDocument()
+	End If
+End Sub
+'-------------------------------------------------------------------------------------
+Sub InitDocument()
+
+	dim tb_GKKLISE,rs_GKKLIST 
+
+	'Set tb_GKKLISE=Doc.CreateTableObject("GKKLISE=STACK","IO")
+	'tb_GKKLISE.Addfield3 "OPT01","CHAR",1,0,"L","","","FIELDLABEL='Kalite Giriþi Yapýlmýþ Sipariþ Baðlanmamýþ Kayýtlar'"
+
+	'Set rs_GKKLIST = Doc.CreateTransactionalRowSetObject("GKKLIST=STACK","IO")
+
+	'rs_GKKLIST.Addfield3 "EVRAKNO","CHAR",10,0,"L","","","FIELDLABEL='Ýrsaliye Numarasý'"
+	'rs_GKKLIST.Addfield3 "TARIH","DATE",10,0,"L","","","FIELDLABEL='Giriþ Tarihi'"
+	'rs_GKKLIST.Addfield3 "CARIHESAPCODE","CHAR",16,0,"L","","","FIELDLABEL='Müþteri Kodu'"
+	'rs_GKKLIST.Addfield3 "S60_NOTES_1","CHAR",50,0,"L","","","FIELDLABEL='Not'"
+	'rs_GKKLIST.Addfield3 "CARIHESAPCODE_AD","CHAR",100,0,"L","","","FIELDLABEL='Müþteri Adý'"
+
+
+	Set MTableT=Doc.CreateTransactionalTableObject("MAKROTABLET=STACK","IO")
+	MTableT.Addfield2 "KLPKOD", "CHAR",24,0,"L","",""
+	MTableT.Addfield2 "STOKKOD", "CHAR",24,0,"L","",""
+	MTableT.Addfield2 "KULLHAMMAD", "CHAR",24,0,"L","",""
+	MTableT.Addfield2 "MLZKALINLI", "DOUBLE",12,2,"R","",""
+	MTableT.Addfield2 "HATVE", "DOUBLE",12,2,"R","",""
+	MTableT.Addfield2 "BANTGEN", "DOUBLE",12,2,"R","",""
+	
+	Set SPC0U=Doc.GetTableObject("SRVPC0U")
+	SPC0U.Addfield2 "PARCA_FOTO","CHAR",150,0,"L","",""
+	
+'AÞAÐIDAKÝ TÝKLÝLERÝ DÝNAMOYA GÖRE AYARLA
+	'SPC0U.Setd7FieldEvent "KULLHAMMAD", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "KULLHAMMAD_AV"
+	'SPC0U.Setd7FieldEvent "HATVE", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "HESAPLANANALANLAR_AV"
+	'SPC0U.Setd7FieldEvent "MLZKALINLI", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "HESAPLANANALANLAR_AV"
+	'SPC0U.Setd7FieldEvent "BANTGEN", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "HESAPLANANALANLAR_AV"
+	
+	Set SPCO=Doc.GetTableObject("SRVPC0")
+	SPCO.Addfield2 "PARCA_FOTO","CHAR",150,0,"L","",""
+
+	Set MTABLE=Doc.CreateTableObject("MAKROTABLE=STACK","IO")
+	MTABLE.Addfield2 "TOPLAM","DOUBLE",23,2,"R","",""
+	
+	Set ZUSVPC03 = Doc.GetTableObject("ZU_SVPC0_3")
+	ZUSVPC03.Setd7FieldEvent "PRICEUNIT", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "PRICEUNIT_AV"
+	ZUSVPC03.Setd7FieldEvent "OR_FIYAT", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "OR_FIYAT_AV"
+	ZUSVPC03.Setd7FieldEvent "OR_TUTAR", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "OR_TUTAR_AV"
+	ZUSVPC03.Setd7FieldEvent "KUR", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "KUR_AV"
+	ZUSVPC03.Setd7FieldEvent "PRICEUNIT", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "KUR_AV"
+	ZUSVPC03.Setd7FieldEvent "GELENMIKTA", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "GELENMIKTA_AV"
+	ZUSVPC03.Setd7FieldEvent "TL_TUTAR", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TL_TUTAR_AV"
+
+'AÞAÐIDAKÝ f2 YI DÝNAMOYA GÖRE AYARLA
+	'Call F2_Degistir_KullanilanSac
+
+End Sub
+'---------------------------------------------------------
+Sub F2_Degistir_KullanilanSac
+	TabloStr = "SRVPC0U"
+	AlanAdi = "KTA_KULLHAMMAD"
+	BrowseTable = "BRW_KTA_SVPC0_1"
+	BrowseCaption = "Sac Kodu Seç"
+	
+	BrowseQStr = "SELECT KOD ""Sac Kodu"", AD ""Sac Adý"" " & vbCrLf
+
+	BrowseQStr = BrowseQStr & "FROM STOK00 " & vbCrLf
+	
+	BrowseQStr = BrowseQStr & "WHERE 1=1 " & vbCrLf
+
+	BrowseQStr = BrowseQStr & "AND CODETYPE IN ('D') " & vbCrLf
+	BrowseQStr = BrowseQStr & "AND GK_1 IN ('HMAD') " & vbCrLf
+	BrowseQStr = BrowseQStr & "AND GK_2 IN ('PSAC', 'RSAC') " & vbCrLf
+	BrowseQStr = BrowseQStr & "ORDER BY KOD"
+
+	BrowseQStr = "'" & Replace(BrowseQStr, "'", "\:q") & "'"
+	
+	BrowseFunc = "F2=DO_SQL_BRW("""&BrowseTable&""","""&AlanAdi&"=1"","&BrowseQStr&","""&BrowseCaption&""")"
+	Set Tbl = Doc.GetTableObject(TabloStr)
+	Set FieldDef = Tbl.GetFieldDef_E(AlanAdi)
+	FieldDef.F2Fnc = BrowseFunc
+	Tbl.SetFieldProperties1 AlanAdi,FieldDef
+End Sub
+'-------------------------------------------------------------------------------------
+Sub OnStart
+	Dim SPCO 
+	Set SPCO = Doc.GetTableObject("SRVPC0")
+	SPCO.SetFieldProperty "REFTEXT01","BROWSE_FNC","DO_SYSBRW_FILENAME()"
+End Sub
+'-------------------------------------------------------------------------------------
+Sub AfterLoad
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	Set SPCO = Doc.GetTableObject("SRVPC0")
+	Set SPCOU = Doc.GetTableObject("SRVPC0U")
+	SPCOU.SafePack
+
+	If SPCOU.GetRecCount > 0 Then
+		For i = 1 To SPCOU.GetRecCount
+			SPCOU.PARCA_FOTO(i) = Doc.Getd7Directory_DataRoot & "IMAGES\" & Trim(Doc.GetDbFieldValue("STOK0P", "FULLFILENAME1", SPCOU.UKOD(i) +"000001", "EVRAKNO+SUBSRNUM"))
+		Next
+	End If
+
+	Set ZUSVPC0_1=Doc.GetTableObject("ZU_SVPC0_1")
+	ZUSVPC0_1.SafePack
+	
+	For i = 1 To ZUSVPC0_1.GetRecCount
+		ZUSVPC0_1.TEZGAHADI(i) = Doc.GetDBFieldValue("IMLT00", "AD", ZUSVPC0_1.TEZGAHKODU(i), "")
+	Next
+	
+	Set ZUSVPC0_2=Doc.GetTableObject("ZU_SVPC0_2")
+	ZUSVPC0_2.SafePack
+	
+	For i = 1 To ZUSVPC0_2.GetRecCount
+		ZUSVPC0_2.FIXTURADI(i) = Doc.GetDBFieldValue("SRVPC0", "AD1", ZUSVPC0_2.FIXTURKODU(i), "")
+	Next
+	
+	Set MTABLE = Doc.GetTableObject("MAKROTABLE")
+	Set ZUSVPC03 = Doc.GetTableObject("ZU_SVPC0_3")
+	
+	MTABLE.TOPLAM = ZUSVPC03.SUMOF("TL_TUTAR")
+End Sub
+'------------------------------------------------------------------------------
+Sub BeforeSave
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	Set SRV0 = Doc.GetTableObject("SRVPC0") 
+	
+	KALIPADI = Trim(SRV0.AD1)
+	KALIPKODU = TRIM(SRV0.KOD)	
+	KALIPSERINO = TRIM(SRV0.SERINO)	
+	KALIPOPERASYONKODU = SRV0.GK_1
+	KALIPOPERASYONADI = Trim(Doc.GetGecoValue("SRVPCGK1", "AD", KALIPOPERASYONKODU, -1))
+
+	If  KALIPKODU <> "" Then
+		Set XX = doc.Select1("aaa","STOK00", "KOD='"& SRV0.KOD &"'","",-1)
+		
+		'If XX.GetRecCount = 0 Then
+		
+			Set Doc2 = Doc.CreateDocumentNoUI("STOK00", "")
+			Set ST00 = Doc2.GetTableObject("STOK00")
+			Doc2.Load_Voucher KALIPKODU
+			
+			ST00.KOD = KALIPKODU 
+			ST00.AD = KALIPADI 
+			ST00.NAME2 = KALIPSERINO & " - " & KALIPOPERASYONADI
+			ST00.CODETYPE = "D"
+			ST00.IUNIT = "AD"
+			ST00.KART_TIPI= "U"
+			ST00.KALIPMI = "1"
+			ST00.GK_1 = "KALIP"
+
+			Doc2.Save_Voucher
+			Doc2.LoadEmpty_Voucher() 
+		'End If
+	Else
+		Msgbox "Ýþlem yapýlmadý."
+		Exit Sub
+	End If
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK00-02
+Hangi Tablo icin : STOK00
+Ilave Hangi Uygulamalar icin : 
+Aciklama : Stok kartýndan Depo mevcutlarý ve stok hareketleri
+Kod : 
+Function BeforeSave
+	Set ZUST00 = Doc.GetTableObject("ZU_ST00")
+	ZUST00.SafePack
+	
+	If ZUST00.GetRecCount > 0 Then
+		For i = 1 to ZUST00.GetRecCOunt
+			Set ZUST00Stack = Doc.Select2("fdsfsdf", "ZU_ST00", "TRNUM<>'"&ZUST00.TRNUM(i)&"' & VARYANTVAL='"&ZUST00.VARYANTVAL(i)&"' ", "" ,-1)
+
+			If ZUST00Stack.GetRecCount > 0 Then
+				msgbox "[Varyantlarý] Sekmesindeki Tabloda Mükerrer Satýr/lar. Ýþlem Ýptal." & vbcrlf & vbcrlf & "Deðer : [ " & Trim(ZUST00.VARYANTVAL(i)) & " ]"
+				
+				BeforeSave = "CANCELWITHOUTERRORMSG"
+				Exit Function
+			End If
+		Next
+	End If
+End Function
+'---------------------------------------------
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK20
+Hangi Tablo icin : STOK20
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Sub AfterCommand(StrCmd)
+	If Trim(Doc.Getd7UserName) = "ADMIN" Then
+		'Msgbox("After Command:"&StrCmd)
+	End If
+End Sub
+'---------------------------------
+Function BeforeDelete
+	Set S20E = Doc.GetTableObject("STOK20E")
+
+	If Trim(S20E.EVRAKNO) = "00001" Then
+		msgbox "Bu evrak silinemez."
+		
+		BeforeDelete = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End if
+End Function
+'------------------------------------------------
+Function BeforeSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+
+	STOK20T.SafePack
+
+	For i = 1 to STOK20T.GetRowCount()
+		StkGK1vAL = Trim(Doc.GetDBFieldValue("STOK00", "GK_1", STOK20T.KOD(i), ""))
+		StkGK6vAL = Trim(Doc.GetDBFieldValue("STOK00", "GK_6", STOK20T.KOD(i), ""))
+		StkGK17vAL = Trim(Doc.GetDBFieldValue("STOK00", "GK_17", STOK20T.KOD(i), ""))
+		
+		If StkGK1vAL <> "MAML" AND StkGK1vAL <> "YMAM" AND StkGK1vAL <> "HURDA" Then
+			If StkGK1vAL <> "ATIK" Then
+				If StkGK17vAL <> "URETILIR" Then
+					Msgbox "Mamül, Yarýmamül, Hurdaveya (STOK GK_17=URETILIR) Haricindeki Kodlar Buradan Girilemez." & vbcrlf & vbcrlf & "Ýþlem Ýptal..."
+					
+					BeforeSave = "CANCELWITHOUTERRORMSG"
+					
+					Exit For
+					Exit Function
+				End If
+			End If
+		End If
+		
+		If Trim(STOK20T.SERINO(i)) = "" AND StkGK1vAL <> "HURDA" Then
+			If StkGK1vAL <> "ATIK" Then
+				Msgbox "Seri No (Barkod No) Oluþturulmamýþ Satýr Var." & vbcrlf & "Barkod Etiketi içim SERINO Oluþturulmalýdýr." & vbcrlf & vbcrlf & "Ýþlem Ýptal..."
+				
+				BeforeSave = "CANCELWITHOUTERRORMSG"
+				Exit For
+				Exit Function
+			End If
+		End If
+		
+		If StkGK1vAL = "MAML" Then
+			If Trim(STOK20T.AMBCODE_TR(i)) = "" Then
+				If Trim(STOK20E.AMBCODE) <> "MA" Then
+					If Trim(STOK20E.AMBCODE) <> "FINAL" Then
+						'Msgbox "Mamül Giriþleri Sadece  [ MA ] Deposuna Olmalýdýr." & vbcrlf & vbcrlf & "Ýþlem Ýptal..."
+				
+						'BeforeSave = "CANCELWITHOUTERRORMSG"
+						'Exit For
+						'Exit Function
+					End If
+				End If
+			Else
+				If Trim(STOK20T.AMBCODE_TR(i)) <> "MA" Then
+					If Trim(STOK20T.AMBCODE_TR(i)) <> "FINAL" Then
+						'Msgbox "Mamül Giriþleri Sadece  [ MA ] Deposuna Olmalýdýr." & vbcrlf & vbcrlf & "Ýþlem Ýptal..."
+				
+						'BeforeSave = "CANCELWITHOUTERRORMSG"
+						'Exit For
+						'Exit Function
+					End If
+				End If
+			End If
+		End If		
+		
+		If StkGK1vAL <> "HURDA" Then
+			If StkGK1vAL <> "ATIK" Then				
+				EvrakNo = Trim(STOK20E.EVRAKNO)
+				EvrakTarihi = STOK20E.TARIH
+				
+				'gun = Mid(EvrakTarihi,9,2)
+				ay	= Mid(EvrakTarihi,6,2)
+				yil	= Mid(EvrakTarihi,3,2)
+				
+				If Len(gun) < 2 Then gun = "0" & gun
+				If Len(ay) < 2 Then ay = "0" & ay
+			
+				If Trim(STOK20T.MPSNO(i)) = "" Then
+					Msgbox "MPS No Girilmemiþ."
+					
+					BeforeSave = "CANCELWITHOUTERRORMSG"
+						
+					Exit For
+					Exit Function
+				Else
+					If Trim(STOK20T.LOTNUMBER(i)) = "" Then
+						STOK20T.LOTNUMBER(i) = Trim(STOK20T.MPSNO(i)) & "-P" & yil & ay
+					End If
+				End If
+			End If
+		End If
+	Next
+	
+	
+End Function
+'-----------------------------------------------------------------
+Sub AfterLoad()
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+		
+	Set S20E = Doc.GetTableObject("STOK20E")
+	Set S20T = Doc.GetTableObject("STOK20T")
+	
+	If Trim(S20T.KOD(1)) = "" Then
+		S20E.AMBCODE = "MA"
+		S20E.IMALATAMBCODE = "IM"
+		S20E.YANMAMULAMBCODE = "ZZ"
+	End If
+	
+	If Doc.GetDocType <> "STOK20" Then Exit Sub
+	'S20E.DEGER1 = "1"  'dinamo geçiþte güncelle
+	'S20E.SERILEMESEKLI = 1	 'dinamo geçiþte güncelle
+End Sub
+'------------------------------------------------------
+Sub AfterNew()
+	
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	Set S20E = Doc.GetTableObject("STOK20E")
+	
+	S20E.AMBCODE = "MA"
+	S20E.IMALATAMBCODE = "IM"
+	S20E.YANMAMULAMBCODE = "ZZ"
+	
+	If Doc.GetDocType <> "STOK20" Then Exit Sub
+	'S20E.DEGER1 = "1"  'dinamo geçiþte güncelle
+	'S20E.SERILEMESEKLI = 1  'dinamo geçiþte güncelle
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK20-01
+Hangi Tablo icin : STOK20T
+Ilave Hangi Uygulamalar icin : 
+Aciklama : ÜRETÝM FÝÞÝ DEPO TANIMLARINI DOL.MPSDEKÝ NOT1 ALANINI ÜRETÝM FÝÞÝNDEKÝ LOTO YAZDIRIR-STOK20-STOK20T
+Kod : 
+Function KOD_AfterValidate()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+
+	Set S20T = Doc.GetTableObject("STOK20T")
+	Set S20E = Doc.GetTableObject("STOK20E")
+
+	MPSNoVal = Trim(S20T.MPSNO)
+	
+	If Trim(S20T.KOD) = "" Then 
+		S20T.LOTNUMBER = ""
+		S20T.SERINO = ""
+		
+		Exit Function
+	End If
+
+	StkGK1vAL = Trim(Doc.GetDBFieldValue("STOK00", "GK_1", S20T.KOD, ""))
+	StkGK6vAL = Trim(Doc.GetDBFieldValue("STOK00", "GK_6", S20T.KOD, ""))
+
+	If StkGK1vAL = "HURDA" Then Exit Function
+	
+	If StkGK6vAL <> "NUMUNE" Then
+		If MPSNoVal = "" Then
+			MsgBox "MPS No Seçilmemiþ."
+			
+			Exit Function
+		End If
+	End If
+
+	'*****
+	S20T.SERINO = Doc.Sayac0danAl("SERINO")
+	'*****	
+	
+End Function
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK29-01
+Hangi Tablo icin : STOK29
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Function BeforeSave
+
+	Msgbox("ORHN ABÝ MRB")
+End Function
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK29-02
+Hangi Tablo icin : STOK29T
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Sub KOD_AFTERVALIDATE
+	
+	
+	Set S29T = Doc.GetTableObject("STOK29T") 
+	STOKKODUVAL= S29T.KOD
+	Msgbox 	StkGK1 = Trim(Doc.GetDBFieldValue("STOK00", "GK_1", STOKKODUVAL, ""))
+	 
+
+
+	exit Sub
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	Set TBL = Doc.GetTableObject("STOK47T") 
+
+
+
+SQL = "SELECT NUM, OPTIONS_1, AD "
+SQL = SQL & "FROM FOSYSFT "
+SQL = SQL & "LEFT JOIN FOSYSDT ON FOSYSDT.OPTION1=FOSYSFT.OPTIONS_1 "
+SQL = SQL & "WHERE NUM = '"& TBL.FOKOD &"' "
+
+Set FOTable = Doc.RunSQLQuery("AFWFOTSSSableWBB", SQL)
+
+If FOTable.GetRecCount > 0 Then
+	TBL.FONAM = Trim(FOTable.AD(1))
+Else
+	TBL.FONAM = ""
+End If
+
+Set FOTable = Nothing	
+
+
+
+	SQL = "SELECT ZU_ST00.KOD, VARYANTVAL, NEREDEKUL "
+	SQL = SQL & "FROM ZU_ST00 "
+	SQL = SQL & "LEFT JOIN STOK00 ON STOK00.KOD=ZU_ST00.KOD "
+	SQL = SQL & "WHERE 1=1 "
+		
+	If Trim(TBL.KOD) <> "" Then SQL = SQL & "AND ZU_ST00.KOD = '"& TBL.KOD &"' "
+		
+	If Trim(TBL.FONAM) <> "" Then 
+		SQL = SQL & "AND Trim(VARYANTVAL) IN ('"&Trim(TBL.FONAM) &"')"	
+	Else
+		If Left(Trim(TBL.KOD), 2) = "HR" or Left(Trim(TBL.KOD), 2) = "HS" Then
+		Else
+			SQL = SQL & "AND SRNUM IN ('000001')"	
+		End If
+	End If
+		
+	Set FOTable = Doc.RunSQLQuery("AFWTWTableWBB", SQL)
+
+	If FOTable.GetRecCount > 0 Then
+		TBL.NEREDEKUL = Trim(FOTable.NEREDEKUL(1))
+	Else
+		TBL.NEREDEKUL  = ""
+	End If
+		
+	Set FOTable = Nothing
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK46-01
+Hangi Tablo icin : STOK46
+Ilave Hangi Uygulamalar icin : 
+Aciklama : SATINALMA SÝPARÝÞ FORMUNA NOT YAZDIRMA
+Kod : 
+Sub BeforeCommand(StrCmd)
+	If StrCmd = "GO_LIST" Then
+		Doc.RunCommand "CMD_LISTEE_KRITERLERI"
+		Set LSE = Doc.GetTableObject("LISTEE")
+		
+		LSE.OP_B_GK_3 = "<>"
+		LSE.OP_E_GK_3 = "<>"
+		
+		LSE.B_GK_3 = "FC"
+		LSE.E_GK_3 = "FC"		
+		
+		Doc.RunCommand "GO_LIST_K"
+	ElseIf StrCmd = "CMD_SUZ1" Then
+		Doc.RunCommand "CMD_STOK46T_KRITERLERI2"
+		Set LSE = Doc.GetTableObject("STOK46T_KRITERLER2")
+		
+		LSE.OP_B_GK_3 = "<>"
+		LSE.OP_E_GK_3 = "<>"
+		
+		LSE.B_GK_3 = "FC"
+		LSE.E_GK_3 = "FC"		
+		
+		LSE.OP_B_TR_GK_3 = "<>"   
+		LSE.OP_E_TR_GK_3 = "<>"
+		
+		LSE.B_TR_GK_3 = "FC"
+		LSE.E_TR_GK_3 = "FC"		
+		
+		Doc.RunCommand "CMD_SUZ1_K"
+	End If
+End Sub
+'-----------------------------------------------------------------
+Function BeforePrint
+	ret = Doc.Save_Voucher()
+
+	If ret <> 0 Then 
+		msgbox "Kayýt Baþarýsýz. Yazdýrma Ýþlemi Ýptal."
+		
+		BeforePrint = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End If
+End Function
+'--------------------------------------------
+Function BeforeDelete
+	Set S46E = Doc.GetTableObject("STOK46E")
+
+	If Trim(S46E.EVRAKNO) = "2023-0001" Then
+		If Trim(Doc.Getd7UserName) <> "ADMIN" Then
+			msgbox "Bu evrak silinemez."
+			
+			BeforeDelete = "CANCELWITHOUTERRORMSG"
+			Exit Function
+		End If
+	End if
+End Function
+'------------------------------------------------
+Function BeforeSave
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+
+	Set S46E = Doc.GetTableObject("STOK46E")
+	Set S46T = Doc.GetTableObject("STOK46T")
+	S46T.SafePack
+	
+	If S46T.GetRecCount = 0 Then Exit Function
+	
+	CariKodVal = S46E.CH_KODU
+	CariKodGK8 = Trim(Doc.GetDBFieldValue("CARI00", "GK_8", CariKodVal, ""))
+	
+	For i = 1 to S46T.GetRecCount
+		StkGK1 = Trim(Doc.GetDBFieldValue("STOK00", "GK_1", S46T.KOD(i), ""))
+		
+		If Trim(S46T.SPSTATUSU(i)) = "T" Then
+			S46T.SIRALIKAPATMADISI(i) = "1"
+		Else
+			S46T.SIRALIKAPATMADISI(i) = ""
+		End If
+		
+		If S46T.ACIKKAPALI(i) <> "K" Then
+			If Trim(S46T.FOKOD(i)) <> "" Then
+				msgbox "Yeni Hammadde Koduna Geçildiðinden FOKOD Alanýna Giriþ Kapalýdýr." & vbcrlf & vbcrlf & "Ýþlem Kaydedilmeden Kesilmiþtir."
+				
+				BeforeSave = "CANCELWITHOUTERRORMSG"
+				Exit Function
+			End If
+		End If
+		
+		If S46T.TARIH(i) >= "2023/01/18" Then
+			If StkGK1 = "HMAD" or StkGK1 = "YMALZ" Then
+				If CariKodGK8 <> "" Then
+					If S46T.ACIKKAPALI(i) <> "K" Then
+						S46T.SF_VRI_VR_C(i) = CariKodGK8
+					End If
+				End If
+			End If
+		End If
+		
+	Next
+	
+End Function
+Sub AfterNew
+	Set T_STOK46E = Doc.GetTableObject("STOK46E")   
+	nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","STOK46E",T_STOK46E.EVRAKNO)   
+	Set T_U1 = Doc.GetTableObject("T_U0001")   
+
+	'--------------------------------------------------------------------------------------------------------
+	Not01 = "Sipariþler verilen tarihlerde sevkedilecektir."
+	Not02 = "Fatura ve Ýrsaliyelerinizde PARÇA KODU ve SÝPARÝÞ NUMARASI' ný belirtiniz."
+	Not03 = "Ýçinde bulunan ayýn miktarlarý kesin, gelecek ayýn miktarlarý tahminidir."
+	Not04 = "Önümüzdeki ayýn sipariþleri öngörüdür. (+/-) oynama olabilir."
+	Not05 = "Sevkiyat ile beraber malzemeye ait kalite raporlarýnýn da gönderilmesi gerekmektedir."
+	Not06 = "Tarafýnýza açýlmýþ olan programlarýn tamamýnýn kapanmasý gereklidir."
+	Not07 = "Göndermiþ olduðumuz programlarýn kaþeli ve imzalý bir kopyasýnýn 24 saat içinde tarafýmýza fakslanmasý gerekmektedir."
+	Not08 = "Termin tarihindeki aksaklýklarýn tarafýmýza 2 gün içinde bildirilmesi gerekmektedir."
+	Not09 = "Malzemelerin ÖZENPRES fabrikasýna teslim edilmesini rica eder,"
+	Not10 = "Çalýþmalarýnýzda baþarýlar dileriz."
+	'---------------------------------------------------------------------------------------------------------
+	'ÞAYET KTA DAKÝ SATIRLAR BOÞ ÝSE NOTLARI KOYUYOR.
+	'-------------------------------------------------------
+	If Trim(T_U1.OZELNOT1) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT1",-1, Not01)
+	End If   
+	
+ 	If Trim(T_U1.OZELNOT2) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT2",-1, Not02)
+	End If 
+	
+	If Trim(T_U1.OZELNOT3) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT3",-1, Not03)
+	End If 
+	
+	If Trim(T_U1.OZELNOT4) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT4",-1, Not04)
+	End If 
+	
+	If Trim(T_U1.OZELNOT5) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT5",-1, Not05)
+	End If 
+	
+	If Trim(T_U1.OZELNOT6) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT6",-1, Not06)
+	End If 
+	
+	If Trim(T_U1.OZELNOT7) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT7",-1, Not07)
+	End If 
+	
+	If Trim(T_U1.OZELNOT8) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT8",-1, Not08)
+	End If 
+	
+	If Trim(T_U1.OZELNOT9) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT9",-1, Not09)
+	End If 
+	
+	If Trim(T_U1.OZELNOT10) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT10",-1, Not10)
+	End If 
+	'----------------------------------------------------------------------------------
+	T_U1.Exec "SAVE"  
+End Sub
+'--------------------------------------------------------
+Sub AfterLoad
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+		
+	Dim T_STOK46E, nret, T_U1    
+	Set T_STOK46E = Doc.GetTableObject("STOK46E")   
+	   
+	nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","STOK46E",T_STOK46E.EVRAKNO)   
+	Set T_U1 = Doc.GetTableObject("T_U0001")   
+	
+	Not01 = "Sipariþler verilen tarihlerde sevkedilecektir."
+	Not02 = "Fatura ve Ýrsaliyelerinizde PARÇA KODU ve SÝPARÝÞ NUMARASI' ný belirtiniz."
+	Not03 = "Ýçinde bulunan ayýn miktarlarý kesin, gelecek ayýn miktarlarý tahminidir."
+	Not04 = "Önümüzdeki ayýn sipariþleri öngörüdür. (+/-) oynama olabilir."
+	Not05 = "Sevkiyat ile beraber malzemeye ait kalite raporlarýnýn da gönderilmesi gerekmektedir."
+	Not06 = "Tarafýnýza açýlmýþ olan programlarýn tamamýnýn kapanmasý gereklidir."
+	Not07 = "Göndermiþ olduðumuz programlarýn kaþeli ve imzalý bir kopyasýnýn 24 saat içinde tarafýmýza fakslanmasý gerekmektedir."
+	Not08 = "Termin tarihindeki aksaklýklarýn tarafýmýza 2 gün içinde bildirilmesi gerekmektedir."
+	Not09 ="Malzemelerin ÖZENPRES fabrikasýna teslim edilmesini rica eder,"
+	Not10 = "Çalýþmalarýnýzda baþarýlar dileriz."
+	
+	'ÞAYET KTA DAKÝ SATIRLAR BOÞ ÝSE NOTLARI KOYUYOR.
+	KTABos = False
+	
+	If Trim(T_U1.OZELNOT1) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT1",-1, Not01)
+  	KTABos = True
+	End If   
+	
+ 	If Trim(T_U1.OZELNOT2) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT2",-1, Not02)
+	End If 
+	
+	If Trim(T_U1.OZELNOT3) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT3",-1, Not03)
+	End If 
+	
+	If Trim(T_U1.OZELNOT4) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT4",-1, Not04)
+	End If 
+	
+	If Trim(T_U1.OZELNOT5) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT5",-1, Not05)
+	End If 
+	
+	If Trim(T_U1.OZELNOT6) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT6",-1, Not06)
+	End If 
+	
+	If Trim(T_U1.OZELNOT7) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT7",-1, Not07)
+	End If 
+	
+	If Trim(T_U1.OZELNOT8) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT8",-1, Not08)
+	End If 
+	
+	If Trim(T_U1.OZELNOT9) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT9",-1, Not09)
+	End If 
+	
+	If Trim(T_U1.OZELNOT10) = "" Then 
+  	K = T_U1.SetFieldValue("OZELNOT10",-1, Not10)
+	End If 
+	
+	If KTABos Then T_U1.Exec "SAVE"  
+	
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK46-02
+Hangi Tablo icin : STOK46E
+Ilave Hangi Uygulamalar icin : 
+Aciklama : cari ödeme günü otomatik gelmesi
+Kod : 
+Sub CH_KODU_AfterValidate()
+	'Set S46E = Doc.GetTableObject("STOK46E")   
+	'CariKodu = S46E.CH_KODU
+	
+	'Set C00 = Doc.Select1("xxxaaa", "CARI00", "KOD='"&CariKodu&"' ", "", -1)
+	
+	'If  C00.B_DEFAULT_VADEGUN > 0 Then
+	'	S46E.ODEMEGUNU = C00.B_DEFAULT_VADEGUN
+	'	S46E.ODEMESEKLI = C00.SPODEMESEKLI
+	'End If
+	
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK47-01
+Hangi Tablo icin : STOK47
+Ilave Hangi Uygulamalar icin : 
+Aciklama : VARYANT 1 F2 SÝ - KALIP MALZEMELERÝ TEKNÝK ÖZELLÝKLER
+Kod : 
+Sub AfterLoad
+	Set S47E = Doc.GetTableObject("STOK47E")
+
+	'S47E.CHAD1 = Trim(Doc.GetDBFieldValue("CARI00", "AD", S47E.KTA_CH_KODU, "")) 
+End Sub
+'-----------------------------------------------------------
+Function BeforeDelete
+	Set S47E = Doc.GetTableObject("STOK47E")
+
+	If Trim(S47E.EVRAKNO) = "23_00001" Then
+		If Trim(Doc.Getd7UserName) <> "ADMIN" Then
+			msgbox "Bu evrak silinemez."
+			
+			BeforeDelete = "CANCELWITHOUTERRORMSG"
+			Exit Function
+		End If
+	End if
+End Function
+'------------------------------------------------
+Function BeforeSave
+Exit Function 
+
+	Set S47E = Doc.GetTableObject("STOK47E")
+	Set S47T = Doc.GetTableObject("STOK47T")
+	S47T.SafePack
+	
+	If S47T.GetRecCount = 0 Then Exit Function
+	
+	For i = 1 To S47T.GetRecCount
+		StkGK18 = Trim(Doc.GetDBFieldValue("STOK00", "GK_18", S47T.KOD(i), ""))
+		StkGK1 = Trim(Doc.GetDBFieldValue("STOK00", "GK_1", S47T.KOD(i), ""))
+		
+
+		If StkGK1 = "HMAD" or StkGK1 = "YMALZ" Then
+			If CariKodGK8 <> "" Then
+				If S47T.ACIKKAPALI(i) <> "K" Then
+					S47T.SF_VRI_VR_C(i) = CariKodGK8
+				End If
+			End If
+		End If
+		
+	Next
+
+End Function
+'-----------------------------------------------------------
+Sub AfterSave
+	'*********************************************************************
+	Set S47T = Doc.Select2("fsdfsd", "STOK47T", "ACIKKAPALI<>'K' ", "", -1)
+	If S47T.GetRecCount = 0 Then Exit Sub
+	'*********************************************************************
+	
+	Set S47E = Doc.GetTableObject("STOK47E")
+	SonGonderilmeTarihi = Trim(Doc.GetUDFValue("STOK47E", S47E.EVRAKNO, "MAILTAR", 0))
+
+	If SonGonderilmeTarihi = Doc.Bugun Then
+		k = Doc.d7MsgBox("Gün Ýçinde Bilgilendirme Maili Gönderilmiþ. Tekrar Mail Gönderilsin mi? ", "Dikkat", MB_YESNO)
+		If k <> 6 Then Exit Sub
+	End If
+	
+	Call TalepMailGonder
+End Sub
+'-----------------------------------------------------------
+Sub TalepMailGonder
+
+	Set S47E = Doc.GetTableObject("STOK47E")
+	TalepNo = S47E.EVRAKNO
+	TalepAcanKodu = Trim(S47E.CODEDKISI)
+
+	SQL = "SELECT EVRAKNO, CODEDBOLUM, PERS00.AD, SIPLEILGILINOTLAR_1,  SIPLEILGILINOTLAR_2  "
+	SQL = SQL & "FROM STOK47E "
+	SQL = SQL & "LEFT JOIN PERS00 ON PERS00.KOD=STOK47E.CODEDKISI "
+	SQL = SQL & "WHERE 1=1 "
+	SQL = SQL & "AND EVRAKNO = '"& TalepNo &"' "
+	
+	Set S47ESQL = Doc.RunSQLQuery("S47E_SQL", SQL)
+	
+	If S47ESQL.GetRecCount = 0 Then Exit Sub
+	
+	strheader = "[ " & Trim(TalepNo) & " ] No'lu Satýnalma Talebi Açýlmýþtýr. "
+
+	TabloBaslikArray = Array("Talep No", "Talep Eden Bölüm", "Talep Eden Ad Soyad", "Not 1", "Not 2")
+		
+	'Doc.RunMacro3 "MAKR7S.FREEMAIL", "ShowTableHTMLMessage", S47ESQL, strheader, TabloBaslikArray
+		
+	MesajEvrak = GetTableHTML(S47ESQL, strheader, TabloBaslikArray)	
+
+	SQL = "SELECT STOK47T.KOD, "
+	SQL = SQL & "  STOK00.AD STOKAD1, "
+	SQL = SQL & "  STOK00.NAME2 STOKAD2, "
+	SQL = SQL & "  SF_VRI_VR_C, "
+	SQL = SQL & "  FOKOD, "
+	SQL = SQL & "  FOSYSDT.AD FONAM, "
+	SQL = SQL & "  SF_MIKTAR, "
+	SQL = SQL& "  SF_SF_UNIT, "
+	SQL = SQL & "  RTALEPEDILENTESTARIH, "
+	SQL = SQL & "  NOTE0, "
+	SQL = SQL & "  NOTE1 "
+	SQL = SQL & "FROM STOK47T "
+	SQL = SQL & "LEFT JOIN STOK00 ON STOK00.KOD=STOK47T.KOD "
+	SQL = SQL & "LEFT JOIN FOSYSFT ON FOSYSFT.NUM=STOK47T.FOKOD "
+	SQL = SQL & "LEFT JOIN FOSYSDT ON FOSYSDT.OPTION1=FOSYSFT.OPTIONS_1 "
+	SQL = SQL & "WHERE 1=1 "
+	SQL = SQL & "AND STOK47T.EVRAKNO = '"& TalepNo &"' "
+
+	Set S47TSQL = Doc.RunSQLQuery("S47T_SQL", SQL)
+	'S47TSQL.SetFieldToDate("RTALEPEDILENTESTARIH") 
+
+	TabloBaslikArray = Array("Stok Kodu", "Stok Ad 1", "Stok Ad 2", "Cari Kýsaltma", "FO Kodu", "FO Adý", "Miktar", "Birim", "Talep Edilen Tarih", "Satýr Not 1", "Satýr Not 2")
+	strheaderTable = "Satýnalma Talep Ýçeriði "
+
+	MesajTablo = GetTableHTML(S47TSQL, strheaderTable, TabloBaslikArray)	
+
+	Mesaj = MesajEvrak & vbcrlf & vbcrlf & MesajTablo
+	'*********************************
+	TalepAcanMail = Trim(Doc.GetDBFieldValue("PERS00", "EMAIL", TalepAcanKodu, ""))
+	'*********************************
+
+	Dim DosyaAdi(4)
+	DosyaAdi(1) = ""
+	DosyaAdi(2) = ""
+	DosyaAdi(3) = ""
+	DosyaAdi(4) = ""
+
+	SQL = "SELECT LISTAGG(Trim(EMAIL),',') WITHIN GROUP ( "
+	SQL = SQL & "ORDER BY EMAIL) MAIL_LIST "
+	SQL = SQL & "FROM UDEF "
+	SQL = SQL & "WHERE KOD IN "
+	SQL = SQL & "  ( SELECT KOD FROM UDEFT12 WHERE TRIM(OZEL_HAK_KODU)='TALEPMAIL' "
+	SQL = SQL & "  ) "
+	SQL = SQL & "AND Trim(EMAIL) IS NOT NULL "
+	SQL = SQL & "AND AP10='1' "
+	SQL = SQL & "GROUP BY 1"
+	
+	Set MAILT = Doc.RunSQLQuery("AFWWBB", SQL)
+		
+	If MAILT.GetRecCount > 0 Then 
+		strTo = MAILT.MAIL_LIST(1) & "," & TalepAcanMail
+	Else
+		Msgbox "Maili Alacaklar Tanýmlanmamýþ."
+			
+		Exit Sub
+	End If
+
+strTo = "mozan@ozenpres.com"
+
+	k = Doc.RunMacro4("MAKR7S.FREEMAIL", "SendMail", strTo, strHeader, Mesaj, DosyaAdi)
+		
+	nret = Doc.UFLD00_CREATEEDITTABLE("S_U0001", "STOK47E", S47E.EVRAKNO)
+
+	Set S_U1 = Doc.GetTableObject("S_U0001")
+	K = S_U1.SetFieldValue("MAILTAR", -1, Doc.Bugun)
+	S_U1.Exec "SAVE"	
+	
+End Sub
+'--------------------------------------------------------
+Function GetTableHTML(Table, ByVal HTMLBaslik, TabloBaslikArray)
+	HTMLBaslik = Replace(HTMLBaslik, vbcrlf, "<br>")
+	HTMLBaslik = "<p><b><font size=""3"">" & HTMLBaslik & "</font></b></p>"
+	FieldArr = Table.GetFields()
+
+	HTMLStr = ""
+	HTMLStr = "<html  lang='tr-TR'><meta http-equiv="&Chr(34)&"refresh"&Chr(34)& "content="&Chr(34)&"30"&Chr(34)&"><body>" & HTMLBaslik
+	HTMLStr = HTMLStr & "<table border=1 cellspacing=0 cellpadding=2>"
+	if trim(TabloBaslikArray(0)) <> "" Then
+		HTMLStr = HTMLStr & "<tr>"
+		For each Baslik in TabloBaslikArray
+			HTMLStr = HTMLStr & "<th bgcolor=#EEEEFF>" & Baslik & "</th>"
+		Next
+		HTMLStr = HTMLStr & "</tr>"
+	End if
+
+	For i=1 to Table.GetRecCount
+		HTMLStr = HTMLStr & "<tr>"
+		For j = 0 to uBound(FieldArr,1)
+			if j <= uBound(TabloBaslikArray) Then
+				AlanTuru = FieldArr(j, 2)
+				AlanDegeri = Table.GetFieldValue(FieldArr(j,0), i)
+				if InStr(1, FieldArr(j, 0), "_DBL") > 0 Then
+					Align = "right"
+				Else
+					Align = "left"
+				End if
+				if AlanTuru = "DOUBLE" Then
+					Align = "right"
+				Elseif AlanTuru = "DATE" Then
+					AlanDegeri = Doc.StrToNorDate(AlanDegeri)
+				Elseif AlanTuru = "CHAR" Then
+					AlanDegeri = trim(AlanDegeri)
+					AlanDegeri = Replace(AlanDegeri, vbcrlf, "<br>")
+					'Call ReplaceEntities(AlanDegeri)
+				End if
+
+				HTMLStr = HTMLStr & "<td align=" & Align & ">" & AlanDegeri & "</td>"
+			End if
+		Next
+		HTMLStr = HTMLStr & "</tr>"
+	Next
+	HTMLStr = HTMLStr & "</table></body></html>"
+	GetTableHTML = HTMLStr
+End Function
+'--------------------------------------------------------------------------------------
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : STOK47-02
+Hangi Tablo icin : STOK47T
+Ilave Hangi Uygulamalar icin : 
+Aciklama : Talep açýlma maili
+Kod : 
+Sub FOKOD_AFTERVALIDATE
+	
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	Set TBL = Doc.GetTableObject("STOK47T") 
+
+
+
+SQL = "SELECT NUM, OPTIONS_1, AD "
+SQL = SQL & "FROM FOSYSFT "
+SQL = SQL & "LEFT JOIN FOSYSDT ON FOSYSDT.OPTION1=FOSYSFT.OPTIONS_1 "
+SQL = SQL & "WHERE NUM = '"& TBL.FOKOD &"' "
+
+Set FOTable = Doc.RunSQLQuery("AFWFOTSSSableWBB", SQL)
+
+If FOTable.GetRecCount > 0 Then
+	TBL.FONAM = Trim(FOTable.AD(1))
+Else
+	TBL.FONAM = ""
+End If
+
+Set FOTable = Nothing	
+
+
+
+	SQL = "SELECT ZU_ST00.KOD, VARYANTVAL, NEREDEKUL "
+	SQL = SQL & "FROM ZU_ST00 "
+	SQL = SQL & "LEFT JOIN STOK00 ON STOK00.KOD=ZU_ST00.KOD "
+	SQL = SQL & "WHERE 1=1 "
+		
+	If Trim(TBL.KOD) <> "" Then SQL = SQL & "AND ZU_ST00.KOD = '"& TBL.KOD &"' "
+		
+	If Trim(TBL.FONAM) <> "" Then 
+		SQL = SQL & "AND Trim(VARYANTVAL) IN ('"& Trim(TBL.FONAM) &"')"	
+	Else
+		If Left(Trim(TBL.KOD), 2) = "HR" or Left(Trim(TBL.KOD), 2) = "HS" Then
+		Else
+			SQL = SQL & "AND SRNUM IN ('000001')"	
+		End If
+	End If
+		
+	Set FOTable = Doc.RunSQLQuery("AFWTWTableWBB", SQL)
+
+	If FOTable.GetRecCount > 0 Then
+		TBL.NEREDEKUL = Trim(FOTable.NEREDEKUL(1))
+	Else
+		TBL.NEREDEKUL  = ""
+	End If
+		
+	Set FOTable = Nothing
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : SUGG03-01
+Hangi Tablo icin : SUGG03
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Sub AFTERNOTIFICATION(ByVal Notification_Type)
+	If Notification_Type = "AFTER_DOCUMENT_INIT_S" Then 
+
+		Call InitDocument
+	End If
+End Sub
+'---------------------------------
+Sub InitDocument
+	Dim SG02T 
+
+	Set SG02T = Doc.GetTableObject("SUGG02T")
+	SG02T.Addfield2 "STOKADXXX","CHAR",50,0,"L","",""
+End Sub
+'---------------------------------
+Sub AfterLoad
+		
+	Set SG02T = Doc.GetTableObject("SUGG02T") 
+
+	For i = 1 To SG02T.GetRecCount
+		If Trim(SG02T.SKOD(i)) <> "" Then
+			SG02T.STOKADXXX(i) = Trim(Doc.GetDBFieldValue("STOK00", "AD", SG02T.SKOD(i), ""))
+	 	End If
+	Next
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : SUGG03-02
+Hangi Tablo icin : SUGG02T
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Sub SKOD_AFTERVALIDATE
+		
+	Set SG02T = Doc.GetTableObject("SUGG02T") 
+	SG02T.STOKADXXX = Trim(Doc.GetDBFieldValue("STOK00", "AD", SG02T.SKOD, ""))
+	 
+End Sub
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : OPR_2026 / Uygulama : MAKR8S
+Makro Kodu : UFLD10-01
+Hangi Tablo icin : UFLD10
+Ilave Hangi Uygulamalar icin : 
+Aciklama : 
+Kod : 
+Sub BeforeSave
+	Set U10T = Doc.GetTableObject("UFLD10T")
+	U10T.SafePack
+
+	'For i = 1 To U10T.GetRecCount
+	'	'FieldName = U10T.VARCODE
+	'Next
+
+End Sub
+----------------------------------------------------------------

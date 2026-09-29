@@ -1,0 +1,149 @@
+Sub EtiketYaz(FoyNo,LotNo,Miktar,HamurKodu,HamurMpsNo,MamulMpsNo,MamulKodu,EvrakNo,Tarih,Barkod,pe1)
+	Set AND_TABLE = Doc.GetRowsetObject("AND_TABLEE")
+	Set MTable = Doc.GetRowsetObject("MAKROTABLE")
+	Sertlik = ""
+	HSertlik = ""
+	KontrolEden=""
+	KontrolEdenAdi = ""
+	Sonuc =""
+	Set KaliteSonuc = doc.Select1("LFT","QVAL02E","KOD ='"+HamurKodu+"' & LOTNUMBER ='"+LotNo+"'","",-1)
+	if KaliteSonuc.GetRecCount > 0 and FoyNo <> "" then
+		KontrolEden=KaliteSonuc.PERS00_KONTROL(1)
+		'FoyNo=KaliteSonuc.EVRAKNO(1)
+		if trim(KontrolEden)="" then KontrolEden = "P4002"
+		KontrolEdenAdi = doc.GetDbFieldValue("PERS00","AD",KontrolEden,"")
+		Sonuc = Trim(Doc.GetUDFValue("QVAL02E",FoyNo,"KONTROL_PLANI_KARARI",0))		
+	'	Sonuc = MTable.SONUC
+		
+		Set KaliteSatirlar=doc.Select1("LSF2","QVAL02T","EVRAKNO ='"+FoyNo+"' & QS_VARCODE ='K01'","",-1)
+		if KaliteSatirlar.GetRecCount > 0 then
+			Sertlik = KaliteSatirlar.QS_DVALUE_001(1)
+			HSertlik = KaliteSatirlar.NORMALTEXT1(1)
+		end if
+	end if
+
+
+	Kullanici = Doc.Getd7UserName
+	KullaniciAdi = doc.GetdbFieldValue("UDEF","AD_SOYAD",Kullanici,"")
+	UstMargin = 1
+	SolMargin = 0
+	res=pe1.NoPen
+	'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+	'Call yaziBelirle(pe1,1,"Arial",8,"CENTER",255,255,255,0,0,0,0)
+	
+	
+
+	
+	res = pe1.SetBold(1)
+	res = pe1.SelectFont("Arial",8)
+	res = pe1.setalign("CENTER")
+
+
+logo = "\\192.168.1.253\d7s\_KAVSES_2024\IMAGES\LOGO.png"
+	res = pe1.selectfont("Arial", 12)
+  	res = pe1.setbold(1)
+		res = pe1.SetAlign("CENTER")
+
+	If logo <> "" Then
+		res = pe1.Picture(ustMargin+5, 5, 9.3, 31, logo, 16)
+	Else 
+
+	End If
+
+res = pe1.Write(6.8 ,34.2,9.4,60.3,"FORMÜL ONAY KARTI")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+	res = pe1.SetBold(0)
+	res = pe1.SelectFont("Arial",8)
+	res = pe1.setalign("LEFT")
+res = pe1.Write(17.5 ,5.2,6.7,21.7,"MALZ.KODU")
+'Call yaziBelirle(pe1,0,"Arial",6,"LEFT",255,255,255,0,0,0,0)
+res = pe1.Write(17.5 ,28.7,6.7,2.4,":")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+res = pe1.Write(25.5 ,5.2,6.7,21.7,"MALZ. TANIMI")
+'Call yaziBelirle(pe1,0,"Arial",6,"LEFT",255,255,255,0,0,0,0)
+res = pe1.Write(25.5 ,28.7,6.7,2.4,":")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+res = pe1.Write(33.4 ,5.2,6.7,21.7,"FORMÜL TLP. NO")
+'Call yaziBelirle(pe1,0,"Arial",6,"LEFT",255,255,255,0,0,0,0)
+res = pe1.Write(33.4 ,28.7,6.7,2.4,":")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+res = pe1.Write(33.4 ,54.9,6.7,16.2,"TÜKETÝM TARÝHÝ")
+'Call yaziBelirle(pe1,0,"Arial",6,"LEFT",255,255,255,0,0,0,0)
+res = pe1.Write(33.4 ,72.8,6.7,2.4,":")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+res = pe1.Write(41.4 ,5.2,6.7,21.7,"LAB. RP. NO")
+'Call yaziBelirle(pe1,0,"Arial",6,"LEFT",255,255,255,0,0,0,0)
+res = pe1.Write(41.4 ,28.7,6.7,2.4,":")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+res = pe1.Write(41.4 ,54.9,6.7,16.2,"ÝLAÇLAMA TARÝHÝ")
+'Call yaziBelirle(pe1,0,"Arial",6,"LEFT",255,255,255,0,0,0,0)
+res = pe1.Write(41.4 ,72.8,6.7,2.4,":")
+'Call yaziBelirle(pe1,0,"Arial",6,"CENTER",255,255,255,0,0,0,0)
+res = pe1.Write(50.7 ,54.9,4.1,18.9,"ÝSTENÝLEN SERTLÝK")
+res = pe1.Write(50.7 ,74.2,4.1,20.3,"ONAY DURUMU")
+res = pe1.Write(58.7 ,54.9,4.1,18.9,"ÖLÇÜLEN SERTLÝK")
+
+
+res = pe1.SetBarcodeAlignment(0)
+res = pe1.SetBarcodeParms(1,1)
+res = pe1.SetBarcodeAutoCheckSum(0)
+res = pe1.Barcode(Ustmargin+52,SolMargin+6,10,47,"CODE39",trim(Barkod),"")
+
+res = pe1.PenSize(0.6)
+res = pe1.Line(6.3,5,0,89.7)
+res = pe1.PenSize(0.6)
+res = pe1.Line(15.6,5,0,89.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(23.6,5,0,89.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(31.6,5,0,89.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(39.6,5,0,89.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(47.6,5,0,89.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(50.2,5,0,89.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(54.2,74,0,20.7)
+res = pe1.PenSize(0.3)
+res = pe1.Line(58.2,54.7,0,19.3)
+res = pe1.PenSize(0.6)
+res = pe1.Line(66.2,5,0,89.7)
+res = pe1.PenSize(0.6)
+res = pe1.Line(6.3,5,59.8,0)
+res = pe1.PenSize(0.6)
+res = pe1.Line(6.3,34,9.3,0)
+res = pe1.PenSize(0.3)
+res = pe1.Line(50.2,54.7,16,0)
+res = pe1.PenSize(0.3)
+res = pe1.Line(50.2,74,16,0)
+res = pe1.PenSize(0.6)
+res = pe1.Line(6.3,94.7,59.8,0)
+
+
+
+	res = pe1.write(UstMargin+33,SolMargin + 35,6,39,trim(LotNo))
+	res = pe1.write(UstMargin+17,SolMargin + 35,6,39,trim(HamurKodu))
+	res = pe1.write(UstMargin+25,SolMargin + 35,6,39,doc.GetdbFieldValue("STOK00","AD",HamurKodu,""))
+	'res = pe1.write(UstMargin+32,SolMargin + 55,6,39,Miktar & " kg")
+	'res = pe1.write(UstMargin+35,SolMargin + 40,6,44,trim(MamulKodu) & " / " &trim(doc.GetdbFieldValue("STOK00","AD",MamulKodu,"")) )
+	'res = pe1.write(UstMargin+33,SolMargin + 55,6,39,MamulMpsNo)
+	res = pe1.write(UstMargin+40,SolMargin + 76,6,15,doc.StrToNorDate(Tarih))
+	res = pe1.Write(UstMargin+40,SolMargin + 35,6,39,trim(FoyNo))
+	res = pe1.write(UstMargin+61,SolMargin + 60,6,15,Sertlik&""&"ShA")
+	res = pe1.write(UstMargin+54,SolMargin + 60,6,15,HSertlik&""&"ShA")
+	res = pe1.write(UstMargin+57,SolMargin + 76,6,15,"E")
+	
+	End Sub
+	
+	
+
+
+
+
+Sub Barcode00(y,x,h,w,kod)
+pe1.nopen()
+res = pe1.Barcode(y,x,h,w,"CODE128", kod ,"")
+
+
+end sub

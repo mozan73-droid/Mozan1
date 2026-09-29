@@ -1,0 +1,688 @@
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : ++ORNEK
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Örnek Uygulama Event Makrolarý
+Kod : 
+Function OnStart
+'OnStart'a bir deðer atanýr ise ve bu deðer 0'dan farklý olur ise uygulama baþlatýlmaz
+	OnStart=0
+	Msgbox("OnStart")
+End Function
+
+Sub AfterLoad
+	Msgbox("After Load")
+End Sub
+
+Function BeforeSave
+'BeforeSave'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforeSave=0
+	Msgbox("Before Save")
+End Function
+Sub AfterSave
+	Msgbox("AfterSave")
+End Sub
+
+Function BeforeDelete
+'BeforeDelete'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforeDelete=0
+	Msgbox("Before Delete")
+End Function
+Sub AfterDelete
+	Msgbox("After Delete")
+End Sub
+
+Sub AfterNew
+	Msgbox("After New")
+End Sub
+
+Function BeforePrint
+'BeforePrint'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforePrint=0
+	Dim FormIsmi
+	FormIsmi=Doc.GetDocParameterValue("SELECTEDFORM")
+	Msgbox("Before Print, Form Ismi="&FormIsmi)
+End Function
+Sub AfterPrint
+	Msgbox("After Print")
+End Sub
+
+Sub BeforeCommand(StrCmd)
+	Msgbox("Before Command:"&StrCmd)
+End Sub
+Sub AfterCommand(StrCmd)
+	Msgbox("After Command:"&StrCmd)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : SALMA1
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : SATINALMA SÝPARÝÞ FORMUNA NOT YAZDIRMA - 26.04.2010
+Kod : 
+Sub AfterLoad()
+
+	Dim T_STOK46E   
+	Set T_STOK46E = Doc.GetTableObject("STOK46E")   
+	'--------------------------------------------------------------------------------------------------------
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","STOK46E",T_STOK46E.EVRAKNO)   
+	'--------------------------------------------------------------------------------------------------------
+ 	Dim T_U1    
+  	Set T_U1 = Doc.GetTableObject("T_U0001")   
+	'--------------------------------------------------------------------------------------------------------
+  	Not1 = "Aþaðýda  tanýmý , toplam ve miktarý  belirtilen malzemeleri mektupla / e-mail  yazýlý þartlarla firmanýza  sipariþ ediyoruz."
+	Not2 = "RULO ÜZERÝNDE ÇÝZÝK ,PASLANMA,KAYNAK ÝZÝ vb. HATALAR KABUL EDÝLMÝYECEKTÝR.RULONUN ÝÇ GÖBEKLERÝNDE SACIN ÝÇE KIVIRMASI OLMAYACAK."
+	Not3 = "Lütfen sipariþ mektubunu teyid edip tarafýmýza fakslayýnýz."
+	Not4 = ""
+	Not5 = ""
+	'---------------------------------------------------------------------------------------------------------
+	'ÞAYET KTA'DAKÝ SATIRLAR BOÞ ÝSE NOTLARI KOYUYOR.
+	'-------------------------------------------------------
+	If Trim(T_U1.OZELNOT1) = "" Then 
+  		K = T_U1.SetFieldValue("OZELNOT1",-1,Not1)
+	End If   
+
+ 	If Trim(T_U1.OZELNOT2) = "" Then 
+  		K = T_U1.SetFieldValue("OZELNOT2",-1,Not2)
+	End If 
+
+	If Trim(T_U1.OZELNOT3) = "" Then 
+  		K = T_U1.SetFieldValue("OZELNOT3",-1,Not3)
+	End If 
+
+	If Trim(T_U1.OZELNOT4) = "" Then 
+  		K = T_U1.SetFieldValue("OZELNOT4",-1,Not4)
+	End If 
+
+	If Trim(T_U1.OZELNOT5) = "" Then 
+  		K = T_U1.SetFieldValue("OZELNOT5",-1,Not5)
+	End If 
+	'----------------------------------------------------------------------------------
+  	T_U1.Exec "SAVE"  
+
+End Sub                                                                                                                                                                                                                                              
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : SRVP00
+Hangi Tablo için : SRVP001
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kalýp Bakým Talebi Açýlýnca Mail Atar    --- 07MRT150911 --
+Kod : 
+Public FreeDomUserName, xProgamkodu, xKullanici, xSonrakiOnay, xSonOnay, xSonOnayVerenKullanici, xSonOnayVerenKullaniciEposta
+
+Function AfterSave()
+	Call EPostaGonder()
+End Function
+
+
+Sub EPostaGonder()
+	xEmail = "melihakyel@bolparsan.com"
+	If Trim(xEmail)="" Then
+		msgbox xKullanici & " Kullanýcýsýnýn e-posta adresi bulunamadý !.."
+		Exit Sub
+	End If
+	Dim RecNo
+
+	Dim tbl_SRVP00E
+	Set tbl_SRVP00E = Doc.GetTableObject("SRVP00")
+
+	if Doc.IsBlank(tbl_SRVP00E) then Exit Sub
+
+	Doc.RunCommand "MT_EMAIL_SEND_NONE_FORM"
+	Dim EMAIL_SEND_INFO_TABLE_E
+	Dim EMAIL_SEND_INFO_TABLE_T
+	Set EMAIL_SEND_INFO_TABLE_E=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_E")
+	Set EMAIL_SEND_INFO_TABLE_T=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_T")
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_E) then Exit Sub
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_T) then Exit Sub
+	EMAIL_SEND_INFO_TABLE_E.NOMESSAGE = "1"
+	EMAIL_SEND_INFO_TABLE_T.Empty()
+	RecNo = EMAIL_SEND_INFO_TABLE_T.AddRow()
+	EMAIL_SEND_INFO_TABLE_T.SetcurrentRow RecNo
+	EMAIL_SEND_INFO_TABLE_T.SELECTED = "1"
+	EMAIL_SEND_INFO_TABLE_T.MESAJSABLONDAN = "0"
+	EMAIL_SEND_INFO_TABLE_T.M_TO =  xEmail
+	EMAIL_SEND_INFO_TABLE_T.MESAJ = Trim(SRVP00.KOD)+" Nolu Kalýp bakým Talebi açýldý,  Ýncelemenizi Bekliyor."
+	Doc.RunCommand "MT_EMAIL_SEND_ONE"
+'	Doc.LoadSubForm "EMAIL_LIST"
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : SRVP00-01
+Hangi Tablo için : SRVP00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : kalýp bakým iþ emrinde kullanýlan malzemlere stok kartýndan 1.fiyatý alýr    --- 08MRT092511 --
+Kod : 
+Function BeforeSave
+	For i=1 To SRVP00M.GetRecCount
+		If Trim(SRVP00M.STOKKODU)="" Then Exit For
+		BirimFiyat = Doc.GetDbFieldValue("STOK00", "B_OR_FIYAT_1", SRVP00M.STOKKODU(i), "")
+		ParaBirimi = Doc.GetDbFieldValue("STOK00", "PRICEUNIT_1", SRVP00M.STOKKODU(i), "")
+		SRVP00M.OR_FIYAT(i) = BirimFiyat
+		SRVP00M.PARABIRIMI(i)= ParaBirimi
+	Next
+	BeforeSave=0
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK25
+Hangi Tablo için : STOK25
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterNew()
+	Call OtotmatikDepo()
+End Sub
+Sub OtotmatikDepo()
+	if Doc.GetDocType0 <> "TRACK251" Then Exit Sub
+	if trim(Doc.Getd7UserName) = "TRM1" or trim(Doc.Getd7UserName) = "TRM2" or trim(Doc.Getd7UserName) = "TRM3" Then
+		STOK25E.AMBCODE = "HMD"
+		STOK25E.TARGETAMBCODE = "IMD"
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK25T
+Hangi Tablo için : STOK25
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub LOTNUMBER_AfterValidate()
+	Doc.RunCommand "SATIR_ESKIBILGILERI_YENIYEKOPYALA"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK26
+Hangi Tablo için : STOK26
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterNew()
+	Call OtotmatikDepo()
+End Sub
+Sub OtotmatikDepo()
+	if Doc.GetDocType0 <> "TRACK261" Then Exit Sub
+	if trim(Doc.Getd7UserName) = "TRM1" or trim(Doc.Getd7UserName) = "TRM2" or trim(Doc.Getd7UserName) = "TRM3" Then
+		STOK26E.AMBCODE = "HMD"
+		STOK26E.TARGETAMBCODE = "IMD"
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK46
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Satýnalma Sipariþi Sonraki Onaya Mail Atar    --- 03SBT113311 --
+Kod : 
+Public FreeDomUserName, XTALEPNO ,XONAYLAYACAK,XTALEPEDENEMAIL ,XTALEPEDEN ,xProgamkodu, xKullanici, xSonrakiOnay, xSonOnay, xSonOnayVerenKullanici, xSonOnayVerenKullaniciEposta
+
+Function AfterSave()
+
+	xSonOnayVerenKullaniciEposta = ""
+	FreeDomUserName = ""
+	xKullanici = ""
+	xSonOnayVerenKullanici = ""
+	xSonOnayVerenKullaniciEposta = ""
+
+	FreeDomUserName = Doc.Getd7UserName
+	xKullanici = Trim(FreeDomUserName)
+
+	xSonOnayVerenKullanici = trim(STOK46E.ONAY_SONKULLANICI)
+
+	If xSonOnayVerenKullanici = "" Then
+
+		XTALEPEDEN = "MKONUK"
+		Call EPostaGonder(XTALEPEDEN)
+		
+		XTALEPEDEN = "MKONUK"
+		Call EPostaGonder(XTALEPEDEN)
+
+		XTALEPEDEN = "MKONUK"
+		Call EPostaGonder(XTALEPEDEN)
+	Else 
+		Msgbox "Son onay veren kullanýcý :" & xSonOnayVerenKullanici 
+
+'	Else
+
+'		If xSonOnayVerenKullanici = "MKONUK" OR xSonOnayVerenKullanici ="FATIHT" Then 
+'			'XTALEPNO = Doc.GetDbFieldValue("STOK46T1", "TALEPNO", STOK46E.EVRAKNO, "")
+'			XTALEPNO = STOK46T1.TALEPNO 
+'			XTALEPEDEN = Doc.GetDbFieldValue("STOK47E", "BOWNER_USERNAME", XTALEPNO , "")
+ 
+'			XTALEPEDENEMAIL = Doc.GetDbFieldValue("UDEF", "EMAIL", XTALEPEDEN , "")
+'			xSonrakiOnayKullanici = XTALEPEDEN 'bu Nazmi beyin adresi olacak.
+			'Call EPostaGonder(xSonrakiOnayKullanici)
+
+	
+'			XTALEPNO = STOK46T1.TALEPNO 
+'			XTALEPEDEN = Doc.GetDbFieldValue("STOK47E", "BOWNER_USERNAME", XTALEPNO , "")
+ 
+'		End If
+		
+	End If
+
+
+''	xSonOnayVerenKullaniciEposta = Doc.GetDbFieldValue("UDEF", "EMAIL", xSonOnayVerenKullanici, "")
+
+'	xProgamkodu= "STOK46"
+'	xSonOnayNo  = Doc.Cint(STOK46E.ONAY_SONVERILENNO)
+'	xSonrakiOnay = Doc.Cint(xSonOnayNo+1)
+'	xSonrakiOnay = Cstr(xSonrakiOnay)
+
+'	If xSonOnayNo>=1 Then
+'		Call SonrakiOnay()
+'	End If
+
+End Function
+'----------------------------------------------------------------------------------
+Sub SonrakiOnay()
+
+	vKrt1 = "PROGRAMKODU"
+	vKrt2 = "KOD"
+
+	vSonrakiOnay = "ONAY_"
+	vSonrakiOnay = vSonrakiOnay & xSonrakiOnay
+	vDeger = "1"
+	xKriter = vSonrakiOnay
+	xKriter = xKriter + "="
+	xKriter = xKriter + "'"
+	xKriter = xKriter + vDeger
+	xKriter = xKriter + "'"
+	xKriter = xKriter + " & "
+	xKriter = xKriter + vKrt1
+	xKriter = xKriter + "="
+	xKriter = xKriter + "'"
+	xKriter = xKriter + xProgamkodu
+	xKriter = xKriter + "'"
+
+	Set vTable = Doc.Select1("abc", "UDEFT9", xKriter, "", -1)
+
+
+	If vTable.GetRowCount()>0 Then
+		For j=1 To vTable.GetRowCount()
+			xSonrakiOnayKullanici = Trim(vTable.KOD)
+ 
+'			Call EPostaGonder(xSonrakiOnayKullanici)
+		Next
+	End If
+
+End Sub
+
+'-----------------------------------------------------------------------
+
+Sub EPostaGonder(vSonrakiOnayKullanici)
+
+	xEmail = Doc.GetDbFieldValue("UDEF", "EMAIL", vSonrakiOnayKullanici, "")
+
+	If Trim(xEmail)="" Then
+		msgbox XTALEPEDEN & " kullanýcýsýnýn e-posta " & "[" & trim(xEmail) & "]" & " adresi bulunamadý !.."
+		Exit Sub
+	Else
+		msgbox XTALEPEDEN & " kullanýcýsýna e-mail " & "[" & trim(xEmail) & "]" & " gönderildi."
+	End If
+
+	Dim RecNo
+	Dim tbl_STOK46E
+
+	Set tbl_STOK46E = Doc.GetTableObject("STOK46E")
+	if Doc.IsBlank(tbl_STOK46E) then Exit Sub
+	Doc.RunCommand "MT_EMAIL_SEND_NONE_FORM"
+	Dim EMAIL_SEND_INFO_TABLE_E
+	Dim EMAIL_SEND_INFO_TABLE_T
+	Set EMAIL_SEND_INFO_TABLE_E=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_E")
+	Set EMAIL_SEND_INFO_TABLE_T=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_T")
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_E) then Exit Sub
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_T) then Exit Sub
+	EMAIL_SEND_INFO_TABLE_E.NOMESSAGE = "1"
+	EMAIL_SEND_INFO_TABLE_T.Empty()
+	RecNo = EMAIL_SEND_INFO_TABLE_T.AddRow()
+	EMAIL_SEND_INFO_TABLE_T.SetcurrentRow RecNo
+	EMAIL_SEND_INFO_TABLE_T.SELECTED = "1"
+	EMAIL_SEND_INFO_TABLE_T.MESAJSABLONDAN = "0"
+	EMAIL_SEND_INFO_TABLE_T.M_TO =  xEmail
+	EMAIL_SEND_INFO_TABLE_T.MESAJ = Trim(tbl_STOK46E.EVRAKNO)+" Nolu Satýþ Sipariþi Onayýnýzý Bekliyor."
+	Doc.RunCommand "MT_EMAIL_SEND_ONE"
+'	Doc.LoadSubForm "EMAIL_LIST"
+
+End Sub                                
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK46_
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Satýnalma Sipariþi Sonraki Onaya Mail Atar    --- 03SBT113311 --
+Kod : 
+Public FreeDomUserName, xProgamkodu, xKullanici, xSonrakiOnay, xSonOnay, xSonOnayVerenKullanici, xSonOnayVerenKullaniciEposta
+
+Function AfterSave()
+
+	xSonOnayVerenKullaniciEposta = ""
+	FreeDomUserName = ""
+	xKullanici = ""
+	xSonOnayVerenKullanici = ""
+	xSonOnayVerenKullaniciEposta = ""
+
+	FreeDomUserName = Doc.Getd7UserName
+	xKullanici = Trim(FreeDomUserName)
+
+	xSonOnayVerenKullanici = STOK46E.ONAY_SONKULLANICI
+
+'	xSonOnayVerenKullaniciEposta = Doc.GetDbFieldValue("UDEF", "EMAIL", xSonOnayVerenKullanici, "")
+
+	xProgamkodu= "STOK46"
+	xSonOnayNo  = Doc.Cint(STOK46E.ONAY_SONVERILENNO)
+	xSonrakiOnay = Doc.Cint(xSonOnayNo+1)
+	xSonrakiOnay = Cstr(xSonrakiOnay)
+
+
+	If xSonOnayNo>=1 Then
+		Call SonrakiOnay()
+	End If
+End Function
+
+Sub SonrakiOnay()
+
+	vKrt1 = "PROGRAMKODU"
+	vKrt2 = "KOD"
+
+	vSonrakiOnay = "ONAY_"
+	vSonrakiOnay = vSonrakiOnay & xSonrakiOnay
+	vDeger = "1"
+	xKriter = vSonrakiOnay
+	xKriter = xKriter + "="
+	xKriter = xKriter + "'"
+	xKriter = xKriter + vDeger
+	xKriter = xKriter + "'"
+	xKriter = xKriter + " & "
+	xKriter = xKriter + vKrt1
+	xKriter = xKriter + "="
+	xKriter = xKriter + "'"
+	xKriter = xKriter + xProgamkodu
+	xKriter = xKriter + "'"
+MSGBOX xKriter 
+	Set vTable = Doc.Select1("abc", "UDEFT9", xKriter, "", -1)
+	If vTable.GetRowCount()>0 Then
+		For j=1 To vTable.GetRowCount()
+			xSonrakiOnayKullanici = Trim(vTable.KOD)
+			Call EPostaGonder(xSonrakiOnayKullanici)
+		Next
+	End If
+End Sub
+
+
+Sub EPostaGonder(vSonrakiOnayKullanici)
+
+	xEmail = Doc.GetDbFieldValue("UDEF", "EMAIL", vSonrakiOnayKullanici, "")
+
+	If Trim(xEmail)="" Then
+		msgbox xKullanici & " Kullanýcýsýnýn e-posta adresi bulunamadý !.."
+		Exit Sub
+	End If
+
+	Dim RecNo
+	Dim tbl_STOK46E
+
+	Set tbl_STOK46E = Doc.GetTableObject("STOK46E")
+	if Doc.IsBlank(tbl_STOK46E) then Exit Sub
+	Doc.RunCommand "MT_EMAIL_SEND_NONE_FORM"
+	Dim EMAIL_SEND_INFO_TABLE_E
+	Dim EMAIL_SEND_INFO_TABLE_T
+	Set EMAIL_SEND_INFO_TABLE_E=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_E")
+	Set EMAIL_SEND_INFO_TABLE_T=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_T")
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_E) then Exit Sub
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_T) then Exit Sub
+	EMAIL_SEND_INFO_TABLE_E.NOMESSAGE = "1"
+	EMAIL_SEND_INFO_TABLE_T.Empty()
+	RecNo = EMAIL_SEND_INFO_TABLE_T.AddRow()
+	EMAIL_SEND_INFO_TABLE_T.SetcurrentRow RecNo
+	EMAIL_SEND_INFO_TABLE_T.SELECTED = "1"
+	EMAIL_SEND_INFO_TABLE_T.MESAJSABLONDAN = "0"
+	EMAIL_SEND_INFO_TABLE_T.M_TO =  xEmail
+	EMAIL_SEND_INFO_TABLE_T.MESAJ = Trim(tbl_STOK46E.EVRAKNO)+" Nolu Satýþ Sipariþi Onayýnýzý Bekliyor."
+	Doc.RunCommand "MT_EMAIL_SEND_ONE"
+'	Doc.LoadSubForm "EMAIL_LIST"
+
+End Sub                                                                                                                                                                                                                                                                                                                              
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK47
+Hangi Tablo için : STOK47
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Yeni satýnalma talebi açýldý maili Atar    --- 03SBT113311 --
+Kod : 
+Public FreeDomUserName, xProgamkodu, xKullanici, xSonrakiOnay, xSonOnay, xSonOnayVerenKullanici, xSonOnayVerenKullaniciEposta
+
+Function AfterSave()
+
+'	xSonOnayVerenKullaniciEposta = ""
+'	FreeDomUserName = ""
+'	xKullanici = ""
+'	xSonOnayVerenKullanici = ""
+'	xSonOnayVerenKullaniciEposta = ""
+
+'	FreeDomUserName = Doc.Getd7UserName
+'	xKullanici = Trim(FreeDomUserName)
+'	xSonOnayVerenKullanici = STOK47E.ONAY_SONKULLANICI
+''	xSonOnayVerenKullaniciEposta = Doc.GetDbFieldValue("UDEF", "EMAIL", xSonOnayVerenKullanici, "")
+
+'	xProgamkodu= "STOK47"
+'	xSonOnayNo  = Doc.Cint(STOK47E.ONAY_SONVERILENNO)
+'	xSonrakiOnay = Doc.Cint(xSonOnayNo+1)
+'	xSonrakiOnay = Cstr(xSonrakiOnay)
+'	If xSonOnayNo>=1 Then
+'		Call SonrakiOnay()
+'	End If
+	Call EPostaGonder()
+End Function
+
+Sub SonrakiOnay()
+
+'	vKrt1 = "PROGRAMKODU"
+'	vKrt2 = "KOD"
+
+'	vSonrakiOnay = "ONAY_"
+'	vSonrakiOnay = vSonrakiOnay & xSonrakiOnay
+'	vDeger = "1"
+'	xKriter = vSonrakiOnay
+'	xKriter = xKriter + "="
+'	xKriter = xKriter + "'"
+'	xKriter = xKriter + vDeger
+'	xKriter = xKriter + "'"
+'	xKriter = xKriter + " & "
+'	xKriter = xKriter + vKrt1
+'	xKriter = xKriter + "="
+'	xKriter = xKriter + "'"
+'	xKriter = xKriter + xProgamkodu
+'	xKriter = xKriter + "'"
+
+'	Set vTable = Doc.Select1("abc", "UDEFT9", xKriter, "", -1)
+'	If vTable.GetRowCount()>0 Then
+'		For j=1 To vTable.GetRowCount()
+'			xSonrakiOnayKullanici = Trim(vTable.KOD)
+'			Call EPostaGonder(xSonrakiOnayKullanici)
+'		Next
+'	End If
+End Sub
+
+
+'Sub EPostaGonder(vSonrakiOnayKullanici)
+
+Sub EPostaGonder()
+
+	xEmail = "sedataykanat@bolparsan.com"
+
+	If Trim(xEmail)="" Then
+		msgbox xKullanici & " Kullanýcýsýnýn e-posta adresi bulunamadý !.."
+		Exit Sub
+	End If
+
+	Dim RecNo
+	Dim tbl_STOK47E
+
+	Set tbl_STOK47E = Doc.GetTableObject("STOK47E")
+	if Doc.IsBlank(tbl_STOK47E) then Exit Sub
+	Doc.RunCommand "MT_EMAIL_SEND_NONE_FORM"
+	Dim EMAIL_SEND_INFO_TABLE_E
+	Dim EMAIL_SEND_INFO_TABLE_T
+	Set EMAIL_SEND_INFO_TABLE_E=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_E")
+	Set EMAIL_SEND_INFO_TABLE_T=Doc.GetTableObject("_EMAIL_SEND_INFO_TABLE_T")
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_E) then Exit Sub
+	if Doc.IsBlank(EMAIL_SEND_INFO_TABLE_T) then Exit Sub
+	EMAIL_SEND_INFO_TABLE_E.NOMESSAGE = "1"
+	EMAIL_SEND_INFO_TABLE_T.Empty()
+	RecNo = EMAIL_SEND_INFO_TABLE_T.AddRow()
+	EMAIL_SEND_INFO_TABLE_T.SetcurrentRow RecNo
+	EMAIL_SEND_INFO_TABLE_T.SELECTED = "1"
+	EMAIL_SEND_INFO_TABLE_T.MESAJSABLONDAN = "0"
+	EMAIL_SEND_INFO_TABLE_T.M_TO =  xEmail
+	EMAIL_SEND_INFO_TABLE_T.MESAJ = Trim(tbl_STOK47E.EVRAKNO)+" Nolu Satýnalma Talebi açýldý,  Ýncelemenizi Bekliyor."
+	Doc.RunCommand "MT_EMAIL_SEND_ONE"
+'	Doc.LoadSubForm "EMAIL_LIST"
+
+End Sub                                                                                                                                                                                                                                                                                      
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK60
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterLoad()
+	Call OtomatikDepo()
+	Call CHList()
+End Sub
+Sub BeforeSave()
+	For i = 1 to STOK60T.GetRowCount()
+		STOK60T.SIPARTNO(i) = ""
+	Next
+	if trim(STOK60E.CH_KODU) <> "120 01 K003" Then Doc.RunCommand "CMD_SIRALI_SIPARIS_KAPATMA"
+End Sub
+Sub AfterCommand(cmd)
+	if cmd = "CMD_LOAD_FORM" Then
+		if Doc.IsBlank(STACK) Then Set STACK = Doc.GetTableObject("STACK")
+		STACK.PROPT="1"
+		STACK.AUTO_ADD = "1"
+	End if
+End Sub
+Sub OtomatikDepo()
+	if Doc.GetLastLoadType = "N" Then
+		STOK60E.AMBCODE = "MMLD"
+	End if
+End Sub
+Sub CHList()
+	if Doc.GetDocType0 <> "TRACK601" Then Exit Sub
+	
+	if Doc.GetLastLoadType = "N" Then
+		if trim(STOK60E.CH_KODU) = "" Then STOK60E.CH_KODU = "120 01 A001"
+		Doc.RunMacro0 "MAKR7S.TRACK601", "GetCHList"
+	End if
+End Sub                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : STOK63
+Hangi Tablo için : STOK63
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterCommand(cmd)
+	if cmd = "CMD_LOAD_FORM" Then
+		if Doc.IsBlank(STACK) Then Set STACK = Doc.GetTableObject("STACK")
+		STACK.PROPT="1"
+		STACK.AUTO_ADD = "1"
+	End if
+End Sub
+Sub AfterLoad()
+	Call OtomatikDepo()
+End Sub
+Sub OtomatikDepo()
+	if Doc.GetLastLoadType = "N" Then
+		STOK60E.AMBCODE = "IMD"
+		STOK60E.TARGETAMBCODE = "FÖZ-ÝÞ"
+		STOK60E.CH_KODU = "120 01 Ö004"
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : TRACK11
+Hangi Tablo için : TRACK11
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterNew()
+	Call VarsayilanlariYukle()
+End Sub
+Sub AfterLoad()
+	Call VarsayilanlariYukle()
+End Sub
+Sub VarsayilanlariYukle()
+	STACK_PDA.ENVANTER_ETIKET=3
+	STACK_PDA.AUTO_ADD = "0"
+End Sub
+Sub AfterCommand(cmd)
+	if cmd = "CMD_EKLE" Then
+		Call DepoDegistir()
+	End if
+End Sub
+Sub DepoDegistir()
+	Set S01 = Doc.Select1("sdf24hsdh", "STOK01", "SERINO='" & SAYM11T.SERINO & "'", "", -1)
+	if S01.GetRowCount() = 1 Then
+		SAYM11T.AMBCODE = S01.AMBCODE
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BPRS13 / Uygulama : MAKR8S
+Makro Kodu : URFIS_DEPO
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DEPO TANIMLARINI DOLDUR
+Kod : 
+Sub AfterLoad()
+
+	Set S20E = Doc.GetTableObject("STOK20E")
+	Set S20T = Doc.GetTableObject("STOK20T")
+
+	If Trim(S20T.KOD(1)) = "" Then
+		S20E.AMBCODE = "MMLD"
+		S20E.IMALATAMBCODE = "IMD"
+		S20E.YANMAMULAMBCODE = "IMD"
+	End If
+
+End Sub
+'----------------------------------------------------------------
+Function BeforeSave
+'	Doc.RunCommand "CMD_SIRALIK_ISLEM_001"
+''''	Doc.RunCommand "CMD_SIRALIK_ISLEM_003"
+'''	Doc.RunCommand "CMD_STOK01DEBULUNDUMU_BILGISATIRIE"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+----------------------------------------------------------------
+

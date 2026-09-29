@@ -1,0 +1,1028 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document Name="MAKR7S" Version="01"><COMMAND Name="MT_TABLE_CLEAN" TABLENAME="MAKR7SE"/><Table Name="MAKR7SE"><Record><ACIKLAMA><![CDATA[Dinamo kod arama - tum tanimlari TXT olarak disari aktarir]]></ACIKLAMA><DOCTYPE><![CDATA[MAKR7S]]></DOCTYPE><ADDDOCTYPES><![CDATA[MAKR7S]]></ADDDOCTYPES><ATABLENAME></ATABLENAME><AP10><![CDATA[1]]></AP10><FORMKODU></FORMKODU><TABNAME_1></TABNAME_1><FORM_OPT></FORM_OPT><PREVIEW_APP></PREVIEW_APP><PRE_PRINTED_NUMFORM><![CDATA[0]]></PRE_PRINTED_NUMFORM><SCRIPT_CACHE_OPT><![CDATA[S]]></SCRIPT_CACHE_OPT><SCRIPTING_LANGUAGE><![CDATA[V]]></SCRIPTING_LANGUAGE><REFNUM01 D7DT="N">0.000000</REFNUM01><REFNUM02 D7DT="N">0.000000</REFNUM02><REFNUM03 D7DT="N">0.000000</REFNUM03><REFNUM04 D7DT="N">0.000000</REFNUM04><REFNUM05 D7DT="N">0.000000</REFNUM05><REFNUM06 D7DT="N">0.000000</REFNUM06><REFNUM07 D7DT="N">0.000000</REFNUM07><REFNUM08 D7DT="N">0.000000</REFNUM08><REFNUM09 D7DT="N">0.000000</REFNUM09><REFNUM10 D7DT="N">0.000000</REFNUM10><REFDATE01></REFDATE01><REFDATE02></REFDATE02><REFDATE03></REFDATE03><REFDATE04></REFDATE04><REFDATE05></REFDATE05><REFDATE06></REFDATE06><REFDATE07></REFDATE07><REFDATE08></REFDATE08><REFDATE09></REFDATE09><REFDATE10></REFDATE10><EVRAKNO><![CDATA[KODAKTAR]]></EVRAKNO><SCRIPTTEXT><![CDATA['==============================================================================
+' KOD_ARA_EXPORT - Aktif firmaya ait tum kodlari TXT olarak aktarir
+' Hedef: C:\KOD_ARA_KLASORU\dinamo\{MODUL}\{Firma}_{MODUL}.txt
+' Parcali kayitlar SRNUM sirasiyla birlestirilir
+'==============================================================================
+
+Public ExportCount, LogText, FirmCode, RootFolder, SepLine, gColCache, gSqlSeq, KA_MaxAramaSonuc
+
+Sub Makro1
+	Set KRT = Doc.CreateTableObject("KRITERLER=STACK", "IO")
+	KRT.Addfield2 "MODULSEC", "CHAR", 1, 0, "L", "", ""
+	KRT.Addfield2 "ARA_MODUL", "CHAR", 1, 0, "L", "", ""
+	KRT.Addfield2 "KLASOR", "CHAR", 250, 0, "L", "", ""
+	KRT.Addfield2 "STDHARIC", "CHAR", 1, 0, "L", "", ""
+	KRT.Addfield2 "ARAMA_KELIME", "CHAR", 250, 0, "L", "", ""
+	KRT.Addfield2 "ARAMA_TIP", "CHAR", 1, 0, "L", "", ""
+	KRT.Addfield2 "GENEL_KELIME", "CHAR", 250, 0, "L", "", ""
+	KRT.Addfield2 "GENEL_TABLO", "CHAR", 40, 0, "L", "", ""
+	KRT.Addfield2 "GENEL_TAM", "CHAR", 1, 0, "L", "", ""
+	KRT.MODULSEC = "H"
+	KRT.ARA_MODUL = "H"
+	KRT.STDHARIC = "E"
+	KRT.ARAMA_TIP = "H"
+	KRT.KLASOR = KA_RootFolder()
+	KRT.ARAMA_KELIME = ""
+	KRT.GENEL_KELIME = ""
+	KRT.GENEL_TABLO = ""
+	KRT.GENEL_TAM = "H"
+	Call KA_InitGridTables()
+	Dim Par
+	Set Par = Nothing
+	Doc.LoadSubForm_Dyn "KOD_ARA_FORM", SC_SCRIPTMODULEFILENAME, Par
+End Sub
+
+Function KA_RootFolder()
+	KA_RootFolder = "C:\KOD_ARA_KLAS" & Chr(214) & "R" & Chr(220) & "\dinamo\"
+End Function
+
+Sub KA_InitGridTables()
+	Sql = "SELECT '' AS MODUL, '' AS EVRAKNO, '' AS TABLO, '' AS ACIKLAMA, '' AS BOLUM, '' AS OZET FROM MAKR7SE WHERE 1=0"
+	Set T = Doc.RunSqlQuery("KODARA_SONUC", Sql)
+	Sql = "SELECT '' AS TABLO_ADI, '' AS ALAN_ADI, '' AS KAYIT_SAYISI, '' AS ORNEK FROM MAKR7SE WHERE 1=0"
+	Set T = Doc.RunSqlQuery("GENEL_SONUC", Sql)
+End Sub
+
+Sub KA_AppendGridResult(SON, TblDolu)
+	If TblDolu Is Nothing Then Exit Sub
+	If KA_RowCount(TblDolu) = 0 Then Exit Sub
+	If KA_RowCount(SON) = 0 Then
+		SON.CopyTable(TblDolu)
+		Exit Sub
+	End If
+	On Error Resume Next
+	SON.AppendTable(TblDolu)
+	If Err.Number = 0 Then
+		On Error GoTo 0
+		Exit Sub
+	End If
+	Err.Clear
+	On Error GoTo 0
+	For i = 1 To KA_RowCount(TblDolu)
+		R = SON.AddRow
+		SON.SetCurrentRow R
+		SON.MODUL = KA_GetFld(TblDolu, "MODUL", i)
+		SON.EVRAKNO = KA_GetFld(TblDolu, "EVRAKNO", i)
+		SON.TABLO = KA_GetFld(TblDolu, "TABLO", i)
+		SON.ACIKLAMA = KA_GetFld(TblDolu, "ACIKLAMA", i)
+		SON.BOLUM = KA_GetFld(TblDolu, "BOLUM", i)
+		SON.OZET = KA_GetFld(TblDolu, "OZET", i)
+	Next
+End Sub
+
+Sub cmd_export
+	Set KRT = Doc.GetTableObject("KRITERLER")
+	Call KA_RunExport(KRT)
+End Sub
+
+Sub cmd_ara
+	Set KRT = Doc.GetTableObject("KRITERLER")
+	Call KA_RunSearch(KRT)
+End Sub
+
+Sub cmd_genel_ara
+	Set KRT = Doc.GetTableObject("KRITERLER")
+	Call KA_RunGlobalSearch(KRT)
+End Sub
+
+Sub KA_RunExport(KRT)
+	SepLine = "----------------------------------------------------------------"
+	ExportCount = 0
+	LogText = ""
+	FirmCode = Trim(Doc.Getd7FirmCode())
+	If FirmCode = "" Then FirmCode = "FIRMA"
+	RootFolder = Trim(KRT.KLASOR)
+	If RootFolder = "" Then RootFolder = KA_RootFolder()
+	If Right(RootFolder, 1) <> "\" Then RootFolder = RootFolder & "\"
+	Set Fso = CreateObject("Scripting.FileSystemObject")
+	Call KA_EnsureFolder(Fso, RootFolder)
+	ModulVal = UCase(Trim(KRT.MODULSEC))
+	If ModulVal = "H" Or ModulVal = "M" Then Call KA_ExportMakr7s(Fso, KRT)
+	If ModulVal = "H" Or ModulVal = "F" Then Call KA_ExportPfrm7s(Fso, KRT)
+	If ModulVal = "H" Or ModulVal = "V" Then Call KA_ExportMakr8s(Fso, KRT)
+	If ModulVal = "H" Or ModulVal = "R" Then Call KA_ExportRep17s(Fso, KRT)
+	If ModulVal = "H" Or ModulVal = "E" Then Call KA_ExportEfrm10(Fso, KRT)
+	If ModulVal = "H" Or ModulVal = "K" Then Call KA_ExportRwstdf(Fso, KRT)
+	If ModulVal = "H" Or ModulVal = "U" Then Call KA_ExportUapp10(Fso, KRT)
+	Call KA_WriteTextFile(Fso, RootFolder & "_export_info.txt", "Firma=" & FirmCode & vbCrLf & "Tarih=" & Doc.Bugun() & vbCrLf & LogText)
+	Set Fso = Nothing
+	MsgBox "Kod aktarimi tamamlandi." & vbCrLf & "Firma: " & FirmCode & vbCrLf & "Dosya: " & ExportCount & vbCrLf & RootFolder, vbInformation, "KOD ARA"
+End Sub
+
+Function KA_SqlQuote(Val)
+	KA_SqlQuote = Replace(Trim(Val), "'", "''")
+End Function
+
+Sub KA_EnsureFolder(Fso, FolderPath)
+	If Trim(FolderPath) = "" Then Exit Sub
+	If Not Fso.FolderExists(FolderPath) Then Fso.CreateFolder FolderPath
+End Sub
+
+Function KA_RunSql(QName, Sql)
+	On Error Resume Next
+	gSqlSeq = gSqlSeq + 1
+	QN = QName & "_" & CStr(gSqlSeq)
+	Set KA_RunSql = Doc.RunSQLQuery(QN, Sql)
+	If KA_RunSql Is Nothing Then Set KA_RunSql = Doc.RunSqlQuery(QN, Sql)
+	On Error GoTo 0
+End Function
+
+Function KA_SqlTop(Sql, MaxRows)
+	If MaxRows <= 0 Then
+		KA_SqlTop = Sql
+		Exit Function
+	End If
+	If InStr(1, UCase(Sql), "SELECT TOP", 1) > 0 Then
+		KA_SqlTop = Sql
+	Else
+		KA_SqlTop = Replace(Sql, "SELECT ", "SELECT TOP " & CStr(MaxRows) & " ", 1, 1, 1)
+	End If
+End Function
+
+Function KA_RowCount(Tbl)
+	KA_RowCount = 0
+	If Tbl Is Nothing Then Exit Function
+	KA_RowCount = Tbl.GetRecCount()
+	If KA_RowCount = 0 Then KA_RowCount = Tbl.GetRowCount()
+End Function
+
+Function KA_GetFld(Tbl, Fld, RowNo)
+	On Error Resume Next
+	KA_GetFld = Trim(Tbl.GetFieldValue(Fld, RowNo))
+	If Err.Number <> 0 Then KA_GetFld = Trim(Tbl.GetFieldValue(UCase(Fld), RowNo))
+	On Error GoTo 0
+End Function
+
+Function KA_StdWhere(KRT, KeyFld)
+	W = ""
+	If Trim(KRT.STDHARIC) = "E" Then W = W & " AND LEFT(" & KeyFld & ",2)<>'++'"
+	KA_StdWhere = W
+End Function
+
+Function KA_TableHasColumn(TableName, ColName)
+	KA_TableHasColumn = False
+	TN = UCase(Trim(TableName))
+	CN = UCase(Trim(ColName))
+	If TN = "" Or CN = "" Then Exit Function
+	Sql = "SELECT COUNT(*) AS CNT FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" & KA_SqlQuote(TN) & "' AND COLUMN_NAME='" & KA_SqlQuote(CN) & "'"
+	Set rsC = KA_RunSql("ka_col_" & TN & "_" & CN, Sql)
+	If rsC Is Nothing Then Exit Function
+	Cnt = Trim(KA_GetFld(rsC, "CNT", 1))
+	If Cnt <> "" Then
+		If CDbl(Cnt) > 0 Then KA_TableHasColumn = True
+	End If
+End Function
+
+Function KA_FilterRowFields(RowTable, FieldList)
+	KA_FilterRowFields = ""
+	Arr = Split(FieldList, ";")
+	For Each F In Arr
+		Fld = Trim(F)
+		If Fld <> "" And KA_TableHasColumn(RowTable, Fld) Then
+			If KA_FilterRowFields <> "" Then KA_FilterRowFields = KA_FilterRowFields & ";"
+			KA_FilterRowFields = KA_FilterRowFields & Fld
+		End If
+	Next
+End Function
+
+Function KA_CollectChunks(TableName, KeyField, KeyValue, TextField)
+	KA_CollectChunks = ""
+	If Trim(TableName) = "" Or Trim(TextField) = "" Or Trim(KeyValue) = "" Then Exit Function
+	Sql = "SELECT " & TextField & " FROM " & TableName & " WHERE " & KeyField & "='" & KA_SqlQuote(KeyValue) & "' ORDER BY SRNUM"
+	Set rs = KA_RunSql("ka_chk_" & TableName, Sql)
+	If rs Is Nothing Then Exit Function
+	For i = 1 To KA_RowCount(rs)
+		KA_CollectChunks = KA_CollectChunks & KA_GetFld(rs, TextField, i)
+	Next
+End Function
+
+Function KA_CollectRowsText(TableName, KeyField, KeyValue, TextFields)
+	KA_CollectRowsText = ""
+	If Trim(TableName) = "" Or Trim(KeyValue) = "" Then Exit Function
+	Sql = "SELECT * FROM " & TableName & " WHERE " & KeyField & "='" & KA_SqlQuote(KeyValue) & "' ORDER BY SRNUM"
+	Set rs = KA_RunSql("ka_row_" & TableName, Sql)
+	If rs Is Nothing Then Exit Function
+	Arr = Split(TextFields, ";")
+	For i = 1 To KA_RowCount(rs)
+		For Each F In Arr
+			Fld = Trim(F)
+			If Fld <> "" And KA_TableHasColumn(TableName, Fld) Then
+				V = KA_GetFld(rs, Fld, i)
+				If V <> "" Then KA_CollectRowsText = KA_CollectRowsText & Fld & "=" & V & vbTab
+			End If
+		Next
+		KA_CollectRowsText = KA_CollectRowsText & vbCrLf
+	Next
+End Function
+
+Sub KA_WriteTextFile(Fso, FilePath, Content)
+	Set T = Fso.CreateTextFile(FilePath, True)
+	T.Write Content
+	T.Close
+End Sub
+
+Sub KA_AppendTextFile(Fso, FilePath, Content, IsNew)
+	If IsNew Then
+		Set T = Fso.CreateTextFile(FilePath, True)
+	Else
+		Set T = Fso.OpenTextFile(FilePath, 8, True)
+	End If
+	T.Write Content
+	T.Close
+End Sub
+
+Sub KA_AppendBlock(Fso, FilePath, BlockText, ByRef IsNew)
+	Call KA_AppendTextFile(Fso, FilePath, BlockText & vbCrLf & SepLine & vbCrLf, IsNew)
+	IsNew = False
+	ExportCount = ExportCount + 1
+End Sub
+
+Function KA_HeaderBlock(Title, AppName, Kod, Tablo, Ilave, Aciklama)
+	B = Title & vbCrLf
+	B = B & "Firma Kodu : " & FirmCode & " / Uygulama : " & AppName & vbCrLf
+	B = B & "Makro Kodu : " & Trim(Kod) & vbCrLf
+	B = B & "Hangi Tablo icin : " & Trim(Tablo) & vbCrLf
+	B = B & "Ilave Hangi Uygulamalar icin : " & Trim(Ilave) & vbCrLf
+	B = B & "Aciklama : " & Trim(Aciklama) & vbCrLf
+	KA_HeaderBlock = B
+End Function
+
+Function KA_EkranFormuSablon()
+	KA_EkranFormuSablon = "Ekran Formu" & vbCrLf _
+		& "Uygulamalar icin Baslangic Ekran Formu Ayarlari" & vbCrLf _
+		& "Baslangic Ekran Formu Bu Uygulama icin : " & vbCrLf _
+		& "Bu Uygulama icin Baslangic Ekran Formu : " & vbCrLf _
+		& "Baslangicta Bu Makro Calisacak : " & vbCrLf _
+		& "Alt Ekranlar icin Ekran Formu" & vbCrLf _
+		& "Alt Ekran Form Kodu : " & vbCrLf _
+		& "Yeni Alt Ekra Form Kodu: " & vbCrLf _
+		& "Alt Ekran Acilmadan once Calistirilacak Makro : " & vbCrLf
+End Function
+
+Sub KA_ExportMakr7s(Fso, KRT)
+	ModFolder = RootFolder & "MAKR7S\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_MAKR7S.txt"
+	IsNew = True
+	Sql = "SELECT EVRAKNO, DOCTYPE, ADDDOCTYPES, ACIKLAMA FROM MAKR7SE WHERE 1=1" & KA_StdWhere(KRT, "EVRAKNO") & " ORDER BY EVRAKNO"
+	Set Tbl = KA_RunSql("ka_m7_list", Sql)
+	LogText = LogText & "MAKR7S=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Evrak = KA_GetFld(Tbl, "EVRAKNO", i)
+		Doc.StatusbarMessage "MAKR7S: " & i & "/" & KA_RowCount(Tbl) & " " & Evrak
+		KodTxt = KA_CollectChunks("MAKR7ST", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		FormTxt = KA_CollectChunks("MAKR7SF", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		AltTxt = KA_CollectChunks("MAKR7SA", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		B = KA_HeaderBlock("Makro Kaynak Kodu", "MAKR7S", Evrak, KA_GetFld(Tbl, "DOCTYPE", i), KA_GetFld(Tbl, "ADDDOCTYPES", i), KA_GetFld(Tbl, "ACIKLAMA", i))
+		B = B & "Kod : " & vbCrLf & KodTxt & vbCrLf & vbCrLf
+		B = B & KA_EkranFormuSablon()
+		If AltTxt <> "" Then B = B & AltTxt & vbCrLf
+		If FormTxt <> "" Then B = B & FormTxt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Sub KA_ExportPfrm7s(Fso, KRT)
+	ModFolder = RootFolder & "PFRM7S\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_PFRM7S.txt"
+	IsNew = True
+	Sql = "SELECT EVRAKNO, DOCTYPE, ADDDOCTYPES, ACIKLAMA FROM PFRM7SE WHERE 1=1" & KA_StdWhere(KRT, "EVRAKNO") & " ORDER BY EVRAKNO"
+	Set Tbl = KA_RunSql("ka_pf_list", Sql)
+	LogText = LogText & "PFRM7S=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Evrak = KA_GetFld(Tbl, "EVRAKNO", i)
+		Doc.StatusbarMessage "PFRM7S: " & i & "/" & KA_RowCount(Tbl) & " " & Evrak
+		KodTxt = KA_CollectChunks("PFRM7ST", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		AltTxt = KA_CollectChunks("PFRM7SA", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		If AltTxt <> "" Then KodTxt = KodTxt & AltTxt
+		B = KA_HeaderBlock("Form Kaynak Kodu", "PFRM7S", Evrak, KA_GetFld(Tbl, "DOCTYPE", i), KA_GetFld(Tbl, "ADDDOCTYPES", i), KA_GetFld(Tbl, "ACIKLAMA", i))
+		B = B & "Kod : " & vbCrLf & KodTxt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Sub KA_ExportMakr8s(Fso, KRT)
+	ModFolder = RootFolder & "MAKR8S\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_MAKR8S.txt"
+	IsNew = True
+	Sql = "SELECT EVRAKNO, DOCTYPE, ADDDOCTYPES, ATABLENAME, ACIKLAMA FROM MAKR8SE WHERE 1=1" & KA_StdWhere(KRT, "EVRAKNO") & " ORDER BY EVRAKNO"
+	Set Tbl = KA_RunSql("ka_m8_list", Sql)
+	LogText = LogText & "MAKR8S=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Evrak = KA_GetFld(Tbl, "EVRAKNO", i)
+		Tablo = KA_GetFld(Tbl, "ATABLENAME", i)
+		If Tablo = "" Then Tablo = KA_GetFld(Tbl, "DOCTYPE", i)
+		Doc.StatusbarMessage "MAKR8S: " & i & "/" & KA_RowCount(Tbl) & " " & Evrak
+		KodTxt = KA_CollectChunks("MAKR8ST", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		AltTxt = KA_CollectChunks("MAKR8SA", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		If AltTxt <> "" Then KodTxt = KodTxt & AltTxt
+		B = KA_HeaderBlock("Makro Kaynak Kodu", "MAKR8S", Evrak, Tablo, KA_GetFld(Tbl, "ADDDOCTYPES", i), KA_GetFld(Tbl, "ACIKLAMA", i))
+		B = B & "Kod : " & vbCrLf & KodTxt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Sub KA_ExportRep17s(Fso, KRT)
+	ModFolder = RootFolder & "REP17S\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_REP17S.txt"
+	IsNew = True
+	Sql = "SELECT EVRAKNO, AU_TABLE, ACIKLAMA FROM REP17SE WHERE 1=1" & KA_StdWhere(KRT, "EVRAKNO") & " ORDER BY EVRAKNO"
+	Set Tbl = KA_RunSql("ka_rp_list", Sql)
+	LogText = LogText & "REP17S=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Evrak = KA_GetFld(Tbl, "EVRAKNO", i)
+		Doc.StatusbarMessage "REP17S: " & i & "/" & KA_RowCount(Tbl) & " " & Evrak
+		ProcTxt = KA_CollectChunks("REP17AT", "EVRAKNO", Evrak, "ACIKLAMATEXT_RO")
+		SqlTxt = KA_CollectChunks("REP17QT", "EVRAKNO", Evrak, "SQLTEXT_RO")
+		FormTxt = KA_CollectChunks("REP17FT", "EVRAKNO", Evrak, "FORMTEXT_RO")
+		CalcTxt = KA_CollectChunks("REP17ST", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		KritTxt = KA_CollectRowsText("REP17KT", "EVRAKNO", Evrak, "FIELDNAME1;KRITERTIPI;SORUACIKLAMA;ARASTIRFORMULU;DEFVALUE01;DEFVALUE02")
+		JoinTxt = KA_CollectRowsText("REP17JT", "EVRAKNO", Evrak, "FIELDNAME1;JOINEDTABLE;JOINEDFIELD;RESULTFIELD")
+		UtTxt = KA_CollectRowsText("REP17UT", "EVRAKNO", Evrak, "FIELDNAME1;HESAPLAMA_SCRIPT;ARASTIRFORMULU;ACIKLAMA")
+		B = "Rapor Kaynak Kodu" & vbCrLf
+		B = B & "Firma Kodu : " & FirmCode & " / Uygulama : REP17S" & vbCrLf
+		B = B & "Makro Kodu : " & Trim(Evrak) & vbCrLf
+		B = B & "Hangi Tablo icin : " & KA_GetFld(Tbl, "AU_TABLE", i) & vbCrLf
+		B = B & "Aciklama : " & KA_GetFld(Tbl, "ACIKLAMA", i) & vbCrLf
+		B = B & "Prosedur Sekmesi : " & vbCrLf & vbCrLf & ProcTxt & vbCrLf & vbCrLf
+		B = B & "SQL Komutu Sekmesi" & vbCrLf & vbCrLf & SqlTxt & vbCrLf & vbCrLf
+		B = B & "Kriter Tanimlari Sekmesi" & vbCrLf & vbCrLf & KritTxt & vbCrLf & vbCrLf
+		B = B & "Baglantili Tablolar Sekmesi" & vbCrLf & vbCrLf & JoinTxt & vbCrLf & vbCrLf
+		B = B & "Ekran Formu Sekmesi" & vbCrLf & vbCrLf & FormTxt & vbCrLf & vbCrLf
+		B = B & "Eklenen Alanlar - Hesaplamalar Sekmesi" & vbCrLf & vbCrLf & CalcTxt
+		If UtTxt <> "" Then B = B & vbCrLf & UtTxt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Sub KA_ExportEfrm10(Fso, KRT)
+	ModFolder = RootFolder & "EFRM10\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_EFRM10.txt"
+	IsNew = True
+	Sql = "SELECT EVRAKNO, DOCTYPE, ADDDOCTYPES, ACIKLAMA FROM EFRM10E WHERE 1=1" & KA_StdWhere(KRT, "EVRAKNO") & " ORDER BY EVRAKNO"
+	Set Tbl = KA_RunSql("ka_ef_list", Sql)
+	LogText = LogText & "EFRM10=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Evrak = KA_GetFld(Tbl, "EVRAKNO", i)
+		Doc.StatusbarMessage "EFRM10: " & i & "/" & KA_RowCount(Tbl) & " " & Evrak
+		FormTxt = KA_CollectChunks("EFRM10T", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		KodTxt = KA_CollectChunks("EFRM10TM", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		AltTxt = KA_CollectChunks("EFRM10A", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		T2Txt = KA_CollectRowsText("EFRM10T2", "EVRAKNO", Evrak, "FORMKODU;TABNAME_1;KULLANICIKODU;FORM_OPT")
+		B = KA_HeaderBlock("Ekranli Makro Kaynak Kodu", "EFRM10", Evrak, KA_GetFld(Tbl, "DOCTYPE", i), KA_GetFld(Tbl, "ADDDOCTYPES", i), KA_GetFld(Tbl, "ACIKLAMA", i))
+		B = B & "Ekran Formu Sekmesi : " & vbCrLf & vbCrLf & FormTxt & vbCrLf & vbCrLf
+		B = B & "Makro Kodu Sekmesi : " & vbCrLf & vbCrLf & KodTxt
+		If AltTxt <> "" Then B = B & vbCrLf & AltTxt
+		If T2Txt <> "" Then B = B & vbCrLf & "Ekran Ayarlari :" & vbCrLf & T2Txt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Sub KA_ExportRwstdf(Fso, KRT)
+	ModFolder = RootFolder & "RWSTDF\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_RWSTDF.txt"
+	IsNew = True
+	Sql = "SELECT ITEMCODE, ITEMNAME, BK_ACIKLAMA, MAIN_TABLE, FILTERING_TABLE FROM RWSTDFE WHERE 1=1" & KA_StdWhere(KRT, "ITEMCODE") & " ORDER BY ITEMCODE"
+	Set Tbl = KA_RunSql("ka_rw_list", Sql)
+	LogText = LogText & "RWSTDF=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Item = KA_GetFld(Tbl, "ITEMCODE", i)
+		Doc.StatusbarMessage "RWSTDF: " & i & "/" & KA_RowCount(Tbl) & " " & Item
+		ProcTxt = KA_CollectChunks("RWSTDFETB", "ITEMCODE", Item, "PTEXT1_RO")
+		ColTxt = KA_CollectRowsText("RWSTDFT", "ITEMCODE", Item, "COLUMN_NAME;FW_DATA_TYPE;LABEL1;BROWSE_FNC;DEFAULT_VALUE_1")
+		UpdTxt = KA_CollectRowsText("RWSTDFTU", "ITEMCODE", Item, "DB_ISLEM_TURU;COLUMNS;COLUMNS_VALUE;COLUMNS_CRITERIA;NOTE1")
+		B = "KTT Kaynak Kodu" & vbCrLf
+		B = B & "Firma Kodu : " & FirmCode & " / Uygulama : RWSTDF" & vbCrLf
+		B = B & "Makro Kodu : " & Trim(Item) & vbCrLf
+		B = B & "Hangi Tablo icin : " & KA_GetFld(Tbl, "MAIN_TABLE", i) & vbCrLf
+		B = B & "Filtre Tablosu : " & KA_GetFld(Tbl, "FILTERING_TABLE", i) & vbCrLf
+		B = B & "Aciklama : " & KA_GetFld(Tbl, "BK_ACIKLAMA", i) & vbCrLf
+		B = B & "Tablo Adi : " & KA_GetFld(Tbl, "ITEMNAME", i) & vbCrLf
+		B = B & "Prosedur / Kod : " & vbCrLf & vbCrLf & ProcTxt & vbCrLf & vbCrLf
+		B = B & "Kolon Tanimlari : " & vbCrLf & ColTxt & vbCrLf
+		B = B & "Guncelleme Tanimlari : " & vbCrLf & UpdTxt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Sub KA_ExportUapp10(Fso, KRT)
+	ModFolder = RootFolder & "UAPP10\"
+	Call KA_EnsureFolder(Fso, ModFolder)
+	OutFile = ModFolder & FirmCode & "_UAPP10.txt"
+	IsNew = True
+	Sql = "SELECT EVRAKNO, ACIKLAMA FROM UAPP10E WHERE 1=1" & KA_StdWhere(KRT, "EVRAKNO") & " ORDER BY EVRAKNO"
+	Set Tbl = KA_RunSql("ka_ua_list", Sql)
+	LogText = LogText & "UAPP10=" & KA_RowCount(Tbl) & vbCrLf
+	For i = 1 To KA_RowCount(Tbl)
+		Evrak = KA_GetFld(Tbl, "EVRAKNO", i)
+		Doc.StatusbarMessage "UAPP10: " & i & "/" & KA_RowCount(Tbl) & " " & Evrak
+		FormTxt = KA_CollectChunks("UAPP10T", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		KodTxt = KA_CollectChunks("UAPP10TM", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		AltTxt = KA_CollectChunks("UAPP10A", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		DetTxt = KA_CollectChunks("UAPP10D", "EVRAKNO", Evrak, "SCRIPTTEXT_RO")
+		T2Txt = KA_CollectRowsText("UAPP10T2", "EVRAKNO", Evrak, "ROWSET_NAME_1;DBDEF0_KOD;DBDEF0_TABLE_NAME;DBDEF0_CATALOG;DBDEF0_SCHEMA")
+		B = KA_HeaderBlock("KTM Kaynak Kodu", "UAPP10", Evrak, "", "", KA_GetFld(Tbl, "ACIKLAMA", i))
+		B = B & "Ekran Formu Sekmesi : " & vbCrLf & vbCrLf & FormTxt & vbCrLf & vbCrLf
+		B = B & "Makro Kodu Sekmesi : " & vbCrLf & vbCrLf & KodTxt
+		If AltTxt <> "" Then B = B & vbCrLf & AltTxt
+		If DetTxt <> "" Then B = B & vbCrLf & DetTxt
+		If T2Txt <> "" Then B = B & vbCrLf & "Ekran Ayarlari :" & vbCrLf & T2Txt
+		Call KA_AppendBlock(Fso, OutFile, B, IsNew)
+	Next
+End Sub
+
+Function KA_LikePat(Val)
+	KA_LikePat = "%" & Replace(Replace(KA_SqlQuote(Val), "[", "[[]"), "%", "[%]") & "%"
+End Function
+
+Function KA_SqlLikeCI(FieldExpr, Word)
+	W = Trim(Word)
+	If W = "" Then
+		KA_SqlLikeCI = "(" & FieldExpr & " LIKE '%')"
+		Exit Function
+	End If
+	Cond = FieldExpr & " LIKE '" & KA_LikePat(W) & "'"
+	If UCase(W) <> W Then Cond = Cond & " OR " & FieldExpr & " LIKE '" & KA_LikePat(UCase(W)) & "'"
+	If LCase(W) <> W Then Cond = Cond & " OR " & FieldExpr & " LIKE '" & KA_LikePat(LCase(W)) & "'"
+	If Len(W) > 1 Then
+		Wmix = UCase(Left(W, 1)) & LCase(Mid(W, 2))
+		If Wmix <> W Then Cond = Cond & " OR " & FieldExpr & " LIKE '" & KA_LikePat(Wmix) & "'"
+	End If
+	KA_SqlLikeCI = "(" & Cond & ")"
+End Function
+
+Function KA_SqlEqCI(FieldExpr, Val)
+	W = Trim(Val)
+	Cond = FieldExpr & "='" & KA_SqlQuote(W) & "'"
+	If UCase(W) <> W Then Cond = Cond & " OR " & FieldExpr & "='" & KA_SqlQuote(UCase(W)) & "'"
+	If LCase(W) <> W Then Cond = Cond & " OR " & FieldExpr & "='" & KA_SqlQuote(LCase(W)) & "'"
+	If Len(W) > 1 Then
+		Wmix = UCase(Left(W, 1)) & LCase(Mid(W, 2))
+		If Wmix <> W Then Cond = Cond & " OR " & FieldExpr & "='" & KA_SqlQuote(Wmix) & "'"
+	End If
+	KA_SqlEqCI = "(" & Cond & ")"
+End Function
+
+Function KA_SplitWords(Kelime)
+	KA_SplitWords = Array()
+	If Trim(Kelime) = "" Then Exit Function
+	Raw = Split(Replace(Replace(Trim(Kelime), Chr(9), " "), ",", " "), " ")
+	Wc = 0
+	For Each P In Raw
+		W = Trim(P)
+		If W <> "" Then
+			Wc = Wc + 1
+			ReDim Preserve Arr(Wc - 1)
+			Arr(Wc - 1) = W
+		End If
+	Next
+	If Wc > 0 Then KA_SplitWords = Arr
+End Function
+
+Function KA_WordInChunks(KeyRef, KeyField, ChunkList, TextField, Word)
+	Cond = ""
+	If Trim(ChunkList) = "" Then
+		KA_WordInChunks = "(1=0)"
+		Exit Function
+	End If
+	Arr = Split(ChunkList, ",")
+	For Each Tbl In Arr
+		Tn = Trim(Tbl)
+		If Tn <> "" Then
+			If Cond <> "" Then Cond = Cond & " OR "
+			Cond = Cond & "EXISTS (SELECT 1 FROM " & Tn & " c WHERE c." & KeyField & "=" & KeyRef & " AND " & KA_SqlLikeCI("c." & TextField, Word) & ")"
+		End If
+	Next
+	If Cond = "" Then
+		KA_WordInChunks = "(1=0)"
+	Else
+		KA_WordInChunks = "(" & Cond & ")"
+	End If
+End Function
+
+Function KA_WordInRowFields(KeyRef, KeyField, RowTable, FieldList, Word)
+	FieldList = KA_FilterRowFields(RowTable, FieldList)
+	Cond = ""
+	Arr = Split(FieldList, ";")
+	For Each F In Arr
+		Fld = Trim(F)
+		If Fld <> "" Then
+			If Cond <> "" Then Cond = Cond & " OR "
+			Cond = Cond & KA_SqlLikeCI("r." & Fld, Word)
+		End If
+	Next
+	If Cond = "" Then
+		KA_WordInRowFields = "(1=0)"
+	Else
+		KA_WordInRowFields = "EXISTS (SELECT 1 FROM " & RowTable & " r WHERE r." & KeyField & "=" & KeyRef & " AND (" & Cond & "))"
+	End If
+End Function
+
+Function KA_WordInHeader(HeaderPrefix, HeaderFields, Word)
+	Cond = ""
+	Arr = Split(HeaderFields, ";")
+	For Each F In Arr
+		Fld = Trim(F)
+		If Fld <> "" Then
+			If Cond <> "" Then Cond = Cond & " OR "
+			Cond = Cond & KA_SqlLikeCI(HeaderPrefix & "." & Fld, Word)
+		End If
+	Next
+	If Cond = "" Then
+		KA_WordInHeader = "(1=0)"
+	Else
+		KA_WordInHeader = "(" & Cond & ")"
+	End If
+End Function
+
+Function KA_WordMatchExpr(KeyRef, KeyField, HeaderPrefix, HeaderFields, ChunkList, TextField, RowSpecs, Word)
+	Expr = KA_WordInChunks(KeyRef, KeyField, ChunkList, TextField, Word)
+	Expr = Expr & " OR " & KA_WordInHeader(HeaderPrefix, HeaderFields, Word)
+	Arr = Split(RowSpecs, "|")
+	For Each Spec In Arr
+		S = Trim(Spec)
+		If S <> "" Then
+			P = InStr(S, "/")
+			If P > 0 Then
+				RowTable = Left(S, P - 1)
+				RowFields = Mid(S, P + 1)
+				Expr = Expr & " OR " & KA_WordInRowFields(KeyRef, KeyField, RowTable, RowFields, Word)
+			End If
+		End If
+	Next
+	KA_WordMatchExpr = "(" & Expr & ")"
+End Function
+
+Function KA_BuildSearchWhere(KeyRef, KeyField, HeaderPrefix, HeaderFields, ChunkList, TextField, RowSpecs, Words, AndMode)
+	KA_BuildSearchWhere = ""
+	If IsEmpty(Words) Then Exit Function
+	On Error Resume Next
+	Wc = UBound(Words)
+	On Error GoTo 0
+	If Wc < 0 Then Exit Function
+	Cond = ""
+	For i = 0 To Wc
+		Part = KA_WordMatchExpr(KeyRef, KeyField, HeaderPrefix, HeaderFields, ChunkList, TextField, RowSpecs, Words(i))
+		If Cond = "" Then
+			Cond = Part
+		ElseIf AndMode Then
+			Cond = Cond & " AND " & Part
+		Else
+			Cond = Cond & " OR " & Part
+		End If
+	Next
+	If Cond <> "" Then KA_BuildSearchWhere = " AND (" & Cond & ")"
+End Function
+
+Function KA_ChunkHasWord(TableName, KeyField, KeyValue, TextField, Word)
+	KA_ChunkHasWord = False
+	If Trim(Word) = "" Then Exit Function
+	Sql = "SELECT TOP 1 1 AS X FROM " & TableName & " WHERE " & KeyField & "='" & KA_SqlQuote(KeyValue) & "' AND " & KA_SqlLikeCI(TextField, Word)
+	Set rs = KA_RunSql("ka_hit_" & TableName, Sql)
+	If Not rs Is Nothing Then
+		If KA_RowCount(rs) > 0 Then KA_ChunkHasWord = True
+	End If
+End Function
+
+Function KA_RowHasWord(TableName, KeyField, KeyValue, FieldList, Word)
+	KA_RowHasWord = False
+	FieldList = KA_FilterRowFields(TableName, FieldList)
+	Cond = ""
+	Arr = Split(FieldList, ";")
+	For Each F In Arr
+		Fld = Trim(F)
+		If Fld <> "" Then
+			If Cond <> "" Then Cond = Cond & " OR "
+			Cond = Cond & KA_SqlLikeCI(Fld, Word)
+		End If
+	Next
+	If Cond = "" Then Exit Function
+	Sql = "SELECT TOP 1 1 AS X FROM " & TableName & " WHERE " & KeyField & "='" & KA_SqlQuote(KeyValue) & "' AND (" & Cond & ")"
+	Set rs = KA_RunSql("ka_rhit_" & TableName, Sql)
+	If Not rs Is Nothing Then
+		If KA_RowCount(rs) > 0 Then KA_RowHasWord = True
+	End If
+End Function
+
+Function KA_HeaderHasWord(Tbl, RowNo, HeaderFields, Word)
+	KA_HeaderHasWord = False
+	Arr = Split(HeaderFields, ";")
+	For Each F In Arr
+		Fld = Trim(F)
+		If Fld <> "" Then
+			V = UCase(KA_GetFld(Tbl, Fld, RowNo))
+			If InStr(1, V, UCase(Word), 1) > 0 Then
+				KA_HeaderHasWord = True
+				Exit Function
+			End If
+		End If
+	Next
+End Function
+
+Function KA_FindBolum(KeyField, KeyValue, ChunkList, TextField, RowSpecs, HeaderTbl, HeaderRow, HeaderFields, Words)
+	KA_FindBolum = ""
+	Arr = Split(ChunkList, ",")
+	For Each Tbl In Arr
+		Tn = Trim(Tbl)
+		If Tn <> "" Then
+			For Each W In Words
+				If KA_ChunkHasWord(Tn, KeyField, KeyValue, TextField, W) Then
+					KA_FindBolum = Tn
+					Exit Function
+				End If
+			Next
+		End If
+	Next
+	Specs = Split(RowSpecs, "|")
+	For Each Spec In Specs
+		S = Trim(Spec)
+		If S <> "" Then
+			P = InStr(S, "/")
+			If P > 0 Then
+				RowTable = Left(S, P - 1)
+				RowFields = Mid(S, P + 1)
+				For Each W In Words
+					If KA_RowHasWord(RowTable, KeyField, KeyValue, RowFields, W) Then
+						KA_FindBolum = RowTable
+						Exit Function
+					End If
+				Next
+			End If
+		End If
+	Next
+	If Not HeaderTbl Is Nothing Then
+		For Each W In Words
+			If KA_HeaderHasWord(HeaderTbl, HeaderRow, HeaderFields, W) Then
+				KA_FindBolum = "BASLIK"
+				Exit Function
+			End If
+		Next
+	End If
+	KA_FindBolum = "KOD"
+End Function
+
+Function KA_MakeSnippet(KeyField, KeyValue, ChunkList, TextField, Words)
+	KA_MakeSnippet = ""
+	Arr = Split(ChunkList, ",")
+	For Each Tbl In Arr
+		Tn = Trim(Tbl)
+		If Tn <> "" Then
+			Txt = KA_CollectChunks(Tn, KeyField, KeyValue, TextField)
+			If Txt <> "" Then
+				UTxt = UCase(Txt)
+				Pos = 0
+				For Each W In Words
+					P = InStr(1, UTxt, UCase(W), 1)
+					If P > 0 Then
+						If P > Pos Or Pos = 0 Then Pos = P
+					End If
+				Next
+				If Pos > 0 Then
+					S = Pos - 60
+					If S < 1 Then S = 1
+					KA_MakeSnippet = Replace(Replace(Mid(Txt, S, 220), vbCrLf, " "), vbLf, " ")
+					Exit Function
+				End If
+			End If
+		End If
+	Next
+End Function
+
+Sub KA_SearchList(KRT, SON, Modul, Sql, KeyField, ChunkList, TextField, RowSpecs, HeaderFields, Words)
+	If KA_RowCount(SON) >= KA_MaxAramaSonuc Then Exit Sub
+	Sql = KA_SqlTop(Sql, KA_MaxAramaSonuc - KA_RowCount(SON))
+	On Error Resume Next
+	Err.Clear
+	Set TblDolu = KA_RunSql("ka_dolu_" & Modul, Sql)
+	If Err.Number <> 0 Or TblDolu Is Nothing Then
+		Err.Clear
+		On Error GoTo 0
+		Exit Sub
+	End If
+	If KA_RowCount(TblDolu) = 0 Then
+		On Error GoTo 0
+		Exit Sub
+	End If
+	If KA_RowCount(SON) = 0 Then
+		SON.CopyTable(TblDolu)
+	Else
+		SON.AppendTable(TblDolu)
+		If Err.Number <> 0 Then
+			Err.Clear
+			Call KA_AppendGridResult(SON, TblDolu)
+		End If
+	End If
+	On Error GoTo 0
+End Sub
+
+Sub KA_RunSearch(KRT)
+	On Error Resume Next
+	Kelime = Trim(KRT.ARAMA_KELIME)
+	If Kelime = "" Then
+		MsgBox "Arama kelimesi girin.", vbInformation, "KODAKTAR"
+		Exit Sub
+	End If
+	Words = KA_SplitWords(Kelime)
+	On Error Resume Next
+	Wc = UBound(Words)
+	On Error GoTo 0
+	If Wc < 0 Then
+		MsgBox "Gecerli arama kelimesi girin.", vbInformation, "KODAKTAR"
+		Exit Sub
+	End If
+	AndMode = (UCase(Trim(KRT.ARAMA_TIP)) <> "B")
+	KA_MaxAramaSonuc = 200
+	gSqlSeq = 0
+	Set SON = Doc.GetTableObject("KODARA_SONUC")
+	SON.Empty
+	ModulVal = UCase(Trim(KRT.ARA_MODUL))
+	If ModulVal = "" Then ModulVal = "H"
+	If ModulVal = "H" Or ModulVal = "M" Then
+		On Error Resume Next
+		SW = KA_BuildSearchWhere("e.EVRAKNO", "EVRAKNO", "e", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES", "MAKR7ST,MAKR7SF,MAKR7SA", "SCRIPTTEXT_RO", "", Words, AndMode)
+		Sql = "SELECT 'MAKR7S' AS MODUL, e.EVRAKNO AS EVRAKNO, e.DOCTYPE AS TABLO, e.ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM MAKR7SE e WHERE 1=1" & KA_StdWhere(KRT, "e.EVRAKNO") & SW & " ORDER BY e.EVRAKNO"
+		Call KA_SearchList(KRT, SON, "MAKR7S", Sql, "EVRAKNO", "MAKR7ST,MAKR7SF,MAKR7SA", "SCRIPTTEXT_RO", "", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES", Words)
+		Err.Clear
+		On Error GoTo 0
+	End If
+	If ModulVal = "H" Or ModulVal = "F" Then
+		SW = KA_BuildSearchWhere("e.EVRAKNO", "EVRAKNO", "e", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES", "PFRM7ST,PFRM7SA", "SCRIPTTEXT_RO", "", Words, AndMode)
+		Sql = "SELECT 'PFRM7S' AS MODUL, e.EVRAKNO AS EVRAKNO, e.DOCTYPE AS TABLO, e.ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM PFRM7SE e WHERE 1=1" & KA_StdWhere(KRT, "e.EVRAKNO") & SW & " ORDER BY e.EVRAKNO"
+		Call KA_SearchList(KRT, SON, "PFRM7S", Sql, "EVRAKNO", "PFRM7ST,PFRM7SA", "SCRIPTTEXT_RO", "", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES", Words)
+	End If
+	If ModulVal = "H" Or ModulVal = "V" Then
+		SW = KA_BuildSearchWhere("e.EVRAKNO", "EVRAKNO", "e", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES;ATABLENAME", "MAKR8ST,MAKR8SA", "SCRIPTTEXT_RO", "", Words, AndMode)
+		Sql = "SELECT 'MAKR8S' AS MODUL, e.EVRAKNO AS EVRAKNO, e.ATABLENAME AS TABLO, e.ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM MAKR8SE e WHERE 1=1" & KA_StdWhere(KRT, "e.EVRAKNO") & SW & " ORDER BY e.EVRAKNO"
+		Call KA_SearchList(KRT, SON, "MAKR8S", Sql, "EVRAKNO", "MAKR8ST,MAKR8SA", "SCRIPTTEXT_RO", "", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES;ATABLENAME", Words)
+	End If
+	If ModulVal = "H" Or ModulVal = "R" Then
+		SW = KA_BuildRep17SearchWhere(Words, AndMode)
+		Sql = "SELECT 'REP17S' AS MODUL, e.EVRAKNO AS EVRAKNO, e.AU_TABLE AS TABLO, e.ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM REP17SE e WHERE 1=1" & KA_StdWhere(KRT, "e.EVRAKNO") & SW & " ORDER BY e.EVRAKNO"
+		Call KA_SearchList(KRT, SON, "REP17S", Sql, "EVRAKNO", "REP17ST,REP17AT,REP17QT,REP17FT", "SCRIPTTEXT_RO", "REP17KT/FIELDNAME1;SORUACIKLAMA;ARASTIRFORMULU|REP17UT/HESAPLAMA_SCRIPT;ARASTIRFORMULU;ACIKLAMA|REP17JT/FIELDNAME1;JOINEDTABLE;JOINEDFIELD", "EVRAKNO;ACIKLAMA;AU_TABLE", Words)
+	End If
+	If ModulVal = "H" Or ModulVal = "E" Then
+		SW = KA_BuildSearchWhere("e.EVRAKNO", "EVRAKNO", "e", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES", "EFRM10T,EFRM10TM,EFRM10A", "SCRIPTTEXT_RO", "EFRM10T2/FORMKODU;TABNAME_1;KULLANICIKODU", Words, AndMode)
+		Sql = "SELECT 'EFRM10' AS MODUL, e.EVRAKNO AS EVRAKNO, e.DOCTYPE AS TABLO, e.ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM EFRM10E e WHERE 1=1" & KA_StdWhere(KRT, "e.EVRAKNO") & SW & " ORDER BY e.EVRAKNO"
+		Call KA_SearchList(KRT, SON, "EFRM10", Sql, "EVRAKNO", "EFRM10T,EFRM10TM,EFRM10A", "SCRIPTTEXT_RO", "EFRM10T2/FORMKODU;TABNAME_1;KULLANICIKODU", "EVRAKNO;ACIKLAMA;DOCTYPE;ADDDOCTYPES", Words)
+	End If
+	If ModulVal = "H" Or ModulVal = "K" Then
+		SW = KA_BuildSearchWhere("e.ITEMCODE", "ITEMCODE", "e", "ITEMCODE;ITEMNAME;BK_ACIKLAMA;MAIN_TABLE;FILTERING_TABLE", "RWSTDFETB", "PTEXT1_RO", "RWSTDFT/COLUMN_NAME;LABEL1;BROWSE_FNC;DEFAULT_VALUE_1|RWSTDFTU/COLUMNS;COLUMNS_VALUE;COLUMNS_CRITERIA;NOTE1", Words, AndMode)
+		Sql = "SELECT 'RWSTDF' AS MODUL, e.ITEMCODE AS EVRAKNO, e.MAIN_TABLE AS TABLO, e.BK_ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM RWSTDFE e WHERE 1=1" & KA_StdWhere(KRT, "e.ITEMCODE") & SW & " ORDER BY e.ITEMCODE"
+		Call KA_SearchList(KRT, SON, "RWSTDF", Sql, "ITEMCODE", "RWSTDFETB", "PTEXT1_RO", "RWSTDFT/COLUMN_NAME;LABEL1;BROWSE_FNC;DEFAULT_VALUE_1|RWSTDFTU/COLUMNS;COLUMNS_VALUE;COLUMNS_CRITERIA;NOTE1", "ITEMCODE;ITEMNAME;BK_ACIKLAMA;MAIN_TABLE;FILTERING_TABLE", Words)
+	End If
+	If ModulVal = "H" Or ModulVal = "U" Then
+		SW = KA_BuildSearchWhere("e.EVRAKNO", "EVRAKNO", "e", "EVRAKNO;ACIKLAMA", "UAPP10T,UAPP10TM,UAPP10A,UAPP10D", "SCRIPTTEXT_RO", "UAPP10T2/ROWSET_NAME_1;DBDEF0_KOD;DBDEF0_TABLE_NAME;DBDEF0_CATALOG;DBDEF0_SCHEMA", Words, AndMode)
+		Sql = "SELECT 'UAPP10' AS MODUL, e.EVRAKNO AS EVRAKNO, '' AS TABLO, e.ACIKLAMA AS ACIKLAMA, 'KOD' AS BOLUM, '' AS OZET FROM UAPP10E e WHERE 1=1" & KA_StdWhere(KRT, "e.EVRAKNO") & SW & " ORDER BY e.EVRAKNO"
+		Call KA_SearchList(KRT, SON, "UAPP10", Sql, "EVRAKNO", "UAPP10T,UAPP10TM,UAPP10A,UAPP10D", "SCRIPTTEXT_RO", "UAPP10T2/ROWSET_NAME_1;DBDEF0_KOD;DBDEF0_TABLE_NAME;DBDEF0_CATALOG;DBDEF0_SCHEMA", "EVRAKNO;ACIKLAMA", Words)
+	End If
+	SON.Refresh
+	If KA_RowCount(SON) > 0 Then SON.SetCurrentRow 1
+	Doc.Frame_Refresh_Controls
+	MsgBox KA_RowCount(SON) & " kayit bulundu." & vbCrLf & "(En fazla " & KA_MaxAramaSonuc & " kayit listelenir)", vbInformation, "KODAKTAR"
+	If Err.Number <> 0 Then Err.Clear
+	On Error GoTo 0
+End Sub
+
+Function KA_BuildRep17SearchWhere(Words, AndMode)
+	Specs = "REP17AT/ACIKLAMATEXT_RO,REP17QT/SQLTEXT_RO,REP17FT/FORMTEXT_RO,REP17ST/SCRIPTTEXT_RO"
+	KA_BuildRep17SearchWhere = KA_BuildSearchWhereSpec("e.EVRAKNO", "EVRAKNO", "e", "EVRAKNO;ACIKLAMA;AU_TABLE", Specs, "REP17KT/FIELDNAME1;SORUACIKLAMA;ARASTIRFORMULU|REP17UT/HESAPLAMA_SCRIPT;ARASTIRFORMULU;ACIKLAMA|REP17JT/FIELDNAME1;JOINEDTABLE;JOINEDFIELD", Words, AndMode)
+End Function
+
+Function KA_WordInChunkSpecs(KeyRef, KeyField, SpecList, Word)
+	Cond = ""
+	Arr = Split(SpecList, ",")
+	For Each Spec In Arr
+		S = Trim(Spec)
+		If S <> "" Then
+			P = InStr(S, "/")
+			If P > 0 Then
+				Tbl = Left(S, P - 1)
+				Fld = Mid(S, P + 1)
+				If KA_TableHasColumn(Tbl, Fld) Then
+					If Cond <> "" Then Cond = Cond & " OR "
+					Cond = Cond & "EXISTS (SELECT 1 FROM " & Tbl & " c WHERE c." & KeyField & "=" & KeyRef & " AND " & KA_SqlLikeCI("c." & Fld, Word) & ")"
+				End If
+			End If
+		End If
+	Next
+	If Cond = "" Then
+		KA_WordInChunkSpecs = "(1=0)"
+	Else
+		KA_WordInChunkSpecs = "(" & Cond & ")"
+	End If
+End Function
+
+Function KA_WordMatchExprSpec(KeyRef, KeyField, HeaderPrefix, HeaderFields, ChunkSpecList, RowSpecs, Word)
+	If ChunkSpecList <> "" Then
+		Expr = KA_WordInChunkSpecs(KeyRef, KeyField, ChunkSpecList, Word)
+	Else
+		Expr = "(1=0)"
+	End If
+	Expr = Expr & " OR " & KA_WordInHeader(HeaderPrefix, HeaderFields, Word)
+	Arr = Split(RowSpecs, "|")
+	For Each Spec In Arr
+		S = Trim(Spec)
+		If S <> "" Then
+			P = InStr(S, "/")
+			If P > 0 Then
+				RowTable = Left(S, P - 1)
+				RowFields = Mid(S, P + 1)
+				Expr = Expr & " OR " & KA_WordInRowFields(KeyRef, KeyField, RowTable, RowFields, Word)
+			End If
+		End If
+	Next
+	KA_WordMatchExprSpec = "(" & Expr & ")"
+End Function
+
+Function KA_BuildSearchWhereSpec(KeyRef, KeyField, HeaderPrefix, HeaderFields, ChunkSpecList, RowSpecs, Words, AndMode)
+	KA_BuildSearchWhereSpec = ""
+	On Error Resume Next
+	Wc = UBound(Words)
+	On Error GoTo 0
+	If Wc < 0 Then Exit Function
+	Cond = ""
+	For i = 0 To Wc
+		Part = KA_WordMatchExprSpec(KeyRef, KeyField, HeaderPrefix, HeaderFields, ChunkSpecList, RowSpecs, Words(i))
+		If Cond = "" Then
+			Cond = Part
+		ElseIf AndMode Then
+			Cond = Cond & " AND " & Part
+		Else
+			Cond = Cond & " OR " & Part
+		End If
+	Next
+	If Cond <> "" Then KA_BuildSearchWhereSpec = " AND (" & Cond & ")"
+End Function
+
+Function KA_GlobalCountSql(TableName, ColumnName, Kelime, TamEslesme)
+	If TamEslesme Then
+		KA_GlobalCountSql = "SELECT COUNT(*) AS CNT FROM " & TableName & " WHERE " & KA_SqlEqCI(ColumnName, Kelime)
+	Else
+		KA_GlobalCountSql = "SELECT COUNT(*) AS CNT FROM " & TableName & " WHERE " & KA_SqlLikeCI(ColumnName, Kelime)
+	End If
+End Function
+
+Function KA_GlobalSampleSql(TableName, ColumnName, Kelime, TamEslesme)
+	If TamEslesme Then
+		KA_GlobalSampleSql = "SELECT TOP 1 " & ColumnName & " AS DEGER FROM " & TableName & " WHERE " & KA_SqlEqCI(ColumnName, Kelime)
+	Else
+		KA_GlobalSampleSql = "SELECT TOP 1 " & ColumnName & " AS DEGER FROM " & TableName & " WHERE " & KA_SqlLikeCI(ColumnName, Kelime)
+	End If
+End Function
+
+Function KA_SafeNbr(Val)
+	On Error Resume Next
+	KA_SafeNbr = 0
+	If Trim(CStr(Val)) <> "" Then KA_SafeNbr = CDbl(Val)
+	On Error GoTo 0
+End Function
+
+Sub KA_RunGlobalSearch(KRT)
+	Kelime = Trim(KRT.GENEL_KELIME)
+	If Kelime = "" Then
+		MsgBox "Aranacak kelime veya stok kodu girin.", vbInformation, "KODAKTAR"
+		Exit Sub
+	End If
+	TabloMask = Trim(KRT.GENEL_TABLO)
+	If TabloMask <> "" Then TabloMask = Replace(TabloMask, "*", "%")
+	TamEslesme = (UCase(Trim(KRT.GENEL_TAM)) = "E")
+	Sql = "SELECT c.TABLE_NAME, c.COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS c "
+	Sql = Sql & "INNER JOIN INFORMATION_SCHEMA.TABLES t ON t.TABLE_NAME=c.TABLE_NAME AND t.TABLE_TYPE='BASE TABLE' "
+	Sql = Sql & "WHERE c.DATA_TYPE IN ('varchar','char','nvarchar','nchar','text') "
+	If TabloMask <> "" Then Sql = Sql & "AND c.TABLE_NAME LIKE '" & KA_SqlQuote(TabloMask) & "' "
+	Sql = Sql & "ORDER BY c.TABLE_NAME, c.COLUMN_NAME"
+	Set Cols = KA_RunSql("ka_gcols", Sql)
+	If Cols Is Nothing Then
+		MsgBox "Kolon listesi okunamadi.", vbExclamation, "KODAKTAR"
+		Exit Sub
+	End If
+	Set GSON = Doc.GetTableObject("GENEL_SONUC")
+	GSON.Empty
+	Total = KA_RowCount(Cols)
+	Bulunan = 0
+	For i = 1 To Total
+		Tn = KA_GetFld(Cols, "TABLE_NAME", i)
+		Cn = KA_GetFld(Cols, "COLUMN_NAME", i)
+		Doc.StatusbarMessage "Genel arama: " & i & "/" & Total & " " & Tn & "." & Cn
+		On Error Resume Next
+		Err.Clear
+		Set rsC = KA_RunSql("ka_gc_" & i, KA_GlobalCountSql(Tn, Cn, Kelime, TamEslesme))
+		If Err.Number = 0 And Not rsC Is Nothing Then
+			Cnt = KA_SafeNbr(KA_GetFld(rsC, "CNT", 1))
+			If Cnt > 0 Then
+				Ornek = ""
+				Set rsS = KA_RunSql("ka_gs_" & i, KA_GlobalSampleSql(Tn, Cn, Kelime, TamEslesme))
+				If Not rsS Is Nothing Then Ornek = Left(Trim(KA_GetFld(rsS, "DEGER", 1)), 100)
+				R = GSON.AddRow
+				GSON.SetCurrentRow R
+				GSON.TABLO_ADI = Tn
+				GSON.ALAN_ADI = Cn
+				GSON.KAYIT_SAYISI = CStr(Cnt)
+				GSON.ORNEK = Left(Ornek, 100)
+				Bulunan = Bulunan + 1
+			End If
+		End If
+		Err.Clear
+		On Error GoTo 0
+	Next
+	GSON.Refresh
+	If KA_RowCount(GSON) > 0 Then GSON.SetCurrentRow 1
+	Doc.Frame_Refresh_Controls
+	MsgBox Bulunan & " tablo/alan eslesmesi bulundu." & vbCrLf & "Taranan alan: " & Total, vbInformation, "KODAKTAR"
+End Sub
+]]></SCRIPTTEXT><FORMTEXT><![CDATA[FORM KOD_ARA_FORM SIZE=FULL SCROLLBARS=NO
+	SET CAPTION="KODAKTAR - Aktarim ve Arama"
+	SET DEFAULT_FSTYLE=3
+	SET AUTOFORMSIZE_RIGHTMARGIN=1
+	DEFINEFONT ID="MYFONT" FACE="Arial" POINT=11 BOLD=1
+
+	TABDEF X=5p Y=5p WIDTH=S%100 H=S%99 AUTOSIZE=N
+		TAB Name="TXT Aktarimi" CAPTION=" TXT Aktarimi "
+		TAB Name="Kod Arama" CAPTION=" Kod Arama "
+		TAB Name="Genel Arama" CAPTION=" Genel Tablo Arama "
+	ENDTABDEF
+
+	TAB "TXT Aktarimi"
+		GROUPBOX T="Aktarim" LEFT=10P TOP=15P W=S%98 H=55P
+			LTEXT LEFT=10P TOP=15P T="Aktif firma kodlari TXT olarak disari aktarilir."
+			LTEXT LEFT=10P TOP=E+5P T="Parcali kayitlar SRNUM sirasiyla birlestirilir."
+		ENDGROUPBOX
+		GROUPBOX T="Modul" LEFT=10P TOP=E+5P W=S%98 H=115P
+			LTEXT LEFT=10P TOP=15P T="Aktarilacak modul"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=H TEXT="Tumu" BEGINGROUP=Y D="KRITERLER.MODULSEC"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=M TEXT="Makro MAKR7S"
+			RADIOBUTTON LEFT=10P TOP=E+5P HEIGHT=1 SELECTVALUE=F TEXT="Form PFRM7S"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=V TEXT="Event MAKR8S"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=R TEXT="Rapor REP17S"
+			RADIOBUTTON LEFT=10P TOP=E+5P HEIGHT=1 SELECTVALUE=E TEXT="Ekranli EFRM10"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=K TEXT="KTT RWSTDF"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=U TEXT="KTM UAPP10"
+		ENDGROUPBOX
+		GROUPBOX T="Klasor" LEFT=10P TOP=E+5P W=S%98 H=55P
+			LTEXT LEFT=10P TOP=15P T="Hedef klasor"
+			EDITTEXT LEFT=E+10P TOP=+0 W=S%80 H=20P D="KRITERLER.KLASOR"
+		ENDGROUPBOX
+		GROUPBOX T="Filtre" LEFT=10P TOP=E+5P W=S%98 H=45P
+			CHECKBOX LEFT=10P TOP=15P D="KRITERLER.STDHARIC" TRUEFALSE=EH CAPTION="++ standart tanimlari haric tut"
+		ENDGROUPBOX
+		BUTTON LEFT=10P TOP=300P WIDTH=20 HEIGHT=1.8 FONT=MYFONT Caption="TXT Aktar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','cmd_export')" TXTCOL=RGB_255_255_255 BCKCOL=RGB_050_120_180
+	ENDTAB
+
+	TAB "Kod Arama"
+		GROUPBOX T="Makro / Form / Rapor Kod Arama" LEFT=10P TOP=15P W=S%98 H=95P
+			LTEXT LEFT=10P TOP=15P T="Arama kelimesi (boslukla ayirin)"
+			EDITTEXT LEFT=E+10P TOP=+0 W=S%70 H=20P D="KRITERLER.ARAMA_KELIME"
+			LTEXT LEFT=10P TOP=E+8P T="Eslesme"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=H TEXT="Tum kelimeler" BEGINGROUP=Y D="KRITERLER.ARAMA_TIP"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=B TEXT="Biri yeter"
+			CHECKBOX LEFT=E+20P TOP=+0 D="KRITERLER.STDHARIC" TRUEFALSE=EH CAPTION="++ haric"
+		ENDGROUPBOX
+		GROUPBOX T="Modul" LEFT=10P TOP=E+5P W=S%98 H=115P
+			LTEXT LEFT=10P TOP=15P T="Aranacak modul"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=H TEXT="Tumu" BEGINGROUP=Y D="KRITERLER.ARA_MODUL"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=M TEXT="Makro MAKR7S"
+			RADIOBUTTON LEFT=10P TOP=E+5P HEIGHT=1 SELECTVALUE=F TEXT="Form PFRM7S"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=V TEXT="Event MAKR8S"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=R TEXT="Rapor REP17S"
+			RADIOBUTTON LEFT=10P TOP=E+5P HEIGHT=1 SELECTVALUE=E TEXT="Ekranli EFRM10"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=K TEXT="KTT RWSTDF"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=U TEXT="KTM UAPP10"
+		ENDGROUPBOX
+		BUTTON LEFT=10P TOP=250P WIDTH=20 HEIGHT=1.8 FONT=MYFONT Caption="Kod Ara" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','cmd_ara')" TXTCOL=RGB_255_255_255 BCKCOL=RGB_050_120_180
+		GRID LEFT=10P TOP=E+5P W=S%98 H=320P TABLE=KODARA_SONUC HEADERROWHEIGHT=30P
+			EDITTEXT D="MODUL" CAPTION="Modul"
+			EDITTEXT D="EVRAKNO" CAPTION="Kod / Evrak"
+			EDITTEXT D="TABLO" CAPTION="Tablo"
+			EDITTEXT D="ACIKLAMA" CAPTION="Aciklama"
+			EDITTEXT D="BOLUM" CAPTION="Bulunan Bolum"
+			EDITTEXT D="OZET" CAPTION="Ozet"
+		ENDGRID
+	ENDTAB
+
+	TAB "Genel Arama"
+		GROUPBOX T="Tum Veritabani Tablolarinda Arama" LEFT=10P TOP=15P W=S%98 H=110P
+			LTEXT LEFT=10P TOP=15P T="Kelime / Stok Kodu"
+			EDITTEXT LEFT=E+10P TOP=+0 W=250P H=20P D="KRITERLER.GENEL_KELIME"
+			LTEXT LEFT=10P TOP=E+8P T="Tablo filtresi (ornek: STOK%, MMPS%)"
+			EDITTEXT LEFT=E+10P TOP=+0 W=250P H=20P D="KRITERLER.GENEL_TABLO"
+			LTEXT LEFT=10P TOP=E+8P T="Eslesme"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=H TEXT="Icerir" BEGINGROUP=Y D="KRITERLER.GENEL_TAM"
+			RADIOBUTTON LEFT=E+10P TOP=+0 HEIGHT=1 SELECTVALUE=E TEXT="Tam eslesme"
+			LTEXT LEFT=10P TOP=E+8P T="Tum metin alanlarinda arar. Stok kodunun hangi tabloda gectigini bulmak icin kullanin."
+		ENDGROUPBOX
+		BUTTON LEFT=10P TOP=140P WIDTH=22 HEIGHT=1.8 FONT=MYFONT Caption="Tum Tablolarda Ara" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','cmd_genel_ara')" TXTCOL=RGB_255_255_255 BCKCOL=RGB_050_120_180
+		GRID LEFT=10P TOP=E+5P W=S%98 H=430P TABLE=GENEL_SONUC HEADERROWHEIGHT=30P
+			EDITTEXT D="TABLO_ADI" CAPTION="Tablo"
+			EDITTEXT D="ALAN_ADI" CAPTION="Alan"
+			EDITTEXT D="KAYIT_SAYISI" CAPTION="Kayit Sayisi"
+			EDITTEXT D="ORNEK" CAPTION="Ornek Deger"
+		ENDGRID
+	ENDTAB
+ENDFORM
+]]></FORMTEXT></Record></Table></Document>

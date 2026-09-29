@@ -1,0 +1,419 @@
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : ++ORNEK
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Örnek Uygulama Event Makrolarý
+Kod : 
+Function OnStart
+'OnStart'a bir deðer atanýr ise ve bu deðer 0'dan farklý olur ise uygulama baþlatýlmaz
+	OnStart=0
+	Msgbox("OnStart")
+End Function
+
+Sub AfterLoad
+	Msgbox("After Load")
+End Sub
+
+Function BeforeSave
+'BeforeSave'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforeSave=0
+	Msgbox("Before Save")
+End Function
+Sub AfterSave
+	Msgbox("AfterSave")
+End Sub
+
+Function BeforeDelete
+'BeforeDelete'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforeDelete=0
+	Msgbox("Before Delete")
+End Function
+Sub AfterDelete
+	Msgbox("After Delete")
+End Sub
+
+Sub AfterNew
+	Msgbox("After New")
+End Sub
+
+Function BeforePrint
+'BeforePrint'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforePrint=0
+	Dim FormIsmi
+	FormIsmi=Doc.GetDocParameterValue("SELECTEDFORM")
+	Msgbox("Before Print, Form Ismi="&FormIsmi)
+End Function
+Sub AfterPrint
+	Msgbox("After Print")
+End Sub
+
+Sub BeforeCommand(StrCmd)
+	Msgbox("Before Command:"&StrCmd)
+End Sub
+Sub AfterCommand(StrCmd)
+	Msgbox("After Command:"&StrCmd)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : MAINX2
+Hangi Tablo için : MAINX2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnLogin()
+	if OzelHakVarMi("KALIP") Then
+		Set S00C = GetKalipBakimList()
+		Call KalipBakimKontrol(S00C)
+	Elseif OzelHakVarMi("KALIBRASYO") Then
+		Call KalibrasyonKontrol()	
+	Else
+		Set S00C = GetKalipBakimList()
+		if S00C.GetRowCount() > 0 Then
+			Call KalipBakimUyariMail(S00C)
+		End if
+	End if
+End Sub
+Sub KalibrasyonKontrol()
+	SonTarih = Doc.StrDate_Increment(Doc.BuGun, 60)
+	QStr = "ACIKKAPALI='A'&RECTARIH0<='"& SonTarih &"'"
+	Set S00 = Doc.Select1("cccddd", "SRVK00", QStr, "RECTARIH0", -1)
+	Doc.SetDocParameterValue "BATCHERRORMODE_HEADER_MESSAGE","Kalibrasyon Zamaný Gelen Cihazlar :"
+	Set k = Doc.CreateSObject("BATCHERRORMODE")
+	For i = 1 to S00.GetRowCount()
+		UyariGunu = Doc.CDbl(Doc.GetDBFieldValue("SRVKC0", "TTANIM3_TEXT", S00.CIHAZKARTNO(i), ""))
+		if UyariGunu = 0 Then UyariGunu = 15
+		UyariTarihi = Doc.StrDate_Increment(S00.RECTARIH0(i), UyariGunu * -1)
+		if UyariTarihi <= Doc.BuGun Then
+			CihazKodu = S00.CIHAZKARTNO(i)
+			CihazAdi = Doc.GetDBFieldValue("SRVKC0", "AD1", CihazKodu, "")
+			Uyari = Uyari & "Ýþ Emri No : " & S00.KOD(i) & ", Cihaz : " & trim(CihazKodu) & " - " & trim(CihazAdi) & ", Kalibrasyon Tarihi : " & Doc.StrToNorDate(S00.RECTARIH0(i)) & vbcrlf
+		End if
+	Next
+	if trim(Uyari) <> "" Then
+		Doc.d7MsgBox Uyari, "", MB_OK
+	End if
+End Sub
+Sub KalipBakimKontrol(S00C)
+	SonTarih = Doc.StrDate_Increment(Doc.BuGun, 15)
+	QStr = "ACIKKAPALI='A'&SERVISTURU='P'&RECTARIH0<='"& SonTarih &"'"
+	Set S00 = Doc.Select1("cccddd", "SRVP00", QStr, "RECTARIH0", -1)
+	Doc.SetDocParameterValue "BATCHERRORMODE_HEADER_MESSAGE","Açýk Planlý Bakým Ýþ Emirleri :"
+	Set k = Doc.CreateSObject("BATCHERRORMODE")
+	For i = 1 to S00.GetRowCount()
+		KalipKodu = S00.KARTNO(i)
+		KalipAdi = Doc.GetDBFieldValue("SRVPC0", "AD1", KalipKodu, "")
+		Uyari = Uyari & "Ýþ Emri No : " & S00.KOD(i) & ", Kalýp : " & trim(KalipKodu) & " - " & trim(KalipAdi) & ", Bakým Tarihi : " & Doc.StrToNorDate(S00.RECTARIH0(i)) & vbcrlf
+	Next
+	if trim(Uyari) <> "" Then
+		Uyari = "Bakýmý yapýlacak Kalýplar :" & vbcrlf & Uyari
+		Doc.d7MsgBox Uyari, "", MB_OK
+	End if
+	Set k = Nothing
+
+	if KalipOmurKontrol(S00C) Then
+		Call KalipIsEmriYarat(S00C)
+	End if
+End Sub
+Function KalipOmurKontrol(S00C)
+	KalipOmurKontrol = False
+	if S00C.GetRowCount() = 0 Then Exit Function
+
+	Doc.SetDocParameterValue "BATCHERRORMODE_HEADER_MESSAGE","Bakým Zamaný Gelen Kalýplar :"
+	Set fff = Doc. CreateSObject("BATCHERRORMODE")
+
+	For i = 1 to S00C.GetRowCount()
+		Doc.d7MsgBox "Kalýp Kodu : " & S00C.KOD(i) & ", Kalan Ömür : " & Doc.Round(S00C.KALAN_MIKTAR(i),0), "", MB_OK
+		KalipOmurKontrol = True
+	Next	
+End Function
+Sub KalipIsEmriYarat(S00C)
+	k = Doc.d7MsgBox("Önleyici Bakým Ýþ Emirleri Yaratýlsýn mý?", "freedom", MB_YESNO)
+	if k <> 6 Then Exit Sub
+	Set Doc1 = Doc.CreateDocumentUI("SRVPS13", "")
+	Set SB12 = Doc1.GetTableObject("SRVPS12")
+	SB12.Empty
+	For i = 1 to S00C.GetRowCount
+		satirNo = SB12.AddRow()
+		SB12.SetCurrentRow(satirNo)
+		SB12.SELECTED = "E"
+		SB12.KOD = Doc.GetDBFieldValue("SRVPC0", "OB_SABLONU",S00C.KOD(i), "")
+		SB12.ACIKISEMRISAYISI = 0
+		SB12.ACIKISEMRISAYISI_STATUSU = "YOK"
+		SB12.KARTNO = S00C.KOD(i)
+		SB12.KARTNO_AD = Doc.GetDBFieldValue("SRVPC0", "AD1", S00C.KOD(i), "")
+		SB12.KALAN_OMUR = S00C.KALAN_MIKTAR(i)
+		SB12.OB_FREKANSI = Doc.GetDBFieldValue("SRVPC0", "OB_FREKANSI", S00C.KOD(i), "")
+	Next
+End Sub
+Function AcikOnleyiciBakimIsEmriVar(KalipKodu)
+	AcikOnleyiciBakimIsEmriVar = False
+	Set S00 = Doc.Select1("dfffr44t66", "SRVP00", "KARTNO='" & KalipKodu & "'&SERVISTURU='P'&ACIKKAPALI<>'K'", "", -1)
+	For i = 1 to S00.GetRowCount() 
+		if trim(Doc.GetDBFieldValue("SRVPS0", "SABLONTURU", S00.SABLONNO(i), "")) = "OB" Then
+			AcikOnleyiciBakimIsEmriVar = True
+			Exit Function
+		End if
+	Next
+End Function
+Function OzelHakVarMi(HakKodu)
+	OzelHakVarMi = False
+	Set U12 = Doc.Select1("de443d44t", "UDEFT12", "KOD='" & Doc.Getd7UserName() & "'&OZEL_HAK_KODU='" & HakKodu & "'", "", -1)
+	if U12.GetRowCount() > 0 Then OzelHakVarMi = True
+End Function
+Sub KalipBakimUyariMail(S00C)
+	if not YeniEvrakKaydedebilirMi("SRVPC0", Doc.Getd7UserName) Then Exit Sub
+
+	Kaliplar = ""
+	MsgStr = "Bakým zamaný gelen kalýplar :"
+	For i = 1 to S00C.GetRowCount()
+		SonMesajTarihi = Doc.GetUDFValue("SRVPC0", S00C.KOD(i), "MTARIH", 0)
+		If SonMesajTarihi <> Doc.StrToNorDate(Doc.BuGun) Then
+			MsgStr = MsgStr & "Kalýp Kodu : " & S00C.KOD(i) & ", Kalan Ömür : " & Doc.Round(S00C.KALAN_MIKTAR(i),0)
+			Kaliplar = Kaliplar & "," & S00C.KOD(i)
+		End if
+	Next
+	if trim(Kaliplar) = "" Then Exit Sub
+
+	Set U12 = Doc.Select1("de443d44ts", "UDEFT12", "OZEL_HAK_KODU='KALIPMAIL'", "", -1)
+	For i = 1 to U12.GetRowCount()
+		email = Doc.GetDBFieldValue("UDEF", "EMAIL", U12.KOD(i), "")
+		if trim(email) <> "" Then
+			Call SendMail(email,"## Bakým Zamaný Gelen Kalýplar ##",MsgStr,"")
+		End if
+	Next
+	if Len(trim(Kaliplar)) > 0 Then
+		Call KartKTAGuncelle(Mid(Kaliplar, 2))
+	End if
+End Sub
+Sub SendMail(strTo,strHeader,strMsg,DosyaAdi)
+	cdoSendUsingPickup = 1 
+	cdoSendUsingPort = 2 
+	cdoAnonymous = 0
+	cdoBasic = 1
+	cdoNTLM = 2 'NTLM
+
+	mailserver = "mail.gungorotomobil.com.tr"
+	mailUser = "freedom@gungorotomobil.com.tr"
+	mailPass = "tteknoloji"
+	mailFrom = "freedom@gungorotomobil.com.tr"
+	
+	Set objMessage = CreateObject("CDO.Message")
+	objMessage.From = trim(mailFrom)
+	objMessage.To = strTo
+	objMessage.Subject = strHeader
+	objMessage.TextBody = strMsg
+	
+	if trim(DosyaAdi) <> "" Then
+		objMessage.AddAttachment("file://" & DosyaAdi)
+	End if
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/sendusing") = cdoSendUsingPort 
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpserver") = trim(mailserver)
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = cdoBasic
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/sendusername") = trim(mailUser)
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/sendpassword") = trim(mailPass)
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = 25
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = False
+	
+	objMessage.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = 60
+	
+	objMessage.Configuration.Fields.Update
+	objMessage.Send
+End Sub
+Sub KartKTAGuncelle(Kaliplar)
+	KalipArr = Split(Kaliplar, ",")	
+	Set Doc1 = Doc.CreateDocumentNoUI("SRVPC0", "")
+	For each KalipKodu in KalipArr	
+		ret = Doc1.UFLD00_CreateEditTable("xxx","SRVPC0", KalipKodu)
+		Set KTA = Doc1.GetTableObject("xxx")   
+		KTA.MTARIH = Doc.StrToNorDate(Doc.BuGun)
+		KTA.Exec "SAVE"
+ 	Next
+End Sub
+Function YeniEvrakKaydedebilirMi(ProgramKodu, KullaniciAdi)
+	if trim(KullaniciAdi) = "D7KSUPER" or KullaniciAdi = "FX" Then
+		YeniEvrakKaydedebilirMi = True
+		Exit Function
+	End if
+
+	GrupKullanici = Doc.GetDBFieldValue("UDEF", "AYNIHAK", KullaniciAdi, "")
+	if trim(GrupKullanici) <> "" Then KullaniciAdi = GrupKullanici
+
+	YeniEvrakKaydedebilirMi = False
+	Set UT1 = Doc.Select1("daef3ff", "UDEFT1", "KOD='" & KullaniciAdi & "'&PROGRAMKODU='" & ProgramKodu & "'", "", -1)
+	if UT1.GetRowCount() > 0 Then
+		if UT1.RIGHT_W="1" Then
+			YeniEvrakKaydedebilirMi = True
+			Exit Function
+		End if
+	Else
+		YeniHakki = Doc.GetDBFieldValue("UDEF", "PR_RIGHT_W", KullaniciAdi, "")
+		if YeniHakki = "1" Then
+			YeniEvrakKaydedebilirMi = True
+			Exit Function
+		End if
+	End if
+End Function
+Function GetKalipBakimList()
+	Set GetKalipBakimList = Doc.Select1("sxxsee_dd", "SRVP00C", "KOD='zsesew32ed'", "", -1)
+
+	Set S00C = Doc.Select1("ssee_dd", "SRVP00C", "KALAN_MIKTAR<" & 10000, "KALAN_MIKTAR", -1)
+	For i = 1 to S00C.GetRowCount()
+		KalipOmru = Doc.GetDBFieldValue("SRVPC0", "OB_FREKANSI", S00C.KOD(i), "")
+		If S00C.KALAN_MIKTAR(i) < (0.1 * KalipOmru) and Not AcikOnleyiciBakimIsEmriVar(S00C.KOD(i)) Then
+			satirNo = GetKalipBakimList.AddRow()
+			GetKalipBakimList.KOD(satirNo) = S00C.KOD(i)
+		End if
+	Next
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : SRVKS0
+Hangi Tablo için : SRVKS0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub BeforeSave()
+	SRVKS0.ZG_TARIH2 = ""
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : STOK00
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeSave()
+	if trim(STOK00.GK_1) = "" Then
+		k = Doc.d7Msgbox("1. Grup kodunu doldurmalýsýnýz.", "Hata!", MB_OK)
+		BeforeSave = -1
+		Exit Function
+	end if
+	if trim(STOK00.GK_2) = "" Then
+		k = Doc.d7Msgbox("2. Grup kodunu doldurmalýsýnýz.", "Hata!", MB_OK)
+		BeforeSave = -1
+		Exit Function
+	end if
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : STOK20
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeSave()
+	For i = 1 to STOK20T.GetRecCount()
+		Gk3 = Doc.GetDBFieldValue("STOK00", "GK_3", STOK20T.KOD(i), "")
+		if trim(Gk3) = "FS" Then 
+			k = Doc.d7MsgBox(i & ". satýr. Fason üretimler için üretim fiþi girilemez.", "Uyarý !!!", MB_OK)
+			Exit Function
+		End if
+		if trim(STOK20T.LOTNUMBER(i)) = "" Then
+			STOK20T.LOTNUMBER(i) = Mid(Replace(STOK20E.TARIH, "/", ""), 3) & trim(STOK20T.MPSNO(i))
+		End if
+	Next
+	Hata = MukerrerGirisKontrol
+	if Hata <> "" Then
+		k = Doc.d7MsgBox("Aþaðýdaki parçalar bu gün içinde daha önce giriþ yapýlmýþtýr" & vbcrlf & _
+									"Yaptýðýnýz giriþin mükerrer olup olmadýðýný kontrol ediniz" & vbcrlf & Hata, "Uyarý", MB_OK+MB_ICONWARNING)
+	End if
+End Function
+Function MukerrerGirisKontrol()
+	if STOK20E.TARIH <> Doc.BuGun Then Exit Function
+	Set S20T = Doc.Select2("DSFSD", "STOK20T", "", "KOD", -1)
+	EskiKod = ""
+	For i = 1 to S20T.GetRowCount()
+		if S20T.KOD(i) <> EskiKod Then
+			QStr = "KOD='"+ S20T.KOD(i)+"'&TARIH='"+STOK20E.TARIH+"'&EVRAKNO<>'"+STOK20E.EVRAKNO+"'"
+			Set S20T1 = Doc.Select1("www", "STOK20T", QStr, "", -1)
+			if S20T1.GetRowCount() > 0 Then
+				S20T1.GroupBy("KOD")
+				Hata = Hata & trim(Doc.GetDBFieldValue("STOK00", "AD", S20T1.KOD(1), "")) & " - " & S20T1.SF_MIKTAR(1) & " " & _
+						S20T1.SF_SF_UNIT(1)	
+			End if
+		End if
+		EskiKod = S20T.KOD(i)
+	Next
+	MukerrerGirisKontrol = Hata
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : STOK60
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeCommand(cmd)
+	Set S60T = Doc.GetTableObject("STOK60T")
+	if cmd = "CMD_SIRALI_SIPARIS_KAPATMA" Then
+		for i = 1 to S60T.GetRowCount()
+			S60T.SIPARTNO(i) = ""
+		Next
+	End if
+End Function
+Sub AfterPrint()
+	Set S60E = Doc.GetTableObject("STOK60E")
+	if trim(S60E.CH_KODU) = "12010T01" Then
+		Doc.RunMacro0 "MAKR7S.TOFAS-ASN", "Makro1"
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : GNGO10 / Uygulama : MAKR8S
+Makro Kodu : STOK68
+Hangi Tablo için : STOK68
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Fasondan Geliþ Ýrsaliyesi FO Kontrolü
+Kod : 
+Sub BeforeSave()
+	For i = 1 To STOK68T.GetRecCount()
+		FOKodu = STOK68T.FOKOD(i)
+		StokKodu = STOK68T.KOD(i)
+		k = FOKontrol(FOKodu,StokKodu)
+		if trim(FOKodu) = "" and k = 1 then
+			STOK68T.FOKOD(i) = "000001"
+		elseif trim(FOKodu) <> "" and k = 0 then
+			STOK68T.FOKOD(i) = ""
+		end if
+	Next
+End Sub
+Function FOKontrol(FOKodu,StokKodu)
+	FOKontrol = 0
+	rows1 = Doc.SelectEQ("BOMU01T","BOMREC_CODE+AKTIF_PASIF",StokKodu + "*")	
+	Set BomuTable = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	For j = 1 To rows1
+		If trim(BomuTable.BOMREC_FO_OPTION(j)) <> "" Then
+			FOKontrol = 1
+			Exit Function
+		End If
+	Next
+End Function                                                                                                                                                                                                                                                                                                                                                                        
+
+----------------------------------------------------------------
+

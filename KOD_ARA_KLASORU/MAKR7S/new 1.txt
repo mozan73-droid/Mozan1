@@ -1,0 +1,16 @@
+Rapor view tablo şeklinde oluşturulmuş HURDA adlı tablodan veri çekerek çalışıyor.
+Bu HURDA tablosu aşağıdaki kurallar ile oluşuyor ;
+
+1. Çalışma Bildirimi (SFDC32E) kayıtlarına bakıyor.
+2. Eğer (SFDC32E) de MPSNO tanımlı değil ise (SFDC32E) deki NOTES alanındaki bilgi alınıyor.
+3. (SFDC32E) modülündeki Fire sekmesindeki tablodan (SFDC20S) Hurda miktarı alınıyor.
+4. Eğer (SFDC20S) de Hurda miktarı var ise (SFDC32E) deki üretilen miktara bölünerek [üretim miktarı] hesaplatılıyor, hurda miktarı yok ise (SFDC32E) deki üretilen miktar alınıyor.
+5. Ürün ağacından BOMU01E ve BOMU01T tablolarından [Birim Brüt-Net Ağırlık Farkı (KG)] hesaplatılıyor.
+6. (SFDC32E) 'de tezgah kodları (B) ile başlamayan kayıtlar alınıyor.
+
+HURDA RAPOR / (Hurda Analiz Raporu) kodlu BI raporu ise aşağıdaki kurallar ile çalışıyor;
+1. HURDA adlı VIEW tablosundan [2023/01/01] tarihinden sonraki kayıtlar listeleniyor.
+2. HURDA tablosundaki MPSNO ile MMPS10TM evrakno (MPSNO) eşleştirilerek MMSP10TM tablosundaki Müşteri Koduna bakılıyor. Cari bilgisi buradan geliyor.
+3. Birim Fiyat bilgisi hurda oluşma tarihi dahil önceki ilk satış siparişindeki fiyat alınıyor. 
+4. Durus süresi ve Duruşların açıklama bilgileri SFDC32D tablosundan alınıyor.
+5. (SFDC32E) tablosundaki REFNUM01 alanından ise KAFA_HAMUR bilgisi alınıyor.

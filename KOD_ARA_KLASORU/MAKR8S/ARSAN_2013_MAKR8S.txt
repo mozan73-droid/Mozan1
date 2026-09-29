@@ -1,0 +1,96 @@
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2013 / Uygulama : MAKR8S
+Makro Kodu : BOMU01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+function BeforeSave()
+	Call Urunaltlimitinitopla()
+end function
+
+Sub Urunaltlimitinitopla()
+	bomu01e_no = Doc.RightJustify(BOMU01E.EVRAKNO, 10)
+	ret = Doc.UFLD00_CreateEditTable("xxx","BOMU01E", bomu01e_no)
+	Set KTA = Doc.GetTableObject("xxx")
+	Dim tpl
+	tpl = 0  
+	for i = 1 to BOMU01T.GetRecCount()
+		tpl = tpl  + BOMU01T.BOMREC_LOWERLIMIT(i)
+	next
+	KTA.TPURAL = tpl
+	KTA.Exec "SAVE"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2013 / Uygulama : MAKR8S
+Makro Kodu : KIDEM
+Hangi Tablo için : PERSM0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub GK_10_OnValidate()
+	Set PRSM0 = Doc.GetTableObject("PERSM0")
+	Set PERSM0BT2 = Doc.GetTableObject("PERSM0BT2")
+	PERSM0BT2.SafePack 
+		if trim(PRSM0.GK_10) = "KIDEM" then
+			satirno = PERSM0BT2.GetRecCount()
+			PERSM0BT2.HESAPSABLONU(satirno)="KIDEM"
+			PERSM0BT2.BORDROTURU(satirno)="KIDEM"
+		End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2013 / Uygulama : MAKR8S
+Makro Kodu : BOMU01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+function BeforeSave()
+	Call Urunaltlimitinitopla()
+end function
+
+Sub Urunaltlimitinitopla()
+	bomu01e_no = Doc.RightJustify(BOMU01E.EVRAKNO, 10)
+	ret = Doc.UFLD00_CreateEditTable("xxx","BOMU01E", bomu01e_no)
+	Set KTA = Doc.GetTableObject("xxx")
+	Dim tpl
+	tpl = 0  
+	for i = 1 to BOMU01T.GetRecCount()
+		tpl = tpl  + BOMU01T.BOMREC_LOWERLIMIT(i)
+	next
+	KTA.TPURAL = tpl
+	KTA.Exec "SAVE"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2013 / Uygulama : MAKR8S
+Makro Kodu : KARTYAZ
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kalýp Kartý oluþtuðunda Stok Kartýný oluþturur.
+Kod : 
+Function AfterSave 
+	Set Doc1 = Doc.CreateDocumentNoUI("SRVPC0", "")
+	Set SRPC = Doc1.GetTableObject("SRVPC0")
+
+	If STOK00.KALIPMI <> "H" Then
+			Doc1.Load_Voucher STOK00.KOD	'Kod
+			SRPC.AD1 = Trim(STOK00.AD)	'Ad
+			SRPC.GK_1 = Trim(STOK00.GK_4)	'Müþteri Kodlarý
+			SRPC.SINIFI = Trim(STOK00.GK_1)	'Kalýp Sýnýfý
+			SRPC.GK_2 = Trim(STOK00.GK_6)	'Kalýp Mülkiyeti
+
+			Doc1.Save_Voucher
+			Doc1.LoadEmpty_Voucher
+			Doc1.DeleteDocumentNoUI "SRVPC0", ""
+		'End If
+	End If
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+----------------------------------------------------------------
+

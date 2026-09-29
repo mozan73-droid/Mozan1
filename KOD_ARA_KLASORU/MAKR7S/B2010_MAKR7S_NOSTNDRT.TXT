@@ -1,0 +1,4479 @@
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 1
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Malzemesi Düþülemeyen fiþler
+Kod : 
+Sub Makro1()
+	Set S20TI = Doc.Select1("ASSSSR", "STOK20TI", "BILGISATIRIE='E'", "", -1)
+	S20TI.GroupBy("EVRAKNO")
+	For i = 1 to S20TI.GetRowCount()
+		Doc.StatusBarMessage i & " / " & S20TI.GetRowCount()
+		Doc.Load_Voucher S20TI.EVRAKNO(i)
+		Doc.RunCommand "CMD_SIRALIK_ISLEM_001"
+		Doc.RunCommand "CMD_STOK01DEBULUNDUMU_BILGISATIRIE"
+		Doc.Save_Voucher 
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=160P WIDTH=520P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Ford Otosan ASN"
+
+MENUDEF
+	POPUP TEXT=" & Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý & kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=0
+RTEXT W=13 LEFT=30p TOP=+1 T="FOSN Kullanýcý Adý :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F1
+RTEXT W=13 LEFT=30p TOP=+1 T="Þifre :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F2 PASSWORD=YES
+BUTTON LEFT=13 TOP=+30p WIDTH=10 HEIGHT=2 CAPTION="ASN Gönder" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','ASNGonder')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="FOSN 'deki ASN 'leri Göster" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GetASNPage1')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=10 HEIGHT=2 CAPTION="Vazgeç" ID=ID_APP_CANCEL
+ENDFORM                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 2
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Liste tabýndan Stok kartlarýný ný SÝLME makrosu
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=160P WIDTH=520P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Ford Otosan ASN"
+
+MENUDEF
+	POPUP TEXT=" & Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý & kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=0
+RTEXT W=13 LEFT=30p TOP=+1 T="FOSN Kullanýcý Adý :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F1
+RTEXT W=13 LEFT=30p TOP=+1 T="Þifre :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F2 PASSWORD=YES
+BUTTON LEFT=13 TOP=+30p WIDTH=10 HEIGHT=2 CAPTION="ASN Gönder" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','ASNGonder')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="FOSN 'deki ASN 'leri Göster" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GetASNPage1')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=10 HEIGHT=2 CAPTION="Vazgeç" ID=ID_APP_CANCEL
+ENDFORM                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 3
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Liste tabýndan Ürün Aðaçlarý ný SÝLME makrosu
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=160P WIDTH=520P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Ford Otosan ASN"
+
+MENUDEF
+	POPUP TEXT=" & Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý & kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=0
+RTEXT W=13 LEFT=30p TOP=+1 T="FOSN Kullanýcý Adý :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F1
+RTEXT W=13 LEFT=30p TOP=+1 T="Þifre :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F2 PASSWORD=YES
+BUTTON LEFT=13 TOP=+30p WIDTH=10 HEIGHT=2 CAPTION="ASN Gönder" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','ASNGonder')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="FOSN 'deki ASN 'leri Göster" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GetASNPage1')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=10 HEIGHT=2 CAPTION="Vazgeç" ID=ID_APP_CANCEL
+ENDFORM                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 4
+Hangi Tablo için : STOK40
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Sipariþ Gönderme
+Kod : 
+Option Explicit
+'#include <ImportExport.inc>
+'/////////////////////////////////////////////////////////////////////////
+SirketKodu="W:\D7K\@2007-M"
+ExportPrefix=""
+ExportBatchMode="MT_LOAD_OR_NEW" 'BatchMode deðerler MT_NEW yada MT_LOAD_OR_NEW
+ExportDosyaIsmi="C:\LLL.XML" 
+WrkDir=SirketKodu
+Sub Makro1()
+	Dim ExportedVoucher
+	Dim ImportedVoucher	
+
+	Set par1=Doc.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT",ExportBatchMode
+
+	ExportedVoucher=""
+	ImportedVoucher=""
+
+	if BirFirmadanBaskaBirFirmayaEvkrakKodGonderme(ExportedVoucher,ImportedVoucher) then
+		Call EndProcess()
+		MSGBOX "HATA"
+		Exit Sub
+	end if
+	Call EndProcess()
+End Sub                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=600P WIDTH=1000P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Sipariþ Seviyeli MPS Yaratma"
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=1
+//LTEXT LEFT=1 TOP=+0 T='Ünvanda Geçen Deyim : '
+//EDITTEXT LEFT=E+10 TOP=+0 D=MAKROTABLE.ARANACAKDEYIM 
+
+GRID LEFT=1 TOP=+0 WIDTH=970p HEIGHT=470p TABLE=MAKROTABLET HEADERROWHEIGHT=35P
+	CHECKBOX D=SELECTED W=30P CAPTION= "Seçim" TRUEFALSE=EH
+	CHECKBOX D=URUNAGACI W=60P CAPTION= "Ürün Aðacý Var mý?" TRUEFALSE=EH NOEDIT=YES
+	EDITTEXT D=MPSNO CAPTION="MPS No" BROWSEBUTTON=1
+	EDITTEXT D=KOD CAPTION="Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=AD CAPTION="Stok Adý"
+	EDITTEXT D=SF_MIKTAR CAPTION="Miktar"
+	COMBOBOX D=SF_SF_UNIT CAPTION="Birim"
+	COMBOBOX D=REV_RTESTARIH CAPTION="Teslim Tarihi"
+	EDITTEXT D=USTSEVIYE_KOD CAPTION="Üst Seviye Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=USTSEVIYE_AD CAPTION="Üst Seviye Stok Adý"
+	EDITTEXT D=SIPNO CAPTION="Sipariþ No"
+	EDITTEXT D=SIPARTNO CAPTION="Sipariþ Artikel No"
+	EDITTEXT D=CH_KODU CAPTION="Cari Hesap Kodu"
+	EDITTEXT D=CH_ADI CAPTION="Cari Hesap Ünvaný"
+ENDGRID
+
+BUTTON LEFT=3 TOP=E+1 WIDTH=10 HEIGHT=50p CAPTION="Tümünü Seç / Seçim Ýptal" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','SecIptal')"
+BUTTON LEFT=30 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Açýlacak MPS 'leri Hesapla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSHesapla')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="MPS 'leri Yarat" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSOlustur')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Çýkýþ" ID=ID_APP_CANCEL
+
+ENDFORM                                                                                                                                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 5
+Hangi Tablo için : CARI00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Baþka Firmaya CH Kartý Gönderme
+Kod : 
+Option Explicit
+'#include <ImportExport.inc>
+'/////////////////////////////////////////////////////////////////////////
+SirketKodu="2007-M"
+ExportPrefix=""
+ExportBatchMode="MT_LOAD_OR_NEW" 'BatchMode deðerler MT_NEW yada MT_LOAD_OR_NEW
+ExportDosyaIsmi="C:\LLL.XML" 
+WrkDir=SirketKodu
+Sub Makro1()
+	Dim ExportedVoucher
+	Dim ImportedVoucher	
+
+	Set par1=Doc.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT",ExportBatchMode
+
+	ExportedVoucher=""
+	ImportedVoucher=""
+
+	if BirFirmadanBaskaBirFirmayaEvkrakKodGonderme(ExportedVoucher,ImportedVoucher) then
+		Call EndProcess()
+		MSGBOX "HATA"
+		Exit Sub
+	end if
+	Call EndProcess()
+End Sub                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=600P WIDTH=1000P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Sipariþ Seviyeli MPS Yaratma"
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=1
+//LTEXT LEFT=1 TOP=+0 T='Ünvanda Geçen Deyim : '
+//EDITTEXT LEFT=E+10 TOP=+0 D=MAKROTABLE.ARANACAKDEYIM 
+
+GRID LEFT=1 TOP=+0 WIDTH=970p HEIGHT=470p TABLE=MAKROTABLET HEADERROWHEIGHT=35P
+	CHECKBOX D=SELECTED W=30P CAPTION= "Seçim" TRUEFALSE=EH
+	CHECKBOX D=URUNAGACI W=60P CAPTION= "Ürün Aðacý Var mý?" TRUEFALSE=EH NOEDIT=YES
+	EDITTEXT D=MPSNO CAPTION="MPS No" BROWSEBUTTON=1
+	EDITTEXT D=KOD CAPTION="Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=AD CAPTION="Stok Adý"
+	EDITTEXT D=SF_MIKTAR CAPTION="Miktar"
+	COMBOBOX D=SF_SF_UNIT CAPTION="Birim"
+	COMBOBOX D=REV_RTESTARIH CAPTION="Teslim Tarihi"
+	EDITTEXT D=USTSEVIYE_KOD CAPTION="Üst Seviye Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=USTSEVIYE_AD CAPTION="Üst Seviye Stok Adý"
+	EDITTEXT D=SIPNO CAPTION="Sipariþ No"
+	EDITTEXT D=SIPARTNO CAPTION="Sipariþ Artikel No"
+	EDITTEXT D=CH_KODU CAPTION="Cari Hesap Kodu"
+	EDITTEXT D=CH_ADI CAPTION="Cari Hesap Ünvaný"
+ENDGRID
+
+BUTTON LEFT=3 TOP=E+1 WIDTH=10 HEIGHT=50p CAPTION="Tümünü Seç / Seçim Ýptal" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','SecIptal')"
+BUTTON LEFT=30 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Açýlacak MPS 'leri Hesapla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSHesapla')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="MPS 'leri Yarat" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSOlustur')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Çýkýþ" ID=ID_APP_CANCEL
+
+ENDFORM                                                                                                                                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 6
+Hangi Tablo için : STOK75
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Baþka Firmaya Ýrsaliyeli fatura Gönderme
+Kod : 
+Option Explicit
+'#include <ImportExport.inc>
+'/////////////////////////////////////////////////////////////////////////
+'SirketKodu="W:\D7K\@2008-M"
+SirketKodu="2008-M"
+ExportPrefix=""
+ExportBatchMode="MT_LOAD_OR_NEW" 'BatchMode deðerler MT_NEW yada MT_LOAD_OR_NEW
+'ExportDosyaIsmi="C:\Documents and Settings\yildizy\My Documents\LLL.XML" 
+
+WrkDir=SirketKodu
+Sub Makro1()
+	Dim fso
+	Set fso = CreateObject("Scripting.FileSystemObject")	
+	ExportDosyaIsmi= fso.GetSpecialFolder(2) & "\LLL.XML"
+
+	Dim ExportedVoucher
+	Dim ImportedVoucher	
+
+	Set par1=Doc.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT",ExportBatchMode
+
+	ExportedVoucher=""
+	ImportedVoucher=""
+
+	if BirFirmadanBaskaBirFirmayaEvkrakKodGonderme(ExportedVoucher,ImportedVoucher) then
+		Call EndProcess()
+		MSGBOX "HATA"
+		Exit Sub
+	end if
+	Call EndProcess()
+End Sub                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=600P WIDTH=1000P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Sipariþ Seviyeli MPS Yaratma"
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=1
+//LTEXT LEFT=1 TOP=+0 T='Ünvanda Geçen Deyim : '
+//EDITTEXT LEFT=E+10 TOP=+0 D=MAKROTABLE.ARANACAKDEYIM 
+
+GRID LEFT=1 TOP=+0 WIDTH=970p HEIGHT=470p TABLE=MAKROTABLET HEADERROWHEIGHT=35P
+	CHECKBOX D=SELECTED W=30P CAPTION= "Seçim" TRUEFALSE=EH
+	CHECKBOX D=URUNAGACI W=60P CAPTION= "Ürün Aðacý Var mý?" TRUEFALSE=EH NOEDIT=YES
+	EDITTEXT D=MPSNO CAPTION="MPS No" BROWSEBUTTON=1
+	EDITTEXT D=KOD CAPTION="Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=AD CAPTION="Stok Adý"
+	EDITTEXT D=SF_MIKTAR CAPTION="Miktar"
+	COMBOBOX D=SF_SF_UNIT CAPTION="Birim"
+	COMBOBOX D=REV_RTESTARIH CAPTION="Teslim Tarihi"
+	EDITTEXT D=USTSEVIYE_KOD CAPTION="Üst Seviye Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=USTSEVIYE_AD CAPTION="Üst Seviye Stok Adý"
+	EDITTEXT D=SIPNO CAPTION="Sipariþ No"
+	EDITTEXT D=SIPARTNO CAPTION="Sipariþ Artikel No"
+	EDITTEXT D=CH_KODU CAPTION="Cari Hesap Kodu"
+	EDITTEXT D=CH_ADI CAPTION="Cari Hesap Ünvaný"
+ENDGRID
+
+BUTTON LEFT=3 TOP=E+1 WIDTH=10 HEIGHT=50p CAPTION="Tümünü Seç / Seçim Ýptal" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','SecIptal')"
+BUTTON LEFT=30 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Açýlacak MPS 'leri Hesapla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSHesapla')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="MPS 'leri Yarat" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSOlustur')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Çýkýþ" ID=ID_APP_CANCEL
+
+ENDFORM                                                                                                                                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : 7
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=160P WIDTH=520P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Ford Otosan ASN"
+
+MENUDEF
+	POPUP TEXT=" & Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý & kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=0
+RTEXT W=13 LEFT=30p TOP=+1 T="FOSN Kullanýcý Adý :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F1
+RTEXT W=13 LEFT=30p TOP=+1 T="Þifre :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F2 PASSWORD=YES
+BUTTON LEFT=13 TOP=+30p WIDTH=10 HEIGHT=2 CAPTION="ASN Gönder" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','ASNGonder')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="FOSN 'deki ASN 'leri Göster" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GetASNPage1')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=10 HEIGHT=2 CAPTION="Vazgeç" ID=ID_APP_CANCEL
+ENDFORM                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : BOMSIL
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ BOM LARI TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : DENEME
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DENEME
+Kod : 
+sub makro1()
+
+afaf=Inputbox("MALZEME KODUNU YAZ , Yaratýlma Tarihini ve Yaratýcýsýný Öðren","Cafer")
+
+yaratan=doc.GetKartValue("STOK00","ELOG_USERNAME",afaf,-1)
+
+MsgBox(adet & " Tarihinde " & yaratan & "tarafýndan yaratýldý...")
+
+
+End Sub
+
+sub makro2()
+
+afaf=Inputbox("MALZEME KODUNU YAZ ","Cafer")
+StokMiktari = Doc.CalcStokMiktar(T.KOD(1),T.SF_MIKTAR(1),T.SF_SF_UNIT(1),T.SF_VRI_NUM1(1),T.SF_VRI_NUM2(1))
+
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : DENEME1
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+sub cafer ()
+
+hg=doc.d7MsgBox("cafe turan", "baykasl",MB_OK)
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : IMLT00
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ?????
+Kod : 
+Sub Makro1()
+	SET TBL=Doc.GetTableObject("MMPS10T")
+	msgbox TBL.R_YMAMULMIKTAR
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MPS
+Hangi Tablo için : MMPS40
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Çok seviyeli Ýþ Emri Açma
+Kod : 
+Sub Makro1()
+	For i = 1 To MMPS10E.GetRecCount()
+		If MMPS10E.MAMULSTOKKODU(i) <> "" Then
+			StokKodu = MMPS10E.MAMULSTOKKODU(i)
+			PaketSayisi = MMPS10E.SF_PAKETSAYISI(i)
+			PaketIcerigi = MMPS10E.SF_PAKETICERIGI(i)
+			Miktar = MMPS10E.SF_TOPLAMMIKTAR(i)
+			UretimEmriNo = MMPS10E.URETIMSIPINO(i)
+			Not1 = MMPS10E.NOTLAR_1(i)
+			FOKodu = MMPS10E.FOKOD_MAMULKODU(i)
+			KolVar = MMPS10E.SF_VRI_VR_C(i)
+			HVar1 = MMPS10E.SF_VRI_VR_R1(i)
+			HVar2 = MMPS10E.SF_VRI_VR_R2(i)
+			HVar3 = MMPS10E.SF_VRI_VR_R3(i)
+			NVar1 = MMPS10E.SF_VRI_NUM1(i)			
+			NVar2 = MMPS10E.SF_VRI_NUM2(i)			
+			MusteriSipArtNo = MMPS10E.MUSTERISIPIARTNO(i)
+			UrTesT = MMPS10E.URETIMDENTESTARIH(i)
+			res = Doc.Calc_Bom("M","M",StokKodu,PaketSayisi,PaketIcerigi,"",FOKodu,Kolvar,HVar1,HVar2,HVar3,NVar1,NVar2)
+			Set Tbmrsys =Doc.GetTableObject("_WBMRSYS_SELECT")
+			Tbmrsys.GroupBy("BOMREC_KAYNAKCODE")
+			Tbmrsys.Sort("XLEVEL+BOMREC_KAYNAKCODE")
+			For j = 1 To Tbmrsys.GetRecCount()
+				If Doc.Is_EY1(Tbmrsys.IALTSEVIYEBULUNDU(j)) Then
+					MMPS10E.AddRow
+					satirNo = MMPS10E.GetRecCount()
+					MMPS10E.SetCurrentRow(satirNo)
+					MMPS10E.MAMULSTOKKODU(satirNo) = Tbmrsys.BOMREC_KAYNAKCODE(j)
+					MMPS10E.SF_PAKETSAYISI(satirNo) = 1
+					MMPS10E.SF_PAKETICERIGI(satirNo) = Tbmrsys.KAYNAKMIKTART(j)
+'					MMPS10E.SF_TOPLAMMIKTAR(satirNo) = Tbmrsys.KAYNAKMIKTART(j)
+					MMPS10E.NOTLAR_1(satirNo) = Not1
+					MMPS10E.MUSTERISIPIARTNO(satirNo) = MusteriSipArtNo
+					MMPS10E.URETIMSIPINO(satirNo) = UretimEmriNo
+					MMPS10E.URETIMDENTESTARIH(satirNo) = UrTesT
+
+				End If
+			Next
+		End If
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MPS2
+Hangi Tablo için : MMPS402
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Çok seviyeli Ýþ Emri Açma - Mamul YM Sýralý
+Kod : 
+Sub Makro1()
+	Doc.CreateTableObject "XXX=MMPS10E"	,"TMPCOPY"
+	Set MMPS10 = Doc.GetTableObject("XXX")
+	Set EkranTable = Doc.GetTableObject("MMPS10E")
+	MMPS10.AppendTable(EkranTable)
+	MMPS10E.Empty
+	NOT1 = ""
+	NOT2 = ""
+	For i = 1 To MMPS10.GetRecCount()
+		If MMPS10.MAMULSTOKKODU(i) <> "" Then
+			MMPS10E.AddRow
+			if i <> 1 then
+				MMPS10E.AddRow
+			end if
+			satirNo = MMPS10E.GetRecCount
+			MMPS10E.SetCurrentRow(satirNo)
+			MMPS10E.MAMULSTOKKODU(satirNo) = MMPS10.MAMULSTOKKODU(i)
+			MMPS10E.SF_PAKETSAYISI(satirNo) = MMPS10.SF_PAKETSAYISI(i)
+			MMPS10E.SF_PAKETICERIGI(satirNo) = MMPS10.SF_PAKETICERIGI(i)
+			MMPS10E.SF_TOPLAMMIKTAR(satirNo) = MMPS10.SF_TOPLAMMIKTAR(i)
+			MMPS10E.URETIMSIPINO(satirNo) = MMPS10.URETIMSIPINO(i)
+			MMPS10E.URETIMSIPIARTNO(satirNo) = MMPS10.URETIMSIPIARTNO(i)
+			MMPS10E.NOTLAR_1(satirNo) = MMPS10.NOTLAR_1(i)
+			MMPS10E.FOKOD_MAMULKODU(satirNo) = MMPS10.FOKOD_MAMULKODU(i)
+			MMPS10E.SF_VRI_VR_C(satirNo) = MMPS10.SF_VRI_VR_C(i)
+			MMPS10E.SF_VRI_VR_R1(satirNo) = MMPS10.SF_VRI_VR_R1(i)
+			MMPS10E.SF_VRI_VR_R2(satirNo) = MMPS10.SF_VRI_VR_R2(i)
+			MMPS10E.SF_VRI_VR_R3(satirNo) = MMPS10.SF_VRI_VR_R3(i)
+			MMPS10E.SF_VRI_NUM1(satirNo) = MMPS10.SF_VRI_NUM1(i)
+			MMPS10E.SF_VRI_NUM2(satirNo) = MMPS10.SF_VRI_NUM2(i)			
+			MMPS10E.MUSTERISIPIARTNO(satirNo) = MMPS10.MUSTERISIPIARTNO(i)
+			MMPS10E.MUSTERIYETESTARIH(satirNo) = MMPS10.MUSTERIYETESTARIH(i)
+			MMPS10E.URETIMDENTESTARIH(satirNo) = MMPS10.URETIMDENTESTARIH(i)
+			IF TRIM(MMPS10.MUSTERISIPIARTNO(i)) <> "" THEN
+					NOT1 = DOC.GETDBFIELDVALUE("STOK40E","SIPLEILGILINOTLAR_1",MMPS10.MUSTERISIPINO(i),"")
+					NOT2 = DOC.GETDBFIELDVALUE("STOK40E","SIPLEILGILINOTLAR_2",MMPS10.MUSTERISIPINO(i),"")
+					MMPS10E.NOTLAR_1(satirNo) = NOT1
+					MMPS10E.NOTLAR_2(satirNo) = NOT2
+			END IF
+
+			StokKodu = MMPS10.MAMULSTOKKODU(i)
+			PaketSayisi = MMPS10.SF_PAKETSAYISI(i)
+			PaketIcerigi = MMPS10.SF_PAKETICERIGI(i)
+			Miktar = MMPS10.SF_TOPLAMMIKTAR(i)
+			UretimEmriNo = MMPS10.URETIMSIPINO(i)
+			Not1 = MMPS10.NOTLAR_1(i)
+			FOKodu = MMPS10.FOKOD_MAMULKODU(i)
+			KolVar = MMPS10.SF_VRI_VR_C(i)
+			HVar1 = MMPS10.SF_VRI_VR_R1(i)
+			HVar2 = MMPS10.SF_VRI_VR_R2(i)
+			HVar3 = MMPS10.SF_VRI_VR_R3(i)
+			NVar1 = MMPS10.SF_VRI_NUM1(i)			
+			NVar2 = MMPS10.SF_VRI_NUM2(i)			
+			MusteriSipArtNo = MMPS10.MUSTERISIPIARTNO(i)
+			MusteriyeTesTarihi = MMPS10.MUSTERIYETESTARIH(i)
+			UretimdenTesTarihi = MMPS10.URETIMDENTESTARIH(i)
+			IF TRIM(MMPS10.MUSTERISIPIARTNO(i)) <> "" THEN
+					NOT1 = DOC.GETDBFIELDVALUE("STOK40E","SIPLEILGILINOTLAR_1",MMPS10.MUSTERISIPINO(i),"")
+					NOT2 = DOC.GETDBFIELDVALUE("STOK40E","SIPLEILGILINOTLAR_2",MMPS10.MUSTERISIPINO(i),"")
+			END IF
+
+			CokSeviye = Doc.GetDBFieldValue("STOK00", "TEXT_TECH_4", StokKodu, "")
+			if trim(CokSeviye) <> "TEKSEVIYE" then
+				res = Doc.Calc_Bom("M","M",StokKodu,PaketSayisi,PaketIcerigi,"",FOKodu,Kolvar,HVar1,HVar2,HVar3,NVar1,NVar2)
+				Set Tbmrsys =Doc.GetTableObject("_WBMRSYS_SELECT")
+				Tbmrsys.GroupBy("BOMREC_KAYNAKCODE")
+				Tbmrsys.Sort("XLEVEL+BOMREC_KAYNAKCODE")
+				For j = 1 To Tbmrsys.GetRecCount()
+					If Doc.Is_EY1(Tbmrsys.IALTSEVIYEBULUNDU(j)) Then
+						MMPS10E.AddRow
+						satirNo = MMPS10E.GetRecCount()
+						MMPS10E.SetCurrentRow(satirNo)
+						MMPS10E.MAMULSTOKKODU(satirNo) = Tbmrsys.BOMREC_KAYNAKCODE(j)
+						MMPS10E.SF_PAKETSAYISI(satirNo) = 1
+						MMPS10E.SF_PAKETICERIGI(satirNo) = Tbmrsys.KAYNAKMIKTART(j)
+	'					MMPS10E.SF_TOPLAMMIKTAR(satirNo) = Tbmrsys.KAYNAKMIKTART(j)
+						MMPS10E.NOTLAR_1(satirNo) = Not1
+						MMPS10E.MUSTERISIPIARTNO(satirNo) = MusteriSipArtNo
+						MMPS10E.URETIMSIPINO(satirNo) = UretimEmriNo
+						MMPS10E.URETIMSIPIARTNO(satirNo) = MMPS10.URETIMSIPIARTNO(i)
+						MMPS10E.MUSTERIYETESTARIH(satirNo) = MusteriyeTesTarihi
+						MMPS10E.URETIMDENTESTARIH(satirNo) = UretimdenTesTarihi
+						MMPS10E.NOTLAR_1(satirNo) = NOT1
+						MMPS10E.NOTLAR_2(satirNo) = NOT2
+					End If
+				Next
+			End if
+		End If
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MPSSÝLPLÝ
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ MPSLER TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MPS_K_SAT
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ MPSLERÝN SATIRLARINI KAPATMA
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+					MMPS10E.ACIK_KAPALI="K"
+				for t=1 to MMPS10T.getreccount()
+					MMPS10T.R_ACIK_KAPALI(t)="K"
+				next
+				for X=1 to MMPS10TM.getreccount()
+					MMPS10TM.ACIK_KAPALI(X)="K"
+				next
+
+				nretcode = Doc.Save_Voucher()
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MPS_RTARIH
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kaynak Tarihlerini Güncelle
+Kod : 
+Sub Makro1()
+	For i = 1 to LISTET.GetRowCount()
+		Doc.Load_Voucher LISTET.EVRAKNO(i)
+		For j = 1 to MMPS10T.GetRowCount()
+			MMPS10T.R_LATEST_B_TARIH(j) = MMPS10E.REVURETIMDENTESTARIH
+			MMPS10T.R_LATEST_E_TARIH(j) = MMPS10E.REVURETIMDENTESTARIH
+		Next
+		Doc.Save_Voucher
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=600P WIDTH=1000P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Sipariþ Seviyeli MPS Yaratma"
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=1
+//LTEXT LEFT=1 TOP=+0 T='Ünvanda Geçen Deyim : '
+//EDITTEXT LEFT=E+10 TOP=+0 D=MAKROTABLE.ARANACAKDEYIM 
+
+GRID LEFT=1 TOP=+0 WIDTH=970p HEIGHT=470p TABLE=MAKROTABLET HEADERROWHEIGHT=35P
+	CHECKBOX D=SELECTED W=30P CAPTION= "Seçim" TRUEFALSE=EH
+	CHECKBOX D=URUNAGACI W=60P CAPTION= "Ürün Aðacý Var mý?" TRUEFALSE=EH NOEDIT=YES
+	EDITTEXT D=MPSNO CAPTION="MPS No" BROWSEBUTTON=1
+	EDITTEXT D=KOD CAPTION="Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=AD CAPTION="Stok Adý"
+	EDITTEXT D=SF_VRI_VR_R1 CAPTION="Þasi Numarasý"
+	EDITTEXT D=D_ID CAPTION="D.I.D."
+	EDITTEXT D=SF_MIKTAR CAPTION="Miktar"
+	COMBOBOX D=SF_SF_UNIT CAPTION="Birim"
+	COMBOBOX D=REV_RTESTARIH CAPTION="Teslim Tarihi"
+	EDITTEXT D=USTSEVIYE_KOD CAPTION="Üst Seviye Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=USTSEVIYE_AD CAPTION="Üst Seviye Stok Adý"
+	EDITTEXT D=SIPNO CAPTION="Sipariþ No"
+	EDITTEXT D=SIPARTNO CAPTION="Sipariþ Artikel No"
+	EDITTEXT D=CH_KODU CAPTION="Cari Hesap Kodu"
+	EDITTEXT D=CH_ADI CAPTION="Cari Hesap Ünvaný"
+ENDGRID
+
+BUTTON LEFT=3 TOP=E+1 WIDTH=10 HEIGHT=50p CAPTION="Tümünü Seç / Seçim Ýptal" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','SecIptal')"
+BUTTON LEFT=30 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Açýlacak MPS 'leri Hesapla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSHesapla')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="MPS 'leri Yarat" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSOlustur')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Çýkýþ" ID=ID_APP_CANCEL
+
+ENDFORM                                                                                                                                                                                                                                            
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MUH-01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Ürün Teknik Deðer Giriþleri
+Kod : 
+'#include <MAKROFORMU1.inc>
+'/**********************************************************************************/
+birim1="Kg" 'aðýrlýk için 
+birim2="m"	'uzunluk için
+'/**********************************************************************************/
+KPTipineNasilKararVerilecek=2 			'1=KTA dan , 2=Stok Kartý Alanýndan
+KPTipineKararVerilecekAlan="GK_10"  'Stok Kartý Alaný
+'/**********************************************************************************/
+ResmeGoreAciklamasi="Resme Göre Yplck" '16 karakter
+'/**********************************************************************************/                                                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 WIDTH=723P HEIGHT=398P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Ürün Teknik Deðer Giriþleri"
+SET BCKCOL=RGB_217_217_217
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=5p
+
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=1 TOP=+0P WIDTH=700p HEIGHT=70p TXTCOL=RGB_000_089_132 BORDER=SUNKEN
+	LOCATE TOP=0
+	LTEXT LEFT=1 TOP=+17P W=130P CD="BOMU01E.MAMULCODE"
+	LTEXT LEFT=E+3P TOP=+0 W=160P D="BOMU01E.MAMULCODE" BORDER=ETCHED
+	LTEXT LEFT=E+3P TOP=+0  W=330P D="BOMU01E.MAMULCODE_STOK00_AD" BORDER=ETCHED
+	LTEXT LEFT=E+3P TOP=+0  D="BOMU01E.MAMULCODE_STOK00_IUNIT" BORDER=ETCHED
+
+	LTEXT LEFT=1 TOP=+1 W=130P CD="BOMU01T.BOMREC_KAYNAKCODE"
+	LTEXT LEFT=E+3P TOP=+0 W=160P D="BOMU01T.BOMREC_KAYNAKCODE" BORDER=ETCHED
+	LTEXT LEFT=E+3P TOP=+0  W=330P D="BOMU01T.KAYNAK_AD" BORDER=ETCHED
+	LTEXT	 LEFT=E+3P TOP=+0  D="BOMU01T.KAYNAK_BIRIM" BORDER=ETCHED
+ENDGROUPBOX
+
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=1 TOP=+0P WIDTH=700p HEIGHT=278p TXTCOL=RGB_000_089_132 BORDER=SUNKEN
+	LOCATE TOP=10P
+	CTEXT LEFT=1 TOP=e+0P W=120P H=30P T=" " BORDER=ETCHED FONT=FONT010 //MULTILINE=YES BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255
+	IF ISPARAMETER=01
+		CTEXT LEFT=e+3p TOP=+0P W=90P H=30P T="Prizmatik" BORDER=ETCHED BCKCOL=RGB_255_000_000 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ELSE
+		CTEXT LEFT=e+3p TOP=+0P W=90P H=30P T="Prizmatik" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=6P
+	ENDIF
+	IF ISPARAMETER=02
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Dolu Silindir" BORDER=ETCHED BCKCOL=RGB_255_000_000 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ELSE
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Dolu Silindir" BORDER=ETCHED BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ENDIF
+	IF ISPARAMETER=03
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Boþ Silindir" BORDER=ETCHED BCKCOL=RGB_255_000_000 TXTCOL=RGB_255_255_255 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ELSE
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Boþ Silindir" BORDER=ETCHED BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ENDIF
+	IF ISPARAMETER=04
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Platina" BORDER=ETCHED BCKCOL=RGB_255_000_000 TXTCOL=RGB_255_255_255 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ELSE
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Platina" BORDER=ETCHED BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ENDIF
+	IF ISPARAMETER=05
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Profil" BORDER=ETCHED BCKCOL=RGB_255_000_000 TXTCOL=RGB_255_255_255 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ELSE
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Profil" BORDER=ETCHED BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ENDIF
+	IF ISPARAMETER=06
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Form" BORDER=ETCHED BCKCOL=RGB_255_000_000 TXTCOL=RGB_255_255_255 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ELSE
+		CTEXT LEFT=e+3p TOP=+0 W=90P H=30P T="Form" BORDER=ETCHED BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 FONT=FONT010 PADDINGTOP=6P
+	ENDIF
+
+	CTEXT LEFT=1 TOP=E+0P W=120P T="En" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.EN_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.EN_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.EN_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.EN_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.EN_6
+	*/
+	IF ISPARAMETER=01
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.EN_1" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		EDITTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.EN_4"
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Yükseklik" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YUKSEKLIK_1
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YUKSEKLIK_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YUKSEKLIK_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YUKSEKLIK_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YUKSEKLIK_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YUKSEKLIK_6
+	*/
+	IF ISPARAMETER=01
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YUKSEKLIK_1" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YUKSEKLIK_4" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Boy" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.BOY_1
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.BOY_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.BOY_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.BOY_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.BOY_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.BOY_6
+	*/
+	IF ISPARAMETER=01
+		EDITTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.BOY_1"
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		EDITTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.BOY_2"
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		EDITTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.BOY_3"
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		EDITTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.BOY_4"
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		EDITTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.BOY_5"
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Ýç Çap" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.ICCAP_1
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.ICCAP_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.ICCAP_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.ICCAP_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.ICCAP_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.ICCAP_6
+	*/
+	IF ISPARAMETER=01
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.ICCAP_3" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Dýþ Çap" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.DISCAP_1
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.DISCAP_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.DISCAP_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.DISCAP_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.DISCAP_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.DISCAP_6
+	*/
+	IF ISPARAMETER=01
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.DISCAP_2" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.DISCAP_3" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Yoðunluk" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YOGUNLUK_1
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YOGUNLUK_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YOGUNLUK_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YOGUNLUK_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YOGUNLUK_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.YOGUNLUK_6
+	*/
+	IF ISPARAMETER=01
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YOGUNLUK_1" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YOGUNLUK_2" BORDER=ETCHED	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YOGUNLUK_3" BORDER=ETCHED		
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YOGUNLUK_4" BORDER=ETCHED			
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YOGUNLUK_5" BORDER=ETCHED				
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.YOGUNLUK_6" BORDER=ETCHED					
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Malzeme Normu" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	/*
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.MNORM_1
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.MNORM_2
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.MNORM_3
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.MNORM_4
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.MNORM_5
+	EDITTEXT LEFT=e+3p TOP=+0 W=90P D=MAKROTABLE.MNORM_6
+	*/
+	IF ISPARAMETER=01
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.MNORM_1" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=02
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.MNORM_2" BORDER=ETCHED	
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=03
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.MNORM_3" BORDER=ETCHED		
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=04
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.MNORM_4" BORDER=ETCHED			
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=05
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.MNORM_5" BORDER=ETCHED				
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+	ENDIF
+	IF ISPARAMETER=06
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+		RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.MNORM_6" BORDER=ETCHED					
+	ENDIF
+
+	CTEXT LEFT=1 TOP=+1 W=120P T="Aðýrlýk" BORDER=ETCHED FONT=FONT010 BCKCOL=RGB_000_000_255 TXTCOL=RGB_255_255_255 PADDINGTOP=2P
+	RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.AGIRLIK_1" BORDER=ETCHED
+	RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.AGIRLIK_2" BORDER=ETCHED
+	RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.AGIRLIK_3" BORDER=ETCHED
+	RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.AGIRLIK_4" BORDER=ETCHED
+	RTEXT LEFT=e+3p TOP=+0 W=90P D="MAKROTABLE.AGIRLIK_5" BORDER=ETCHED
+	RTEXT LEFT=e+3p TOP=+0 W=90P T="n/a" BORDER=ETCHED
+
+
+	BUTTON LEFT=1 TOP=+30p WIDTH=120p HEIGHT=2 CAPTION="Aðýrlýk Hesapla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GO1')"
+	BUTTON LEFT=E+3p TOP=+0 WIDTH=184p HEIGHT=2 CAPTION="Stok Kartýna Aktar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GO2')"
+	BUTTON LEFT=E+3p TOP=+0 WIDTH=184p HEIGHT=2 CAPTION="Resme Göre" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GO4')"
+	BUTTON LEFT=E+3p TOP=+0 WIDTH=90p HEIGHT=2 CAPTION="Tamam" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GO3')"
+	BUTTON LEFT=E+3p TOP=+0 WIDTH=90p HEIGHT=2 CAPTION="Vazgeç" ID=ID_APP_CANCEL
+ENDGROUPBOX
+
+ENDFORM                                                                                                                                          
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MUH-02
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Liste tabýndan Ürün Aðaçlarý ný PASIF hale getirme makrosu
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : MUH-03
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : PLNM01
+Hangi Tablo için : STOKRC2
+Ýlave Hangi Uygulamalar için : SUGG05
+Açýklama : MRP Run Kontrol
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb1 = Excel.Workbooks.Add
+	Set Sh1 = Excel.Sheets(1)
+	satirNo = satirNo + 1 
+	Sh1.Cells(satirNo, 1).Value = "Stok Kodu"
+	Sh1.Cells(satirNo, 2).Value = "Stok Adý"
+	Sh1.Cells(satirNo, 3).Value = "Kart Türü"
+	Sh1.Cells(satirNo, 4).Value = "Kalan Miktar"
+	Sh1.Cells(satirNo, 5).Value = "Minimum Sip. Mik."
+	Sh1.Cells(satirNo, 6).Value = "Parti Buy"
+	Sh1.Cells(satirNo, 7).Value = "Guvenlik Stoðu"
+	Sh1.Cells(satirNo, 8).Value = "Birim"
+
+	For i = 1 to SUGG02T.GetRowCount()
+		Doc.StatusBarMessage i & " / " & SUGG02T.GetRowCount()
+		if SUGG02T.KALANMIKTAR(i) < 0 Then
+			satirNo = satirNo + 1 
+			Sh1.Cells(satirNo, 1).Value = SUGG02T.SKOD(i)
+			Sh1.Cells(satirNo, 2).Value = Doc.GetDBFieldValue("STOK00", "AD", SUGG02T.SKOD(i), "")
+			Sh1.Cells(satirNo, 3).Value = Doc.GetDBFieldValue("STOK00", "KART_TIPI", SUGG02T.SKOD(i), "")
+			Sh1.Cells(satirNo, 4).Value = SUGG02T.KALANMIKTAR(i)
+			Sh1.Cells(satirNo, 5).Value = MinSipMiktar
+			Sh1.Cells(satirNo, 6).Value = PartiBuy
+			Sh1.Cells(satirNo, 7).Value = GuvenlikStogu
+			Sh1.Cells(satirNo, 8).Value = SUGG02T.SF_UNIT(i)
+		End if
+		if SUGG02T.SKOD(i) <> EskiKod and i > 1 Then
+			MinSipMiktar = Doc.GetDBFieldValue("STOK00", "B_MINIMUMSIPMIKTARI", EskiKod, "")
+			PartiBuy = Doc.GetDBFieldValue("STOK00", "B_MINPARTIBUYUKLUGU", EskiKod, "")
+			GuvenlikStogu = Doc.GetDBFieldValue("STOK00", "B_GUVENLIKSTOGU", EskiKod, "")
+			if MinSipMiktar > 0 Then
+				MaxEnvanter = MinSipMiktar
+				if PartiBuy > 0 Then
+					MaxEnvanter = Doc.Ceil(Doc.Div(MinSipMiktar, PartiBuy)) * PartiBuy
+				End if
+			Else
+				MaxEnvanter = PartiBuy
+			End if
+
+			if SUGG02T.KALANMIKTAR(i-1) > MaxEnvanter Then
+				satirNo = satirNo + 1 
+				Sh1.Cells(satirNo, 1).Value = SUGG02T.SKOD(i-1)
+				Sh1.Cells(satirNo, 2).Value = Doc.GetDBFieldValue("STOK00", "AD", SUGG02T.SKOD(i-1), "")
+				Sh1.Cells(satirNo, 3).Value = Doc.GetDBFieldValue("STOK00", "KART_TIPI", SUGG02T.SKOD(i-1), "")
+				Sh1.Cells(satirNo, 4).Value = SUGG02T.KALANMIKTAR(i-1)
+				Sh1.Cells(satirNo, 5).Value = MinSipMiktar
+				Sh1.Cells(satirNo, 6).Value = PartiBuy
+				Sh1.Cells(satirNo, 7).Value = GuvenlikStogu
+				Sh1.Cells(satirNo, 8).Value = SUGG02T.SF_UNIT(i-1)
+			End if
+		End if
+		EskiKod = SUGG02T.SKOD(i)
+	Next
+	Excel.Visible = True
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE10
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Operasyon koduna göre Ürün aðacý oluþturma makrosu(Metot)
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+Public GK1, notx
+
+Sub Makro1()
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	notx=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+
+	Next
+	
+End Sub
+Sub Hesapla(satirno)
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE+SRNUM")
+	
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		m=m+1
+		if m=1 then
+			notx=BOMESKI.BOMREC_NOT(i)
+		end if
+
+		End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+	
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+				gk1=BOMESKI.GK_1(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+					
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+					
+				if trim(yenitezgah) <> trim(eskitezgah) then
+
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+notx=BOMESKI.BOMREC_NOT(j)
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+		
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+		S00E.GK_2=""
+		S00E.GK_3=""
+		S00E.GK_4=""
+		S00E.GK_5=""
+		S00E.GK_6=""
+		S00E.GK_7=""
+		S00E.GK_8=""
+		S00E.GK_9=""
+		S00E.GK_10=""
+		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+	S00E.B_HAZIRLIKSURESI=3
+	
+	S00E.B_MINPARTIBUYUKLUGU=notx
+
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+
+End Sub
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+
+End Sub
+Sub yeni_urunagaci_pasif(mamulkodu)
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+For x=0 to 20
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+	Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	else
+		S001E.DEFAULT_LOCATION4=gk1
+
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+
+End Sub
+Sub stokkartpasif(mamulkodu)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()			
+			end if
+		end if
+	Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S11155","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+			retcode=doc6.Load_Voucher(kod)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+		end if
+		If trim(kod)<>"" then
+			doc6.LoadEmpty_Voucher()
+		End If
+Next
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE11
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Operasyon koduna göre Ürün aðacý oluþturma makrosu(Metot)
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+Public GK1, notx
+
+Sub Makro1()
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	notx=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+	Next
+End Sub
+Sub Hesapla(satirno)
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE+SRNUM")
+	
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		m=m+1
+		if m=1 then
+			notx=BOMESKI.BOMREC_NOT(i)
+		end if
+
+		End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+	
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+				gk1=BOMESKI.GK_1(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+					
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+					
+				if trim(yenitezgah) <> trim(eskitezgah) then
+
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+notx=BOMESKI.BOMREC_NOT(j)
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+		
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+'24/12/2008 Burçin Bey ile görüþülüp kaldýrýldý (Cengiz UÇAR)
+'		S00E.GK_2=""
+'		S00E.GK_3=""
+'		S00E.GK_4=""
+'		S00E.GK_5=""
+'		S00E.GK_6=""
+'		S00E.GK_7=""
+'		S00E.GK_8=""
+'		S00E.GK_9=""
+'		S00E.GK_10=""
+'		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+	S00E.B_HAZIRLIKSURESI=3
+	
+	S00E.B_MINPARTIBUYUKLUGU=notx
+
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+
+End Sub
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+
+End Sub
+Sub yeni_urunagaci_pasif(mamulkodu)
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+For x=0 to 20
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+	Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	else
+'24/12/2008 Burçin Bey ile görüþülüp kaldýrýldý (Cengiz UÇAR)
+'		S001E.DEFAULT_LOCATION4=gk1
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+
+End Sub
+Sub stokkartpasif(mamulkodu)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()			
+			end if
+		end if
+	Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S11155","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+			retcode=doc6.Load_Voucher(kod)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+		end if
+		If trim(kod)<>"" then
+			doc6.LoadEmpty_Voucher()
+		End If
+Next
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE12
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Operasyon koduna göre Ürün aðacý oluþturma makrosu(Metot)
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+
+Public GK1, notx
+
+Sub Makro1()
+	SET x= doc.createsobject("batcherrormode")
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	notx=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+	Next
+End Sub
+Sub Hesapla(satirno)
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE+SRNUM")
+	
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		m=m+1
+		if m=1 then
+			notx=BOMESKI.BOMREC_NOT(i)
+		end if
+
+		End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+				gk1=BOMESKI.GK_1(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+					
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+					
+				if trim(yenitezgah) <> trim(eskitezgah) then
+
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+					notx=BOMESKI.BOMREC_NOT(j)
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+		
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+'24/12/2008 Burçin Bey ile görüþülüp kaldýrýldý (Cengiz UÇAR)
+'		S00E.GK_2=""
+'		S00E.GK_3=""
+'		S00E.GK_4=""
+'		S00E.GK_5=""
+'		S00E.GK_6=""
+'		S00E.GK_7=""
+'		S00E.GK_8=""
+'		S00E.GK_9=""
+'		S00E.GK_10=""
+'		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+	S00E.B_HAZIRLIKSURESI=3
+	
+	S00E.B_MINPARTIBUYUKLUGU=notx
+	S00E.AP10="1"
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+
+End Sub
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+
+End Sub
+Sub yeni_urunagaci_pasif(mamulkodu)
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				Doc.d7MsgBox evrakno&"nolu ürün aðacý pasif hale getirildi", "", MB_OK
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+For x=0 to 20
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+	Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				Doc.d7MsgBox evrakno&"nolu ürün aðacý pasif hale getirildi", "", MB_OK
+
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	else
+'24/12/2008 Burçin Bey ile görüþülüp kaldýrýldý (Cengiz UÇAR)
+'		S001E.DEFAULT_LOCATION4=gk1
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+
+End Sub
+Sub stokkartpasif(mamulkodu)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()		
+				Doc.d7MsgBox mamulkodu&"pasif hale getirildi", "", MB_OK
+	
+			end if
+		end if
+	retcode=Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S11155","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+			retcode=doc6.Load_Voucher(kod)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+		end if
+		If trim(kod)<>"" then
+			doc6.LoadEmpty_Voucher()
+		End If
+Next
+END SUB                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE13
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Operasyon koduna göre Ürün aðacý oluþturma makrosu(Metot)
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+
+Public GK1, notx
+
+Sub Makro1()
+	SET x= doc.createsobject("batcherrormode")
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	notx=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+	Next
+End Sub
+
+Sub Hesapla(satirno)
+
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE+SRNUM")
+	
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		m=m+1
+		if m=1 then
+			notx=BOMESKI.BOMREC_NOT(i)
+		end if
+	End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+				gk1=BOMESKI.GK_1(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+					
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+					
+				if trim(yenitezgah) <> trim(eskitezgah) then
+
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+					notx=BOMESKI.BOMREC_NOT(j)
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+		
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+Set Doc2=nothing
+Set Doc1=nothing
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+'24/12/2008 Burçin Bey ile görüþülüp kaldýrýldý (Cengiz UÇAR)
+'		S00E.GK_2=""
+'		S00E.GK_3=""
+'		S00E.GK_4=""
+'		S00E.GK_5=""
+'		S00E.GK_6=""
+'		S00E.GK_7=""
+'		S00E.GK_8=""
+'		S00E.GK_9=""
+'		S00E.GK_10=""
+'		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+	S00E.B_HAZIRLIKSURESI=3
+	
+	S00E.B_MINPARTIBUYUKLUGU=notx
+	S00E.AP10="1"
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+Set Doc2=Nothing
+End Sub
+
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+Set Doc3=nothing
+End Sub
+
+Sub yeni_urunagaci_pasif(mamulkodu)
+
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				Doc.d7MsgBox evrakno&"nolu ürün aðacý pasif hale getirildi", "", MB_OK
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+	For x=0 to 20
+		sayi=string(3-len((x*10)), "0")&(x*10)
+		mamulkodu1=trim(mamulkodu)&"-"&sayi
+		Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	For g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	Next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				Doc.d7MsgBox evrakno&"nolu ürün aðacý pasif hale getirildi", "", MB_OK
+
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	else
+'24/12/2008 Burçin Bey ile görüþülüp kaldýrýldý (Cengiz UÇAR)
+'		S001E.DEFAULT_LOCATION4=gk1
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+Set Doc4=nothing
+
+End Sub
+
+Sub stokkartpasif(mamulkodu)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()		
+				Doc.d7MsgBox mamulkodu&"pasif hale getirildi", "", MB_OK
+	
+			end if
+		end if
+	retcode=Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S11155","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+			retcode=doc6.Load_Voucher(kod)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+		end if
+		If trim(kod)<>"" then
+			doc6.LoadEmpty_Voucher()
+		End If
+Next
+END SUB                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE7
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+
+Sub Makro1()
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+
+	Next
+	
+End Sub
+Sub Hesapla(satirno)
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE")
+
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+	
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+				if trim(yenitezgah) <> trim(eskitezgah) then
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+		S00E.GK_2=""
+		S00E.GK_3=""
+		S00E.GK_4=""
+		S00E.GK_5=""
+		S00E.GK_6=""
+		S00E.GK_7=""
+		S00E.GK_8=""
+		S00E.GK_9=""
+		S00E.GK_10=""
+		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_MINPARTIBUYUKLUGU=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+
+End Sub
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+
+End Sub
+Sub yeni_urunagaci_pasif(mamulkodu)
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+For x=0 to 20
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+	Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+
+End Sub
+Sub stokkartpasif(mamulkodu)
+	Set S2 = Doc.Select1("_S1112","STOK00","KOD='"+Mamulkodu+"'","",-1)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()			
+			end if
+		end if
+	Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S111","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+
+			retcode=doc6.Load_Voucher(mamulkodu1)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+			doc6.LoadEmpty_Voucher()
+		end if
+Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE8
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+
+Sub Makro1()
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+
+	Next
+	
+End Sub
+Sub Hesapla(satirno)
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE")
+
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+	
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+				if trim(yenitezgah) <> trim(eskitezgah) then
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+		S00E.GK_2=""
+		S00E.GK_3=""
+		S00E.GK_4=""
+		S00E.GK_5=""
+		S00E.GK_6=""
+		S00E.GK_7=""
+		S00E.GK_8=""
+		S00E.GK_9=""
+		S00E.GK_10=""
+		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_MINPARTIBUYUKLUGU=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+
+End Sub
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+
+End Sub
+Sub yeni_urunagaci_pasif(mamulkodu)
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+For x=0 to 20
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+	Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+
+End Sub
+Sub stokkartpasif(mamulkodu)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()			
+			end if
+		end if
+	Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S11155","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+			retcode=doc6.Load_Voucher(kod)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+		end if
+		If trim(kod)<>"" then
+			doc6.LoadEmpty_Voucher()
+		End If
+Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : RECETE9
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public Tezgah_sayisi, eskitezgah, BOMESKI, B00E, B00T, tip, eskimamulkodu, Mamulmiktar, Grid, Tezgah_grup3, tezgah_grup4, hammaddesayisi
+Public GK1, notx
+
+Sub Makro1()
+	eskitezgah=""
+	eskimamulkodu=""
+	Tip=""
+	notx=""
+	hammaddesayisi=0
+	tezgah_sayisi=0
+	mamulmiktar=0
+	for i=1 to LISTET.getreccount
+		call Hesapla(i)
+
+	Next
+	
+End Sub
+Sub Hesapla(satirno)
+	Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+	
+	ListeMamulKodu = LISTET.MAMULCODE(satirno)
+	Call yeni_urunagaci_pasif(Listemamulkodu)
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00ESKI = Doc1.GetTableObject("STOK00")
+	Set S0UESKI = Doc1.GetTableObject("STOK0U")
+
+	S00ESKI.Empty
+	S0UESKI.Empty
+
+	Doc1.Load_Voucher Listemamulkodu
+	Doc1.Runcommand("MT_DOC_COPY")
+
+	Doc1.LoadEmpty_Voucher()
+	Call stokkartpasif(Listemamulkodu)
+
+	Evrakno = LISTET.EVRAKNO(satirno)
+	kacincitezgah=1
+' ***** ürün aðacý hesapla *********
+	rows = Doc.SelectEQ("BOMU01T","EVRAKNO", Evrakno)
+	Set BOMESKI = Doc.GetTableObject("AU_BOMU01T_SELECT")
+	BOMESKI.sort("BOMREC_INPUTTYPE+SRNUM")
+	
+	For i=1 to BOMESKI.getreccount
+		Mamulmiktar=BOMESKI.BOMREC_MAMULMIKTAR(i)
+		tezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+		Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", tezgah, ""))
+		fo=BOMESKI.BOMREC_FO_OPTION(i)
+
+		If trim(BOMESKI.BOMREC_INPUTTYPE(i))="H" Then
+				hammaddesayisi=hammaddesayisi+1
+		ElseIf trim(BOMESKI.BOMREC_INPUTTYPE(i))="I" and trim(tezgah)<> trim(Eskitezgah1) And  trim(tezgah_grup5) <> "H" and trim(fo) <> "1" Then	
+				eskitezgah1=BOMESKI.BOMREC_KAYNAKCODE(i)
+				tezgahsayisi=tezgahsayisi + 1
+				if tezgahsayisi=1 then
+					eskitezgah=BOMESKI.BOMREC_KAYNAKCODE(i)
+				end if
+		m=m+1
+		if m=1 then
+			notx=BOMESKI.BOMREC_NOT(i)
+		end if
+
+		End If
+	Next
+		
+
+'****** tezgah sayýsý sýfýr ise ürün aðacý açma ******
+	If tezgahsayisi=0 then
+		exit sub
+	End If
+'*****************************************************
+
+	
+
+	For j=1 To BOMESKI.getreccount
+		mamulno1=(tezgahsayisi-kacincitezgah)*10
+		Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+		mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+		eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+		tip=BOMESKI.BOMREC_INPUTTYPE(j)
+				gk1=BOMESKI.GK_1(j)
+
+		yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+		eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+
+		Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+		If trim(tip)="I"  then
+				yenitezgah=BOMESKI.BOMREC_KAYNAKCODE(j)
+				Tezgah_grup5=trim(doc.getdbfieldvalue("IMLT00", "GK_5", yenitezgah, ""))
+				fo=BOMESKI.BOMREC_FO_OPTION(j)
+					
+			If Trim(tezgah_grup5)<> "H" and trim(fo)<>"1" then
+					
+				if trim(yenitezgah) <> trim(eskitezgah) then
+
+					kacincitezgah=kacincitezgah + 1
+					mamulno1=(tezgahsayisi-kacincitezgah)*10
+					Yenimamulno=string(3-len(mamulno1),"0")&mamulno1
+					tip=BOMESKI.BOMREC_INPUTTYPE(j)
+					yenimamulkodu=trim(ListeMamulKodu)&"-"&yenimamulno
+
+					mamulno2=(tezgahsayisi-kacincitezgah+1)*10
+					eskimamulno=string(3-len(mamulno2),"0")&mamulno2
+					eskimamulkodu=trim(ListeMamulKodu)&"-"&eskimamulno
+					eskitezgah=yenitezgah
+					Tezgah_grup3=trim(doc.getdbfieldvalue("IMLT00", "GK_3", eskitezgah, ""))
+					sorgu=1
+notx=BOMESKI.BOMREC_NOT(j)
+					Call stokac(yenimamulkodu, sorgu)
+					call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					Tezgah_grup4=trim(doc.getdbfieldvalue("IMLT00", "GK_4", yenitezgah, ""))
+					Call Stokgrup4ac(eskimamulkodu, sorgu)
+					if right(trim(yenimamulkodu), 3)="000" then
+						Call Stokgrup4ac(yenimamulkodu, sorgu)
+					End If
+				else
+					If hammaddesayisi=0 then
+						sorgu=1 
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					else
+						sorgu=0	
+						call UrunAgaciAc(j, yenimamulkodu, sorgu)
+					End If
+				End If 
+			End If
+		else
+		
+			kacincihammadde=kacincihammadde+1
+			if kacincihammadde =1 then
+				sorgu=1
+
+				Call stokac(yenimamulkodu, sorgu)
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			else
+				sorgu=0
+				call UrunAgaciAc(j, yenimamulkodu, sorgu)
+			End If
+		End If
+	Next
+End Sub
+Sub StokAc(mamulkodu, sorgu)
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	
+	Doc2.Load_Voucher mamulkodu
+
+	Doc2.Runcommand("MT_DOC_PASTE")
+	If right(trim(mamulkodu), 3)<>"000" then
+		S00E.DEFAULT_LOCATION1=""
+		S00E.DEFAULT_LOCATION2=""
+		S00E.DEFAULT_LOCATION3=""
+		S00E.GK_2=""
+		S00E.GK_3=""
+		S00E.GK_4=""
+		S00E.GK_5=""
+		S00E.GK_6=""
+		S00E.GK_7=""
+		S00E.GK_8=""
+		S00E.GK_9=""
+		S00E.GK_10=""
+		S00E.GK_10=""
+		S00E.B_GUVENLIKSTOGU=""
+		S00E.B_MAXENVANTERMIKTARI=""
+		S00E.B_MINIMUMSIPMIKTARI=""
+		S00E.B_ORTTEMINSURES=""
+		S00E.B_URETICI_GRNT_SURE=""
+		S00E.B_SATIS_GRNT_SURE=""
+		S00U.Empty
+	End If
+	If right(trim(mamulkodu), 3)="000" then
+		S00U.Empty
+	End If
+
+
+	S00E.KART_TIPI=tezgah_grup3
+	S00E.AD=trim(S00E.AD)&" "&right(trim(S00E.KOD), 4)
+	S00E.B_HAZIRLIKSURESI=7
+	
+	S00E.B_MINPARTIBUYUKLUGU=notx
+
+	Doc2.SAVE_Voucher 
+	Doc2.LoadEmpty_Voucher()
+
+End Sub
+Sub UrunAgaciAc(satirno, mamulkodu, sorgu)
+	Set Doc3 = Doc.CreateDocumentNoUI("BOMU01","")
+
+	Set B00E = Doc3.GetTableObject("BOMU01E")
+	Set B00T = Doc3.GetTableObject("BOMU01T")
+
+	If sorgu=1 then
+		Doc3.LoadEmpty_Voucher()
+
+		Doc3.NEW_Voucher 
+		
+		B00E.MAMULCODE=mamulkodu
+	if right(trim(mamulkodu), 3)="000" then
+		B00E.MAMULMIKTAR=mamulmiktar
+	Else
+		B00E.MAMULMIKTAR=1
+	End If
+
+		B00E.GK_3="YENI"
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		If trim(tip)="I" and hammaddesayisi<> 0 Then
+			B00T.BOMREC_INPUTTYPE(satirno1)="H"
+			B00T.BOMREC_KAYNAKCODE(satirno1)=Eskimamulkodu
+			B00T.BOMREC_KAYNAK0(satirno1)=1
+		End If
+	End If	
+		B00T.ADDROW()
+		satirno1=B00T.getreccount
+		Call KTA_yaz(B00E.EVRAKNO, satirno1, satirno)
+		B00T.BOMREC_INPUTTYPE(satirno1)=Tip
+		B00T.BOMREC_SIRANO(satirno1)="01"
+		B00T.BOMREC_KAYNAKCODE(satirno1)=BOMESKI.BOMREC_KAYNAKCODE(satirno)
+		B00T.BOMREC_OPERASYON(satirno1)=BOMESKI.BOMREC_OPERASYON(satirno)
+		B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+
+		If trim(tip)="H" then
+			B00T.BOMREC_KAYNAK0(satirno1)=BOMESKI.BOMREC_KAYNAK0(satirno)
+		End If
+
+	'	B00T.FEATURENO(satirno1)=BOMESKI.FEATURENO(satirno)
+		B00T.BOMREC_FO_OPTION(satirno1)=BOMESKI.BOMREC_FO_OPTION(satirno)
+		B00T.BOMREC_YMAMULPS(satirno1)=BOMESKI.BOMREC_YMAMULPS(satirno)
+		B00T.BOMREC_YMAMULPM(satirno1)=BOMESKI.BOMREC_YMAMULPM(satirno)
+		B00T.BOMREC_KAYNAK1(satirno1)=BOMESKI.BOMREC_KAYNAK1(satirno)
+		Doc3.SAVE_Voucher 
+
+End Sub
+Sub yeni_urunagaci_pasif(mamulkodu)
+Set BOMYENIP = Doc.Select1("_BOMYENIP","BOMU01E","MAMULCODE='"+Mamulkodu+"'","",-1)
+
+	for s=1 to BOMYENIP.getreccount
+		If BOMYENIP.AKTIF_PASIF(s)="*" then
+			evrakno=BOMYENIP.EVRAKNO(s)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+
+For x=0 to 20
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+	Set BOMYENIP1 = Doc.Select1("_BOMYENIP1","BOMU01E","MAMULCODE='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to BOMYENIP1.getreccount
+		If BOMYENIP1.AKTIF_PASIF(g)="*" then
+			evrakno=BOMYENIP1.EVRAKNO(g)
+		end If
+	next
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				BOMU01E.AKTIF_PASIF=""
+				retcode=Doc.Save_Voucher()			
+			end if
+		end if
+Next
+End Sub
+Sub KTA_Yaz(evrakno, Satirno1, satirno)
+
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("B_U0001","BOMU01T",evrakno+B00T.TRNUM(satirno1))   
+	Dim B_U1    
+	Set B_U1 = Doc.GetTableObject("B_U0001") 
+
+	Set UFLD = Doc.Select1("_UFLD","UFLD10T","EVRAKNO='"+"BOMU01T   "+"'","",-1)
+  
+	For m=1 to UFLD.getreccount
+		Alanadi=trim(UFLD.VARCODE(m))
+		ktadeger=trim(Doc.GetUDFValue("BOMU01T",BOMESKI.EVRAKNO(satirno)+BOMESKI.TRNUM(satirno),Alanadi,0))
+		K = B_U1.SetFieldValue(Alanadi,-1, ktadeger)   
+		B_U1.Exec "SAVE"   
+	next
+End Sub
+Sub Stokgrup4ac(mamulkodu, sorgu)
+	Set Doc4 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S001E = Doc4.GetTableObject("STOK00")
+	
+	Doc4.Load_Voucher mamulkodu
+	If right(trim(mamulkodu), 3)<>"000" then
+		S001E.DEFAULT_LOCATION4=tezgah_grup4
+	else
+		S001E.DEFAULT_LOCATION4=gk1
+
+	End If
+
+	Doc4.SAVE_Voucher 
+	Doc4.LoadEmpty_Voucher()
+
+End Sub
+Sub stokkartpasif(mamulkodu)
+
+		If trim(mamulkodu)<>"" then
+			Set doc5 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET1 = doc5.GetTableObject("STOK00")
+			retcode=doc5.Load_Voucher(mamulkodu)
+			if retcode=0 then
+				S001ET1.Ap10=""
+				doc5.Save_Voucher()			
+			end if
+		end if
+	Doc5.LoadEmpty_Voucher()
+
+
+For x=0 to 16
+
+	sayi=string(3-len((x*10)), "0")&(x*10)
+	mamulkodu1=trim(mamulkodu)&"-"&sayi
+
+	Set S1 = Doc.Select1("_S11155","STOK00","KOD='"+Mamulkodu1+"'","",-1)
+
+	for g=1 to S1.getreccount
+			KOD=S1.KOD(g)
+	next
+		If trim(kod)<>"" then
+			Set doc6 = Doc.CreateDocumentNoUI("STOK00","")
+			Set S001ET = doc6.GetTableObject("STOK00")
+			retcode=doc6.Load_Voucher(kod)
+			if retcode=0 then
+				S001ET.Ap10=""
+				doc6.Save_Voucher()			
+			end if
+		end if
+		If trim(kod)<>"" then
+			doc6.LoadEmpty_Voucher()
+		End If
+Next
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : SERINO
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Seri No Al
+Kod : 
+Sub Makro1()
+	if trim(Doc.GetUDFValue("MMPS10E", MMPS10E.EVRAKNO, "SERINO",0)) <> "" Then
+		k = Doc.d7MsgBox("Bu MPS için seri numarasý verilmiþ", "Ýþlem kesildi!", MB_OK+MB_ICONWARNING)
+		Exit Sub
+	End if
+	SeriNo = Doc.Sayac0DanAl("SERINO")
+	Call KTA_Yaz(SeriNo)
+End Sub
+Sub KTA_Yaz(SeriNo)
+	Dim T_MMPS10E    
+	Set T_MMPS10E = Doc.GetTableObject("MMPS10E")   
+	Dim nret    
+	nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","MMPS10E",T_MMPS10E.EVRAKNO)   
+	Dim T_U1    
+	Set T_U1 = Doc.GetTableObject("T_U0001")   
+	K = T_U1.SetFieldValue("SERINO",-1,SeriNo)   
+	T_U1.Exec "SAVE"   
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : SOLID
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Solidworks den çýkarýlan excel dosyasýnýn Dinamo stok kartýna çevrilmesi.
+Kod : 
+Option Explicit
+'Excel dosyasýnýn bulunmasý gereken klasör
+dim target_dir
+target_dir = "C:\solid"
+Sub Makro1()
+	dim doc1
+	set doc1=doc.CreateDocumentNOUI("STOK00","")	
+	dim fname
+	fname=inputbox("Excel dosyasýnýn adýný giriniz:")
+	if len(fname)=0 Then 
+		msgbox "Dosya ismi boþ olamaz.Ýþlem durduruldu."
+		Exit sub
+	end if
+	dim fpath
+	fpath = target_dir & "\" &fname
+	dim objExcel
+	set objExcel = CreateObject("Excel.Application")
+	dim objWorkbooks
+	set objworkbooks = objexcel.workbooks
+	'on error resume next
+	objworkbooks.open fpath
+	if err.number<>0 then 
+		msgbox "Dosya bulunamadý.Ýþlem kesilmiþtir."
+		exit sub
+	end if
+	dim objworksheet
+	set objworksheet = objworkbooks(1).worksheets(1)
+	dim strKodAna
+	strKodAna = inputbox("Lütfen yaratýlacak kodun ana kýsmýný giriniz","Ana kod kýrýmýný giriniz","61")
+	if len(strKodAna)=0 Then
+		Msgbox "Ana kýrýmý girmeniz mecburidir.Ýþlem iptal edildi"
+		Exit Sub
+	else
+		strKodAna = trim(strKodAna)
+	End if
+	dim strweight,strmaterial,strmodelno,stradet,strtarih
+	dim strisil_islem,strKolcu,strAciklama,ykorumaisl,gk1,gk2,gk3,strCizen,strKontrol,strParcaAdi
+	dim strParcaNo,strRevizyon
+
+	strweight=1
+	strmaterial=2
+	strmodelno=3
+	stradet=4
+	strtarih=5
+	strisil_islem=6
+	strKolcu=7
+	strAciklama=8
+	ykorumaisl=9
+	gk1=10
+	gk2=11
+	gk3=12
+	strCizen=14
+	strKontrol=15
+	strParcaAdi=16
+	strParcaNo=17
+	strRevizyon=18
+
+	dim strKodTumu
+	if trim(objworksheet.Cells.cells(strParcaNo,3))="" Then
+		msgbox "Parça no bilgisi eksik.Stok kodu oluþturulamýyor.Ýþlem kesildi."
+		Exit Sub
+	End if
+	strKodTumu = strKodAna & " " & objworksheet.Cells.cells(strParcaNo,3)
+	dim res
+	res=Doc1.Load_Voucher(strKodTumu)
+	dim TStok00
+	Set TStok00 = doc1.GetTableObject("STOK00")
+	TStok00.GK_1 = objworksheet.Cells(gk1,3)
+	TStok00.GK_2 = objworksheet.Cells(gk2,3)
+	TStok00.GK_3 = objworksheet.Cells(gk3,3)
+	TStok00.GK_10 = objworksheet.Cells(strRevizyon,3)
+	TStok00.TSENO = objworksheet.Cells(strMaterial,3)
+	TStok00.EANKODU = objworksheet.Cells(strKolcu,3)
+	TStok00.NAME2 = objworksheet.Cells(strmodelno,3)
+	TStok00.EANKODU = objworksheet.Cells(strKolcu,3)
+	TStok00.AD = objworksheet.Cells(strParcaAdi,3)
+	TStok00.CODETYPE = "D"
+	TStok00.IUNIT = "AD"
+'KTA ya bilgi yazma iþlemi BAÞLANGIÇ
+	dim nret,K
+ 	nret = Doc1.UFLD00_CREATEEDITTABLE("T_U0001","STOK00",TStok00.KOD)   
+	Dim T_U1    
+	Set T_U1=Doc1.GetTableObject("T_U0001")   
+	K = T_U1.SetFieldValue("AGIRLIK",-1,cstr(objworksheet.Cells(strweight,3)))   
+	K = T_U1.SetFieldValue("TARIH",-1,cstr(objworksheet.Cells(strTarih,3)))   
+	K = T_U1.SetFieldValue("ISIL_ISLEM",-1,cstr(objworksheet.Cells(strisil_islem,3)))   
+	K = T_U1.SetFieldValue("K_ISLEMLER",-1,cstr(objworksheet.Cells(ykorumaisl,3)))   
+	K = T_U1.SetFieldValue("CIZEN",-1,cstr(objworksheet.Cells(strCizen,3)))   
+	K = T_U1.SetFieldValue("KONTROL",-1,cstr(objworksheet.Cells(strKontrol,3)))
+	T_U1.Exec "SAVE" 
+'KTA ya bilgi yazma iþlemi BÝTÝÞ
+
+	res=Doc1.Save_Voucher()
+	if res>=0 then 
+		msgbox "Kayýt iþlemi tamamlandý.KOD=" & strKodTumu & ""
+	else
+		msgbox "Kayýt iþlemi tamamlanamadý.KOD=" & strKodTumu & ""
+	end if
+	Doc1.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : SOLID2
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Solidworks den çýkarýlan excel dosyasýnýn Dinamo stok kartýna çevrilmesi.
+Kod : 
+Option Explicit
+'Excel dosyasýnýn bulunmasý gereken klasör
+dim target_dir
+target_dir = "C:\solid"
+Sub Makro1()
+	dim doc1
+	set doc1=doc.CreateDocumentNOUI("STOK00","")	
+	dim fname
+	fname=inputbox("Excel dosyasýnýn adýný giriniz:")
+	if len(fname)=0 Then 
+		msgbox "Dosya ismi boþ olamaz.Ýþlem durduruldu."
+		Exit sub
+	end if
+	dim fpath
+	fpath = target_dir & "\" &fname
+	dim objExcel
+	set objExcel = CreateObject("Excel.Application")
+	dim objWorkbooks
+	set objworkbooks = objexcel.workbooks
+	'on error resume next
+	objworkbooks.open fpath
+	if err.number<>0 then 
+		msgbox "Dosya bulunamadý.Ýþlem kesilmiþtir."
+		exit sub
+	end if
+	dim objworksheet
+	set objworksheet = objworkbooks(1).worksheets(1)
+	dim strKodAna
+	strKodAna = inputbox("Lütfen yaratýlacak kodun ana kýsmýný giriniz","Ana kod kýrýmýný giriniz","61")
+	if len(strKodAna)=0 Then
+		Msgbox "Ana kýrýmý girmeniz mecburidir.Ýþlem iptal edildi"
+		Exit Sub
+	else
+		strKodAna = trim(strKodAna)
+	End if
+	dim strweight,strmaterial,strmodelno,stradet,strtarih
+	dim strisil_islem,strKolcu,strAciklama,ykorumaisl,gk1,gk2,gk3,strCizen,strKontrol,strParcaAdi
+	dim strParcaNo,strRevizyon
+
+	strweight=1
+	strmaterial=2
+	strmodelno=3
+	stradet=4
+	strtarih=5
+	strisil_islem=6
+	strKolcu=7
+	strAciklama=8
+	ykorumaisl=9
+	gk1=10
+	gk2=11
+	gk3=12
+	strCizen=14
+	strKontrol=15
+	strParcaAdi=16
+	strParcaNo=17
+	strRevizyon=18
+
+	dim strKodTumu
+	if trim(objworksheet.Cells.cells(strParcaNo,3))="" Then
+		msgbox "Parça no bilgisi eksik.Stok kodu oluþturulamýyor.Ýþlem kesildi."
+		Exit Sub
+	End if
+	strKodTumu = strKodAna & " " & objworksheet.Cells.cells(strParcaNo,3)
+	dim res
+	res=Doc1.Load_Voucher(strKodTumu)
+	dim TStok00
+	Set TStok00 = doc1.GetTableObject("STOK00")
+	TStok00.GK_1 = cstr(objworksheet.Cells(gk1,3))
+	TStok00.GK_2 = cstr(objworksheet.Cells(gk2,3))
+	TStok00.GK_3 = cstr(objworksheet.Cells(gk3,3))
+	TStok00.GK_10 = cstr(objworksheet.Cells(strRevizyon,3))
+	TStok00.TSENO = cstr(objworksheet.Cells(strMaterial,3))
+	TStok00.EANKODU = cstr(objworksheet.Cells(strKolcu,3))
+	TStok00.NAME2 = cstr(objworksheet.Cells(strmodelno,3))
+	TStok00.EANKODU = cstr(objworksheet.Cells(strKolcu,3))
+	TStok00.Ad = cstr(objworksheet.Cells(strParcaAdi,3))
+	TStok00.CODETYPE = "D"
+	TStok00.IUNIT = "Ad"
+'KTA ya bilgi yazma iþlemi BAÞLANGIÇ
+	dim nret,K
+ 	nret = Doc1.UFLD00_CREATEEDITTABLE("T_U0001","STOK00",TStok00.KOD)   
+	Dim T_U1    
+	Set T_U1=Doc1.GetTableObject("T_U0001")   
+	K = T_U1.SetFieldValue("AGIRLIK",-1,cstr(objworksheet.Cells(strweight,3)))   
+	K = T_U1.SetFieldValue("TARIH",-1,cstr(objworksheet.Cells(strTarih,3)))   
+	K = T_U1.SetFieldValue("ISIL_ISLEM",-1,cstr(objworksheet.Cells(strisil_islem,3)))   
+	K = T_U1.SetFieldValue("K_ISLEMLER",-1,cstr(objworksheet.Cells(ykorumaisl,3)))   
+	K = T_U1.SetFieldValue("CIZEN",-1,cstr(objworksheet.Cells(strCizen,3)))   
+	K = T_U1.SetFieldValue("KONTROL",-1,cstr(objworksheet.Cells(strKontrol,3)))
+	T_U1.Exec "SAVE" 
+'KTA ya bilgi yazma iþlemi BÝTÝÞ
+
+	res=Doc1.Save_Voucher()
+	if res>=0 then 
+		msgbox "Kayýt iþlemi tamamlandý.KOD=" & strKodTumu & ""
+	else
+		msgbox "Kayýt iþlemi tamamlanamadý.KOD=" & strKodTumu & ""
+	end if
+	Doc1.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : STOK
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ STOK KARTLARINI TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : STOK01
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1
+Dim T_STOK00 
+Set T_STOK00=Doc.GetTableObject("STOK00")
+Dim nret
+nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","STOK00",T_STOK00.KOD) 
+Dim T_U1 
+Set T_U1=Doc.GetTableObject("T_U0001") 
+K = T_U1.SetFieldValue("STANDART",-1,"TS 212") 
+K = T_U1.SetFieldValue("AGIRLIK",-1,"2345") 
+T_U1.Exec "SAVE" 
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : STOKSIL
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ STOK KARTLARI TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : YILDIZ
+Hangi Tablo için : STOK75
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Option Explicit
+'#include <ImportExport.inc>
+'/////////////////////////////////////////////////////////////////////////
+'SirketKodu="W:\D7K\@2008-M"
+SirketKodu="2008-M"
+ExportPrefix=""
+ExportBatchMode="MT_LOAD_OR_NEW" 'BatchMode deðerler MT_NEW yada MT_LOAD_OR_NEW
+ExportDosyaIsmi="C:\Documents and Settings\yildizy\My Documents\LLL.XML" 
+'ExportDosyaIsmi="e:\LLL.XML" 
+
+WrkDir=SirketKodu
+Sub Makro1()
+	Dim ExportedVoucher
+	Dim ImportedVoucher	
+
+	Set par1=Doc.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT",ExportBatchMode
+
+	ExportedVoucher=""
+	ImportedVoucher=""
+
+	if BirFirmadanBaskaBirFirmayaEvkrakKodGonderme(ExportedVoucher,ImportedVoucher) then
+		Call EndProcess()
+		MSGBOX "HATA"
+		Exit Sub
+	end if
+	Call EndProcess()
+End Sub                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=600P WIDTH=1000P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Sipariþ Seviyeli MPS Yaratma"
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=1
+//LTEXT LEFT=1 TOP=+0 T='Ünvanda Geçen Deyim : '
+//EDITTEXT LEFT=E+10 TOP=+0 D=MAKROTABLE.ARANACAKDEYIM 
+
+GRID LEFT=1 TOP=+0 WIDTH=970p HEIGHT=470p TABLE=MAKROTABLET HEADERROWHEIGHT=35P
+	CHECKBOX D=SELECTED W=30P CAPTION= "Seçim" TRUEFALSE=EH
+	CHECKBOX D=URUNAGACI W=60P CAPTION= "Ürün Aðacý Var mý?" TRUEFALSE=EH NOEDIT=YES
+	EDITTEXT D=MPSNO CAPTION="MPS No" BROWSEBUTTON=1
+	EDITTEXT D=KOD CAPTION="Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=AD CAPTION="Stok Adý"
+	EDITTEXT D=SF_MIKTAR CAPTION="Miktar"
+	COMBOBOX D=SF_SF_UNIT CAPTION="Birim"
+	COMBOBOX D=REV_RTESTARIH CAPTION="Teslim Tarihi"
+	EDITTEXT D=USTSEVIYE_KOD CAPTION="Üst Seviye Stok Kodu" BROWSEBUTTON=1
+	EDITTEXT D=USTSEVIYE_AD CAPTION="Üst Seviye Stok Adý"
+	EDITTEXT D=SIPNO CAPTION="Sipariþ No"
+	EDITTEXT D=SIPARTNO CAPTION="Sipariþ Artikel No"
+	EDITTEXT D=CH_KODU CAPTION="Cari Hesap Kodu"
+	EDITTEXT D=CH_ADI CAPTION="Cari Hesap Ünvaný"
+ENDGRID
+
+BUTTON LEFT=3 TOP=E+1 WIDTH=10 HEIGHT=50p CAPTION="Tümünü Seç / Seçim Ýptal" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','SecIptal')"
+BUTTON LEFT=30 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Açýlacak MPS 'leri Hesapla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSHesapla')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="MPS 'leri Yarat" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MPSOlustur')"
+BUTTON LEFT=E+2 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="Çýkýþ" ID=ID_APP_CANCEL
+
+ENDFORM                                                                                                                                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : B2010 / Uygulama : MAKR7S
+Makro Kodu : kapat
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : KAPALI SÝPARÝÞ AÇIK ITEM FASON
+Kod : 
+Sub Makro1()
+	Set S46T3 = Doc.Select1("ssddwe", "STOK46T3", "R_KAYNAKTYPE='H'&ACIK_KAPALI=' '", "", -1)
+	if S46T3.GetRowCount() = 0 Then Exit Sub
+	S46T3.GroupBy("EVRAKNO")
+	For i = 1 to S46T3.GetRowCount()
+		Doc.Load_Voucher S46T3.EVRAKNO(i)
+		Doc.Save_Voucher
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

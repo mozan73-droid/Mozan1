@@ -1,0 +1,641 @@
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++SQL
+Hangi Tablo için : REP17S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Rapor SQL komutunu yarat
+Kod : 
+Sub Makro1()
+	REP17RT.SafePack
+	REP17JT.SafePack
+	REP17KT.SafePack
+	SQLStr = ""
+
+	SelectStr = GetSelectStr()
+	SQLStr = SQLStr & SelectStr
+
+	JoinStr = GetJoinStr()
+	if trim(JoinStr) <> "" Then
+		SQLStr = SQLStr & vbcrlf & JoinStr
+	End if
+
+	WhereStr = GetWhereStr()
+	if trim(WhereStr) <> "" Then
+		SQLStr = SQLStr & vbcrlf & WhereStr
+	End if
+
+	REP17SE_B.SQLTEXT = SQLStr
+End Sub
+Function GetSelectStr()
+	SQLStr = "SELECT "
+	k = 1
+	For i = 1 to REP17RT.GetRowCount()
+		if IcmaldenOnceBaglantimi(REP17RT.FIELDNAME1(i)) and not EklenenAlanmi(REP17RT.FIELDNAME1(i)) Then
+			if BaglantidanGelenAlanmi(REP17RT.FIELDNAME1(i)) Then
+				Alan = GetOrijinalAlanAdi(REP17RT.FIELDNAME1(i)) & " " & trim(REP17RT.FIELDNAME1(i))
+			Else
+				Alan = trim(REP17SE.AU_TABLE) & "." & trim(REP17RT.FIELDNAME1(i))
+			End if
+			if Len(SQLStr) > k * 90 Then
+				SQLStr = SQLStr & vbcrlf & Chr(9)
+				k = k + 1
+			End if
+			SQLStr = SQLStr & trim(Alan) & ", "
+		End if
+	Next
+	For i = 1 to REP17KT.GetRowCount()
+		if not RaporIcerigindeVarmi(REP17KT.FIELDNAME1(i)) Then
+			if IcmaldenOnceBaglantimi(REP17KT.FIELDNAME1(i)) and not EklenenAlanmi(REP17KT.FIELDNAME1(i)) Then
+				if BaglantidanGelenAlanmi(REP17KT.FIELDNAME1(i)) Then
+					Alan = GetOrijinalAlanAdi(REP17KT.FIELDNAME1(i)) & " " & trim(REP17KT.FIELDNAME1(i))
+				Else
+					Alan = trim(REP17SE.AU_TABLE) & "." & trim(REP17KT.FIELDNAME1(i))
+				End if
+				if Len(SQLStr) > k * 90 Then
+					SQLStr = SQLStr & vbcrlf & Chr(9)
+					k = k + 1
+				End if
+				SQLStr = SQLStr & trim(Alan) & ", "
+			End if
+		End if
+	Next
+
+	if Right(trim(SQLStr), 1) = "," Then
+		SQLStr = Left(SQLStr, Len(SQLStr) - 2)
+	End if
+	
+	GetSelectStr = SQLStr & vbcrlf & "FROM " & trim(REP17SE.AU_TABLE)
+End Function
+Function GetWhereStr()
+	if REP17KT.GetRowCount = 0 Then
+		GetWhereStr = ""
+		Exit Function
+	End if
+	WhereStr = "WHERE 1=1 "
+	For i = 1 to REP17KT.GetRowCount()
+		if IcmaldenOnceBaglantimi(REP17KT.FIELDNAME1(i)) and not EklenenAlanmi(REP17KT.FIELDNAME1(i)) _
+				and Doc.Is_EY1(REP17KT.BEFOREGROUPBY(i)) Then
+			WStr = CreateWhereStr(REP17KT.FIELDNAME1(i), REP17KT.KRITERTIPI(i))
+			if WStr <> "" Then
+				WhereStr = WhereStr & vbcrlf & WStr
+			End if
+		End if
+	Next
+	GetWhereStr = WhereStr
+End Function
+Function CreateWhereStr(AlanAdi, KriterTipi)
+	if not BaglantidanGelenAlanmi(AlanAdi) Then
+		AlanAdi1 = trim(REP17SE.AU_TABLE) & "." & trim(AlanAdi)
+	Else
+'		AlanAdi1 = trim(AlanAdi)
+		AlanAdi1 = GetOrijinalAlanAdi(AlanAdi)
+	End if
+	if trim(KriterTipi) = "><" Then
+		CreateWhereStr = " AND " & AlanAdi1 & ">=###KRITERGIRIS.B_" & trim(Alanadi) & "###" & vbcrlf & _
+					"###IF NOTEMPTY KRITERGIRIS.E_" & trim(Alanadi) & "###" & vbcrlf & _
+					"AND " & AlanAdi1 & "<=###KRITERGIRIS.E_" & trim(AlanAdi) & "###" & vbcrlf & _
+					"###ENDIF###"
+	Elseif trim(KriterTipi) = ">=" Then
+		CreateWhereStr = " AND " & AlanAdi1 & ">=###KRITERGIRIS.B_" & trim(Alanadi) & "###"
+	Elseif trim(KriterTipi) = ">" Then
+		CreateWhereStr = " AND " & AlanAdi1 & ">###KRITERGIRIS.B_" & trim(Alanadi) & "###"
+	Elseif trim(KriterTipi) = "<=" Then
+		CreateWhereStr = "###IF NOTEMPTY KRITERGIRIS.E_" & trim(Alanadi) & "###" & vbcrlf & _
+					"AND " & AlanAdi1 & "<=###KRITERGIRIS.E_" & trim(AlanAdi) & "###" & vbcrlf & _
+					"###ENDIF###"
+	Elseif trim(KriterTipi) = "<" Then
+		CreateWhereStr = "###IF NOTEMPTY KRITERGIRIS.E_" & trim(Alanadi) & "###" & vbcrlf & _
+					"AND " & AlanAdi1 & "<###KRITERGIRIS.E_" & trim(AlanAdi) & "###" & vbcrlf & _
+					"###ENDIF###"
+	Elseif trim(KriterTipi) = "=" Then
+		CreateWhereStr = "###IF NOTEMPTY KRITERGIRIS.EQ_" & trim(Alanadi) & "###" & vbcrlf & _
+					"AND " & AlanAdi1 & "=###KRITERGIRIS.EQ_" & trim(AlanAdi) & "###" & vbcrlf & _
+					"###ENDIF###"
+	Elseif trim(KriterTipi) = "<>" or trim(KriterTipi) = "!=" Then
+		CreateWhereStr = "###IF NOTEMPTY KRITERGIRIS.NE_" & trim(Alanadi) & "###" & vbcrlf & _
+					"AND " & AlanAdi1 & "<>###KRITERGIRIS.NE_" & trim(AlanAdi) & "###" & vbcrlf & _
+					"###ENDIF###"
+	Elseif trim(KriterTipi) = "BOÞ" Then
+		CreateWhereStr = "AND " & AlanAdi1 & "=''"
+	Elseif trim(KriterTipi) = "!BOÞ" Then
+		CreateWhereStr = "AND " & AlanAdi1 & "<>''"
+	Elseif Left(KriterTipi,1) = "S" Then
+		CreateWhereStr = GetCLStr(KriterTipi, Alanadi, AlanAdi1)
+	Elseif Left(KriterTipi,2) = "NS" Then
+		CreateWhereStr = GetNSStr(KriterTipi, Alanadi, AlanAdi1)
+	End if
+End Function
+Function GetJoinStr()
+	GetJoinStr = ""
+	if IcmaldenOnceJoinYok Then Exit Function
+
+	JoinStr = ""
+	For i = 1 to REP17JT.GetRowCount()
+		if Doc.Is_EY1(REP17JT.BEFOREGROUPBY(i)) Then
+			if JoinStr <> "" Then
+				JoinStr = JoinStr & vbcrlf & "LEFT JOIN "
+			Else
+				JoinStr = "LEFT JOIN "
+			End if
+			JoinStr = JoinStr & trim(REP17JT.JOINEDTABLE(i))
+			JoinStr = JoinStr & " ON "
+
+			TabloAlan = trim(REP17JT.JOINEDTABLE(i)) & "." & trim(REP17JT.JOINEDFIELD(i))
+			if BaglantidanGelenAlanmi(REP17JT.JOINEDFIELD(i)) Then
+				TabloAlan = GetOrijinalAlanAdi(REP17JT.JOINEDFIELD(i))
+			End if
+			JoinStr = JoinStr & TabloAlan
+			JoinStr = JoinStr & "="
+
+			TabloAlan = Trim(REP17SE.AU_TABLE) & "." & trim(REP17JT.FIELDNAME1(i))
+			if BaglantidanGelenAlanmi(REP17JT.FIELDNAME1(i)) Then
+				TabloAlan = GetOrijinalAlanAdi(REP17JT.FIELDNAME1(i))
+			End if
+			JoinStr = JoinStr & TabloAlan
+		End if
+	Next
+	GetJoinStr = JoinStr
+End Function
+Function IcmaldenOnceBaglantimi(AlanAdi)
+	IcmaldenOnceBaglantimi = True
+	For i = 1 to REP17JT.GetRowCount()
+		Baglanti = trim(REP17JT.FIELDNAME1(i)) & "_" & trim(REP17JT.JOINEDTABLE(i))
+		if len(Baglanti) > Len(AlanAdi) Then
+			Exit Function
+		Else
+			if Left(AlanAdi, Len(Baglanti)) = Baglanti and Doc.Is_HN0(REP17JT.BEFOREGROUPBY(i)) Then
+				IcmaldenOnceBaglantimi = False				
+				Exit Function
+			End if
+		End if
+	Next
+End Function
+Function BaglantidanGelenAlanmi(AlanAdi)
+	BaglantidanGelenAlanmi = False
+	For i = 1 to REP17JT.GetRowCount()
+		Baglanti = trim(REP17JT.FIELDNAME1(i)) & "_" & trim(REP17JT.JOINEDTABLE(i))
+		if len(Baglanti) > Len(AlanAdi) Then
+			Exit Function
+		Else
+			if Left(AlanAdi, Len(Baglanti)) = Baglanti and Doc.Is_EY1(REP17JT.BEFOREGROUPBY(i)) Then
+				BaglantidanGelenAlanmi = True
+				Exit Function
+			End if
+		End if
+	Next
+End Function
+Function GetOrijinalAlanAdi(AlanAdi)
+	For i = 1 to REP17JT.GetRowCount()
+		Baglanti = trim(REP17JT.FIELDNAME1(i)) & "_" & trim(REP17JT.JOINEDTABLE(i))
+		if Left(AlanAdi, Len(Baglanti)) = Baglanti Then
+			TabloAdi = trim(REP17JT.JOINEDTABLE(i))
+			BaglantidanGelenAlan = Mid(AlanAdi, Len(Baglanti)+2)
+			GetOrijinalAlanAdi = TabloAdi & "." & trim(BaglantidanGelenAlan)
+		End if
+	Next
+End Function
+Function EklenenAlanmi(AlanAdi)
+	EklenenAlanmi = False
+	For i = 1 to REP17UT.GetRowCount()
+		if trim(REP17UT.FIELDNAME1(i)) = trim(AlanAdi) Then
+			EklenenAlanmi = True
+			Exit Function
+		End if
+	Next
+End Function
+Function IcmaldenOnceJoinYok()
+	IcmaldenOnceJoinYok = True
+	For i = 1 to REP17JT.GetRowCount()
+		if Doc.Is_EY1(REP17JT.BEFOREGROUPBY(i)) Then
+			IcmaldenOnceJoinYok = False				
+			Exit Function
+		End if
+	Next
+End Function
+Function RaporIcerigindeVarmi(AlanAdi)
+	RaporIcerigindeVarmi = False
+	For i = 1 to REP17RT.GetRowCount()
+		if trim(REP17RT.FIELDNAME1(i)) = trim(AlanAdi) Then
+			RaporIcerigindeVarmi = True
+			Exit Function
+		End if
+	Next
+End Function
+Function GetCLStr(KriterTipi, Alanadi, AlanAdi1)
+	AlanSayisi = Doc.CDbl(Mid(KriterTipi, 2))
+	OrStr = "###IF NOTEMPTY KRITERGIRIS.CL01_" & trim(Alanadi) & "###"  & vbcrlf & "AND (1=0 " & vbcrlf & "###ENDIF###" & vbcrlf & chr(9)
+	For i = 1 to AlanSayisi
+		OrStr = OrStr & "###IF NOTEMPTY KRITERGIRIS.CL" & Right("00" & i, 2) &"_" & trim(Alanadi) & "###" & vbcrlf & chr(9) & _
+			"OR " & AlanAdi1 & "=###KRITERGIRIS.CL" & Right("00" & i, 2) &"_" & trim(AlanAdi) & "###" & vbcrlf & chr(9) & _
+			"###ENDIF###" & vbcrlf
+		if i <> AlanSayisi Then
+			OrStr = OrStr  & chr(9)
+		End if
+	Next
+	OrStr = OrStr & "###IF NOTEMPTY KRITERGIRIS.CL01_" & trim(Alanadi) & "###"  & vbcrlf & ")" & vbcrlf & "###ENDIF###" & vbcrlf
+	GetCLStr = OrStr
+End Function
+Function GetNSStr(KriterTipi, Alanadi, AlanAdi1)
+	AlanSayisi = Doc.CDbl(Mid(KriterTipi, 3))
+	NSStr = "###IF NOTEMPTY KRITERGIRIS.NCL01_" & trim(Alanadi) & "###"  & vbcrlf & "AND NOT (1=0 " & vbcrlf & "###ENDIF###" & vbcrlf & chr(9)
+	For i = 1 to AlanSayisi
+		NSStr = NSStr & "###IF NOTEMPTY KRITERGIRIS.NCL" & Right("00" & i, 2) &"_" & trim(Alanadi) & "###" & vbcrlf & chr(9) & _
+			"OR " & AlanAdi1 & "=###KRITERGIRIS.NCL" & Right("00" & i, 2) &"_" & trim(AlanAdi) & "###" & vbcrlf & chr(9) & _
+			"###ENDIF###" & vbcrlf
+		if i <> AlanSayisi Then
+			NSStr = NSStr  & chr(9)
+		End if
+	Next
+	NSStr = NSStr & "###IF NOTEMPTY KRITERGIRIS.NCL01_" & trim(Alanadi) & "###"  & vbcrlf & ")" & vbcrlf & "###ENDIF###" & vbcrlf
+	GetNSStr = NSStr
+End Function
+Function GetCLStr1(KriterTipi, Alanadi, AlanAdi1)
+	AlanSayisi = Doc.CDbl(Mid(KriterTipi, 2))
+	OrStr = "1=0 " & vbcrlf & chr(9)
+	For i = 1 to AlanSayisi
+		OrStr = OrStr & "###IF NOTEMPTY KRITERGIRIS.CL" & Right("00" & i, 2) &"_" & trim(Alanadi) & "###" & vbcrlf & chr(9) & _
+			"OR " & AlanAdi1 & "=###KRITERGIRIS.CL" & Right("00" & i, 2) &"_" & trim(AlanAdi) & "###" & vbcrlf & chr(9) & _
+			"###ENDIF###" & vbcrlf & chr(9)
+	Next
+	GetCLStr = OrStr
+End Function
+Function GetNSStr1(KriterTipi, Alanadi, AlanAdi1)
+	AlanSayisi = Doc.CDbl(Mid(KriterTipi, 3))
+	NSStr = "1=1 " & vbcrlf & chr(9)
+	For i = 1 to AlanSayisi
+		NSStr = NSStr & "###IF NOTEMPTY KRITERGIRIS.NCL" & Right("00" & i, 2) &"_" & trim(Alanadi) & "###" & vbcrlf & chr(9) & _
+			"AND " & AlanAdi1 & "<>###KRITERGIRIS.NCL" & Right("00" & i, 2) &"_" & trim(AlanAdi) & "###" & vbcrlf & chr(9) & _
+			"###ENDIF###" & vbcrlf & chr(9)
+	Next
+	GetNSStr = NSStr
+End Function                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Muhasebe Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("MUHA00", "MUHA001", "MUHA01", "MUHA0P", "MUHA10", "MUHA11", "MUHA12", "MUHA12", "MUHA13", _
+						"MUHA1P", "MUHA21", "MUHA95", "MUHA96", "MUHA97", "MUHA98", "MUHA99", "MUHAR0", "MUHAR0X", "MUHAR1", _
+						"MUHAR1X", "MUHAR2", "MUHAR5", "MUHAR7", "MUHAR8", "MUHAR9", "ENTE00", "TABL01","TABL02","TABL03", _
+						"TABL04","TABL05","TABL09","TABL10","TABL21","TABL22","TABL23","TABL25","TABL40","TABL43","TABL44", _
+						"TABL45","TABL46","TABL47","TABL48","TABL489","TABL49","TABL53","TABL54","TABL56","TABL57","TABL9Q", _
+						"TABL8Q","TABL8L","TABL8E","TABLB1","TABLB2","TABLM1","TABLM2","TABLM3","TABLM4","TABLM5","TABLM6", _
+						"MUHA1A","BEYNB1","BEYNB2","DMRB60", "RECL00","RECL03","RECL04","RECL05","RECL06","RECL07","RECL08", _
+						"CHPSWD", "MUHA1K", "MIZN00")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-1
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Cari Ýþlemler/Kasa Ekle
+Kod : 
+Sub Makro1()
+
+	ProgramArray = Array("CARI00","CARI001","CARI001","CARI00R","CARI20","CARI20A","CARI20B","CARI20BV","CARI20GD", _
+									"CARI20GL","CARI20V","CARI23","CARI30","CARIR3M","CARIR4","CARIR4","CARIR7","CARIR7M","CARIRB", _
+									"CARIRBM","CARIRC","CARIRF","CARIRK", "CARI2A", "NAKRP0", "NAKT11", "CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-2
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Çek Senet Ýþlemleri Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("CKSN02","CKSN20","CKSN21","CKSN22","CKSN23","CKSN24","CKSN25","CKSN26","CKSN27","CKSN28", _
+									"CKSN30","CKSN31","CKSN32","CKSN33","CKSN34","CKSN35","CKSN36","CKSN37","CKSN38","CKSNR0", _
+									"CKSNR2","CKSNR5", "CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-3
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Fabrika Bakým Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("SRVB00","SRVB001","SRVBC0","SRVBK0","SRVBL0","SRVBP0","SRVBR001","SRVBS0","SRVBS1","SRVBT0", _
+							"SRVBZ0", "CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-4
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kalibrasyon Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("SRVK00","SRVK001","SRVKC0","SRVKK0","SRVKL0","SRVKP0","SRVKR001","SRVKS0","SRVKS1","SRVKT0", _
+							"SRVKZ0", "CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-5
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Stok Ýþlemleri Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("STOK19","STOK20","STOK21","STOK22","STOK23","STOK24","STOK25","STOK26","STOK28","STOK29", _
+										"STOK29I","STOK30","STOK31","STOK32","STOK35","STOK36","STOK60","STOK60I","STOK61","STOK63", _
+										"STOK66","STOK68","STOKQ2","STOKGD","STOKGD","STOKGD","STOKQ3","STOKGD","STOKQ3","STOKR4", _
+										"STOKR5","STOKY01","STOK83","STOK84","CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                 
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-6
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Planlama/Ürün Aðaçlarý Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("MMPS10","MMPS20","MMPS30","MMPS301","MMPS31","MMPS40","MMPS60","MMPSR0","MMPSR1","MMPSR2", _
+										"PERST0","PERS00I","PERS00","SFDC31","SFDC20","STOK00","STOK001","BOMU01","BOMU01X","BOMU21", _
+										"IMLT00","IMLT01","IMLTR1","IMLTRX","TAKVM0","TECH10","CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-7
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Faturalarý Ekle
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("STOK701","STOK70","STOK70I","STOK71I","STOK71","STOK74","STOK74F","STOK74I","STOK75", _
+										"STOK75I","STOK81","STOK791","STOK79","CHPSWD")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='"+Program+"'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "1"
+			UDEFT1.RIGHT_R(satirNo) = "1"
+			UDEFT1.RIGHT_W(satirNo) = "1"
+			UDEFT1.RIGHT_U(satirNo) = "1"
+			UDEFT1.RIGHT_D(satirNo) = "1"
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARKO10 / Uygulama : MAKR7S
+Makro Kodu : ++UDEF-8
+Hangi Tablo için : UDEF00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Bordro Yetkilerini Ýptal Et
+Kod : 
+Sub Makro1()
+	ProgramArray = Array("PERSM0","PERSB06","PERSB07","PERSB08","PERSB39","PERSB40","PERSB43","PERSB45","PERSB46", _
+										"BORDROR0","PERSM1","BORDRO1","BORDROA","PERSB02", "PERSB03", "PERSB04", "PERSM22", _
+										"PERSM05", "PERSM04", "PERSM24", "BORDROR", "BORDROB", "PERSB01", "BORDROS", _
+										"BORDROKK", "BORDROKE", "BORDROKS", "BORDROKT", "BORDROKY", "BORDROKL", "BORDROKD", _
+										"BORDROH", "BORDR1")
+	UDEFT1.SafePack
+	For each Program in ProgramArray
+		Set UT1 = Doc.Select2("sfdsdf", "UDEFT1", "PROGRAMKODU='" & Program & "'", "", -1)
+		if UT1.GetRowCount = 0 Then
+			UDEFT1.AddRow()
+			satirNo = UDEFT1.GetRowCount()
+			UDEFT1.PROGRAMKODU(satirNo) = Program
+			UDEFT1.RIGHT_X(satirNo) = "0"
+			UDEFT1.RIGHT_R(satirNo) = "0"
+			UDEFT1.RIGHT_W(satirNo) = "0"
+			UDEFT1.RIGHT_U(satirNo) = "0"
+			UDEFT1.RIGHT_D(satirNo) = "0"
+		End if
+	Next
+End Sub                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

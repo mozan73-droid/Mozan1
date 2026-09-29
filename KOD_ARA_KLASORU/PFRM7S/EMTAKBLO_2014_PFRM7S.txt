@@ -1,0 +1,293 @@
+Form Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : PFRM7S
+Makro Kodu : F-FORM
+Hangi Tablo için : PFRM7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public strfind(8)
+Sub PrintForm()
+	
+	Dim objDoc, objWord, Selection
+	Set objWord = CreateObject( "Word.Application" )
+	objWord.visible = True
+	Set objDoc = objWord.Documents.Add()
+	Set Selection = objWord.Selection
+	'objWord.Selection.EndKey 6,0
+	FirmKodu = Trim(Doc.Getd7FirmCode())
+	Uygulama = Trim(Doc.GetDocType)
+
+	Set PFR7SE = Doc.Select1("dd333d", "PFRM7SE", "", "EVRAKNO", -1)
+	'Set MKR7SE = Doc.Select1("dd333d", "MAKR7SE", "EVRAKNO = '_GNPRG1'", "", -1)
+	
+	KayitSayisi = PFR7SE.GetRecCount()
+	'-------------------------------------------------
+	'Satýr boþluk ayarýný yapar.
+	Selection.ParagraphFormat.LineSpacing = 10
+	objWord.ActiveDocument.ShowSpellingErrors = False
+	'----------------------------------------------
+	'Tab ayarýný yapar.
+	objWord.ActiveDocument.DefaultTabStop = 15
+	'---------------------------------------------
+	For i = 1 To KayitSayisi
+		EVRAKKODU_ORJ = Trim(PFR7SE.EVRAKNO(i))
+		If Left(EVRAKKODU_ORJ, 2) <> "++" Then
+			EVRAKKODU = Trim(PFR7SE.EVRAKNO(i))
+
+			Kodlar = ""
+			EKodlar = ""
+			Selection.Paragraphs.Alignment = 1   '1:wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			Selection.TypeText "Form Kaynak Kodu"
+			Selection.Typeparagraph
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.TypeText "Firma Kodu : " & FirmKodu  & " / " & "Uygulama : " &  Uygulama
+			Selection.Typeparagraph
+			Selection.TypeText "Makro Kodu : " & EVRAKKODU 
+			'------------------------
+		
+			'Selection.Paragraphs.Alignment = 1 wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			'2: wdAlignParagraphRight yani üst satýrdakini saga yaslar.
+			'3: wdAlignParagraphRight yani üst satýrdakini sola yaslar.
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.Typeparagraph
+			Selection.TypeText "Hangi Tablo için : " & Trim(PFR7SE.DOCTYPE(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Ýlave Hangi Uygulamalar için : " & Trim(PFR7SE.ADDDOCTYPES(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Açýklama : " & Trim(PFR7SE.ACIKLAMA(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Kod : "
+			Selection.Typeparagraph
+
+			Set PFR7ST = Doc.Select1("dd333d", "PFRM7ST", "EVRAKNO='"&EVRAKKODU&"'",">SRNUM", -1)
+
+			For k = 1 To PFR7ST.GetRecCount()
+				Selection.Font.Color = vbBlue
+				Kodlar = Kodlar & PFR7ST.SCRIPTTEXT_RO(k)
+			Next
+
+			Selection.TypeText Kodlar
+			Selection.Typeparagraph
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Font.Color = vbBlack
+			Set PFR7SE= Doc.Select1("dd333d", "PFRM7SE", "", "", -1)
+		
+			Selection.TypeText "----------------------------------------------------------------"
+			Selection.Typeparagraph
+		End If
+	Next
+	'--------------------------------------------------------------------------
+	'Font lara makyaj
+	For j = 1  To 8
+		strfind(1) = "Makro Kaynak Kodu"
+		strfind(2) = "Makro Kodu : "
+		strfind(3) = "Hangi Tablo için : "
+		strfind(4) = "Ýlave Hangi Uygulamalar için : "
+		strfind(5) = "Açýklama : "
+		strfind(6) = "Kod : "
+		strfind(7) = "Firma Kodu : "
+		strfind(8) = "Uygulama : "
+
+		Set objRange = objWord.ActiveDocument.Content
+		
+		With objRange.Find
+		.Text = strfind(j)
+		Do
+			.Execute
+			If .Found Then
+				objRange.Font.Color = vbRed
+				objRange.Font.Bold = True
+				'If j = 1 Then objWord.ParagraphFormat.Alignment = wdAlignParagraphCenter
+			End If
+			Loop While .Found
+			End With
+		Next
+		Selection.WholeStory
+		'----------------------------------------------------
+		'Satýr sonlarýndaki boþluðu alma
+		Selection.ParagraphFormat.SpaceAfter = 0.5
+		'---------------------------------------------------
+		'Sayfanýn kenarlarýný daralt
+		With objWord.ActiveDocument.PageSetup
+			.Orientation = wdOrientLandscape
+			bosluk = 15
+			.TopMargin = bosluk
+			.BottomMargin = bosluk
+			.LeftMargin = 43
+			.RightMargin = bosluk
+		End With
+		'--------------------------------------------------------------------------
+		'Satýr numaralarý ekler
+    With Selection.PageSetup
+        With .LineNumbering
+            .Active = True
+            .StartingNumber = 1
+            .CountBy = 1
+            .RestartMode = 1
+            .DistanceFromText = 0
+        End With
+		End With
+		'--------------------------------------------------------------------------
+		objWord.visible = True
+		desktoppath = CreateObject("WScript.Shell").SpecialFolders("Desktop")
+		objDoc.SaveAs(desktoppath & "\" & FirmKodu & "_" & Uygulama)
+		Msgbox "Masaüstüne kaydedildi..."
+		Set objDoc = Nothing
+		Set oWords = Nothing
+		Set objWord = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                    
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : PFRM7S
+Makro Kodu : F-FORM
+Hangi Tablo için : PFRM7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public strfind(8)
+Sub PrintForm()
+	
+	Dim objDoc, objWord, Selection
+	Set objWord = CreateObject( "Word.Application" )
+	objWord.visible = True
+	Set objDoc = objWord.Documents.Add()
+	Set Selection = objWord.Selection
+	'objWord.Selection.EndKey 6,0
+	FirmKodu = Trim(Doc.Getd7FirmCode())
+	Uygulama = Trim(Doc.GetDocType)
+
+	Set PFR7SE = Doc.Select1("dd333d", "PFRM7SE", "", "EVRAKNO", -1)
+	'Set MKR7SE = Doc.Select1("dd333d", "MAKR7SE", "EVRAKNO = '_GNPRG1'", "", -1)
+	
+	KayitSayisi = PFR7SE.GetRecCount()
+	'-------------------------------------------------
+	'Satýr boþluk ayarýný yapar.
+	Selection.ParagraphFormat.LineSpacing = 10
+	objWord.ActiveDocument.ShowSpellingErrors = False
+	'----------------------------------------------
+	'Tab ayarýný yapar.
+	objWord.ActiveDocument.DefaultTabStop = 15
+	'---------------------------------------------
+	For i = 1 To KayitSayisi
+		EVRAKKODU_ORJ = Trim(PFR7SE.EVRAKNO(i))
+		If Left(EVRAKKODU_ORJ, 2) <> "++" Then
+			EVRAKKODU = Trim(PFR7SE.EVRAKNO(i))
+
+			Kodlar = ""
+			EKodlar = ""
+			Selection.Paragraphs.Alignment = 1   '1:wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			Selection.TypeText "Form Kaynak Kodu"
+			Selection.Typeparagraph
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.TypeText "Firma Kodu : " & FirmKodu  & " / " & "Uygulama : " &  Uygulama
+			Selection.Typeparagraph
+			Selection.TypeText "Makro Kodu : " & EVRAKKODU 
+			'------------------------
+		
+			'Selection.Paragraphs.Alignment = 1 wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			'2: wdAlignParagraphRight yani üst satýrdakini saga yaslar.
+			'3: wdAlignParagraphRight yani üst satýrdakini sola yaslar.
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.Typeparagraph
+			Selection.TypeText "Hangi Tablo için : " & Trim(PFR7SE.DOCTYPE(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Ýlave Hangi Uygulamalar için : " & Trim(PFR7SE.ADDDOCTYPES(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Açýklama : " & Trim(PFR7SE.ACIKLAMA(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Kod : "
+			Selection.Typeparagraph
+
+			Set PFR7ST = Doc.Select1("dd333d", "PFRM7ST", "EVRAKNO='"&EVRAKKODU&"'",">SRNUM", -1)
+
+			For k = 1 To PFR7ST.GetRecCount()
+				Selection.Font.Color = vbBlue
+				Kodlar = Kodlar & PFR7ST.SCRIPTTEXT_RO(k)
+			Next
+
+			Selection.TypeText Kodlar
+			Selection.Typeparagraph
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Font.Color = vbBlack
+			Set PFR7SE= Doc.Select1("dd333d", "PFRM7SE", "", "", -1)
+		
+			Selection.TypeText "----------------------------------------------------------------"
+			Selection.Typeparagraph
+		End If
+	Next
+	'--------------------------------------------------------------------------
+	'Font lara makyaj
+	For j = 1  To 8
+		strfind(1) = "Makro Kaynak Kodu"
+		strfind(2) = "Makro Kodu : "
+		strfind(3) = "Hangi Tablo için : "
+		strfind(4) = "Ýlave Hangi Uygulamalar için : "
+		strfind(5) = "Açýklama : "
+		strfind(6) = "Kod : "
+		strfind(7) = "Firma Kodu : "
+		strfind(8) = "Uygulama : "
+
+		Set objRange = objWord.ActiveDocument.Content
+		
+		With objRange.Find
+		.Text = strfind(j)
+		Do
+			.Execute
+			If .Found Then
+				objRange.Font.Color = vbRed
+				objRange.Font.Bold = True
+				'If j = 1 Then objWord.ParagraphFormat.Alignment = wdAlignParagraphCenter
+			End If
+			Loop While .Found
+			End With
+		Next
+		Selection.WholeStory
+		'----------------------------------------------------
+		'Satýr sonlarýndaki boþluðu alma
+		Selection.ParagraphFormat.SpaceAfter = 0.5
+		'---------------------------------------------------
+		'Sayfanýn kenarlarýný daralt
+		With objWord.ActiveDocument.PageSetup
+			.Orientation = wdOrientLandscape
+			bosluk = 15
+			.TopMargin = bosluk
+			.BottomMargin = bosluk
+			.LeftMargin = 43
+			.RightMargin = bosluk
+		End With
+		'--------------------------------------------------------------------------
+		'Satýr numaralarý ekler
+    With Selection.PageSetup
+        With .LineNumbering
+            .Active = True
+            .StartingNumber = 1
+            .CountBy = 1
+            .RestartMode = 1
+            .DistanceFromText = 0
+        End With
+		End With
+		'--------------------------------------------------------------------------
+		objWord.visible = True
+		desktoppath = CreateObject("WScript.Shell").SpecialFolders("Desktop")
+		objDoc.SaveAs(desktoppath & "\" & FirmKodu & "_" & Uygulama)
+		Msgbox "Masaüstüne kaydedildi..."
+		Set objDoc = Nothing
+		Set oWords = Nothing
+		Set objWord = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                    
+
+
+----------------------------------------------------------------
+

@@ -1,0 +1,370 @@
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : BOMU01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+function BeforeSave()
+	Call Urunaltlimitinitopla()
+end function
+
+Sub Urunaltlimitinitopla()
+	bomu01e_no = Doc.RightJustify(BOMU01E.EVRAKNO, 10)
+	ret = Doc.UFLD00_CreateEditTable("xxx","BOMU01E", bomu01e_no)
+	Set KTA = Doc.GetTableObject("xxx")
+	Dim tpl
+	tpl = 0  
+	for i = 1 to BOMU01T.GetRecCount()
+		tpl = tpl  + BOMU01T.BOMREC_LOWERLIMIT(i)
+	next
+	KTA.TPURAL = tpl
+	KTA.Exec "SAVE"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : KIDEM
+Hangi Tablo için : PERSM0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub GK_10_OnValidate()
+	Set PRSM0 = Doc.GetTableObject("PERSM0")
+	Set PERSM0BT2 = Doc.GetTableObject("PERSM0BT2")
+	PERSM0BT2.SafePack 
+		if trim(PRSM0.GK_10) = "KIDEM" then
+			satirno = PERSM0BT2.GetRecCount()
+			PERSM0BT2.HESAPSABLONU(satirno)="KIDEM"
+			PERSM0BT2.BORDROTURU(satirno)="KIDEM"
+		End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : BOMU01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+function BeforeSave()
+	Call Urunaltlimitinitopla()
+end function
+
+Sub Urunaltlimitinitopla()
+	bomu01e_no = Doc.RightJustify(BOMU01E.EVRAKNO, 10)
+	ret = Doc.UFLD00_CreateEditTable("xxx","BOMU01E", bomu01e_no)
+	Set KTA = Doc.GetTableObject("xxx")
+	Dim tpl
+	tpl = 0  
+	for i = 1 to BOMU01T.GetRecCount()
+		tpl = tpl  + BOMU01T.BOMREC_LOWERLIMIT(i)
+	next
+	KTA.TPURAL = tpl
+	KTA.Exec "SAVE"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : KARTYAZ
+Hangi Tablo için : SRVPC0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kalýp Kartý oluþtuðunda Stok Kartýný oluþturur.
+Kod : 
+Function AfterSave 
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00", "")
+	Set ST00 = Doc1.GetTableObject("STOK00")
+
+	Set ST00X= Doc.Select1("STOK00xxx", "STOK00", "KOD='" + Trim(SRVPC0.KOD) + "'", "" , -1)
+
+	'If ST00X.GetRecCount > 0 Then
+	'	Msgbox "Bu stok kodu önceden tanýmlanmýþ. Ýþlem kesilmiþtir."
+	'	Exit Function
+	'Else
+		Doc1.Load_Voucher SRVPC0.KOD	'Kod
+		ST00.AD = Trim(SRVPC0.AD1)	'Ad
+		ST00.CODETYPE = "D"
+		ST00.IUNIT = "Ad."
+		ST00.KART_TIPI = "U"
+		ST00.KALIPMI = 1
+		ST00.GK_4 = Trim(SRVPC0.GK_1)	'Müþteri Kodlarý
+		ST00.GK_1 = Trim(SRVPC0.SINIFI)	'Kalýp Sýnýfý
+		ST00.GK_6 = Trim(SRVPC0.GK_2)	'Kalýp Mülkiyeti
+
+		Doc1.Save_Voucher
+		Doc1.LoadEmpty_Voucher
+		Doc1.DeleteDocumentNoUI "STOK00", ""
+	'End If
+End Function                                                                                                                                                                                                                                                      
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STK2KALP
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Stok Kartý oluþturulduðunda Kalýp kartýný oluþturur
+Kod : 
+Function AfterSave 
+	Set Doc1 = Doc.CreateDocumentNoUI("SRVPC0", "")
+	Set SRPC = Doc1.GetTableObject("SRVPC0")
+
+	If STOK00.KALIPMI <> "H" Then
+			Doc1.Load_Voucher STOK00.KOD	'Kod
+			SRPC.AD1 = Trim(STOK00.AD)	'Ad
+			SRPC.GK_1 = Trim(STOK00.GK_4)	'Müþteri Kodlarý
+			SRPC.SINIFI = Trim(STOK00.GK_1)	'Kalýp Sýnýfý
+			SRPC.GK_2 = Trim(STOK00.GK_6)	'Kalýp Mülkiyeti
+
+			Doc1.Save_Voucher
+			Doc1.LoadEmpty_Voucher
+			Doc1.DeleteDocumentNoUI "SRVPC0", ""
+		'End If
+	End If
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK20-01
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Üretim Fiþi Tamamlananlar)
+Kod : 
+'bymozan
+'---------------------------------------------------------------------------------
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+	
+	Set S20E = Doc.GetTableObject("STOK20E")
+	UretimFisEvrakNo = Trim(S20E.EVRAKNO)
+	Call TuketilenHammaddeMiktarKontrolu(UretimFisEvrakNo)
+End Function
+'--------------------------------------------------------------------------------
+Sub TuketilenHammaddeMiktarKontrolu(UretimFisEvrakNo)
+	If Doc.DataEntryMode <> "GUI" Then Exit Sub
+	
+	SQL = "SELECT "
+	SQL = SQL & " S20T_KARSITRNUM, "
+	SQL = SQL & " S20T_EVRAKNO, "
+	SQL = SQL & " S20T_URETILEN_KOD, "
+	SQL = SQL & " S20T_TOP_URETILEN_MIKTAR, "
+	SQL = SQL & " S20T_URETILEN_BIRIM, "
+	SQL = SQL & " S20TI_TUKETILEN_KOD, "
+	SQL = SQL & " TO_CHAR(S20TI_TOPLAM_TUKETILEN, '999,999.99') S20TI_TOPLAM_TUKETILEN, "
+	SQL = SQL & " S20TI_TUKETILEN_BIRIM, "
+	SQL = SQL & " B01E_MAMULMIKTAR, "
+	SQL = SQL & " B01T_HAMMADDE, "
+	SQL = SQL & " B01T_HAMMADDE_MIKTARI, "
+	SQL = SQL & " BIRIM_TUKETIM_MIKTARI, "
+	SQL = SQL & " TO_CHAR(TOPLAM_HARCANMASI_GEREKEN, '999,999.99') TOPLAM_HARCANMASI_GEREKEN, "
+
+	SQL = SQL & " TO_CHAR((S20TI_TOPLAM_TUKETILEN-TOPLAM_HARCANMASI_GEREKEN), '999,999.99') FARK, "
+
+	SQL = SQL & " (CASE "
+	SQL = SQL & " WHEN S20TI_TOPLAM_TUKETILEN > TOPLAM_HARCANMASI_GEREKEN THEN 'FAZLA' "
+	SQL = SQL & " WHEN S20TI_TOPLAM_TUKETILEN < TOPLAM_HARCANMASI_GEREKEN THEN 'AZ' "
+	SQL = SQL & "   WHEN S20TI_TOPLAM_TUKETILEN = TOPLAM_HARCANMASI_GEREKEN THEN 'AYNI' "
+	SQL = SQL & "   WHEN TRIM(B01T_HAMMADDE) IS NULL AND S20TI_TOPLAM_TUKETILEN>0 THEN 'BOM_DA_TANIMSIZ_HAMMADDE' "
+	SQL = SQL & "   ELSE 'TUKETILENSIZ' "
+	SQL = SQL & " END) DURUM1, "
+
+	SQL = SQL & " (CASE "
+	SQL = SQL & " WHEN S20TI_TOPLAM_TUKETILEN > TOPLAM_HARCANMASI_GEREKEN THEN 1 "
+	SQL = SQL & " WHEN S20TI_TOPLAM_TUKETILEN < TOPLAM_HARCANMASI_GEREKEN THEN 1 "
+	SQL = SQL & "   WHEN S20TI_TOPLAM_TUKETILEN = TOPLAM_HARCANMASI_GEREKEN THEN 0 "
+	SQL = SQL & "   WHEN TRIM(B01T_HAMMADDE) IS NULL AND S20TI_TOPLAM_TUKETILEN>0 THEN 1 "
+	SQL = SQL & "   ELSE 1 "
+	SQL = SQL & " END) DURUM2 "	
+	
+	SQL = SQL & " FROM "
+	SQL = SQL & " ( "
+	SQL = SQL & " SELECT "
+	SQL = SQL & " S20T_KARSITRNUM, "
+	SQL = SQL & " S20T_EVRAKNO, "
+	SQL = SQL & " S20T_URETILEN_KOD, "
+	SQL = SQL & " TO_CHAR(SUM(S20T_URETILEN_MIKTAR), '999,999.99')  S20T_TOP_URETILEN_MIKTAR, "
+	SQL = SQL & " S20T_URETILEN_BIRIM, "
+
+	SQL = SQL & " S20TI_TUKETILEN_KOD, "
+	SQL = SQL & " S20TI_TOPLAM_TUKETILEN, "
+	SQL = SQL & " S20TI_TUKETILEN_BIRIM, "
+	SQL = SQL & " B01E_MAMULMIKTAR, "
+	SQL = SQL & " B01T_HAMMADDE, "
+	SQL = SQL & " B01T_HAMMADDE_MIKTARI, "
+	SQL = SQL & " BIRIM_TUKETIM_MIKTARI, "
+	SQL = SQL & " SUM(HARCANMASI_GEREKEN) TOPLAM_HARCANMASI_GEREKEN "
+
+	SQL = SQL & " FROM "
+	SQL = SQL & " ( "
+	SQL = SQL & " SELECT "
+	SQL = SQL & " S20T_KARSITRNUM, "
+	SQL = SQL & " S20T_EVRAKNO, "
+	SQL = SQL & " S20T_URETILEN_KOD, "
+	SQL = SQL & " S20T_URETILEN_MIKTAR, "
+	SQL = SQL & " S20T_URETILEN_BIRIM, "
+
+	SQL = SQL & " S20TI_TUKETILEN_KOD, "
+	SQL = SQL & " SUM(S20TI_TUKETILEN_MIKTAR) S20TI_TOPLAM_TUKETILEN, "
+	SQL = SQL & " S20TI_TUKETILEN_BIRIM, "
+	SQL = SQL & " B01E_MAMULMIKTAR, "
+	SQL = SQL & " B01T_HAMMADDE, "
+	SQL = SQL & " B01T_HAMMADDE_MIKTARI, "
+	SQL = SQL & " (B01T_HAMMADDE_MIKTARI/B01E_MAMULMIKTAR) BIRIM_TUKETIM_MIKTARI, "
+	SQL = SQL & " (S20T_URETILEN_MIKTAR * (B01T_HAMMADDE_MIKTARI/B01E_MAMULMIKTAR)) HARCANMASI_GEREKEN "
+
+	SQL = SQL & " FROM "
+
+	SQL = SQL & " ( "
+
+	SQL = SQL & " (SELECT KARSITRNUM S20T_KARSITRNUM, EVRAKNO S20T_EVRAKNO, KOD S20T_URETILEN_KOD, SF_MIKTAR S20T_URETILEN_MIKTAR, SF_SF_UNIT S20T_URETILEN_BIRIM FROM STOK20T)A "
+
+	SQL = SQL & " LEFT JOIN "
+
+	SQL = SQL & " (SELECT KARSITRNUM S20TI_KARSITRNUM, EVRAKNO S20TI_EVRAKNO, KOD S20TI_TUKETILEN_KOD, SF_MIKTAR S20TI_TUKETILEN_MIKTAR, SF_SF_UNIT S20TI_TUKETILEN_BIRIM FROM STOK20TI)B "
+	SQL = SQL & " ON A.S20T_EVRAKNO = B.S20TI_EVRAKNO AND A.S20T_KARSITRNUM = B.S20TI_KARSITRNUM "
+
+	SQL = SQL & " LEFT JOIN "
+
+	SQL = SQL & " (SELECT MAMULCODE, MAMULMIKTAR B01E_MAMULMIKTAR, AKTIF_PASIF, EVRAKNO B01E_EVRAKNO FROM BOMU01E)C "
+	SQL = SQL & " ON A.S20T_URETILEN_KOD = C.MAMULCODE AND C.AKTIF_PASIF = '*' "
+
+	SQL = SQL & " LEFT JOIN "
+
+	SQL = SQL & " (SELECT BOMREC_INPUTTYPE, EVRAKNO BO1T_EVRAKNO, BOMREC_KAYNAKCODE B01T_HAMMADDE, BOMREC_KAYNAK0 B01T_HAMMADDE_MIKTARI FROM BOMU01T)D "
+	SQL = SQL & " ON C.B01E_EVRAKNO = D.BO1T_EVRAKNO AND D.BOMREC_INPUTTYPE = 'H' AND D.B01T_HAMMADDE = B.S20TI_TUKETILEN_KOD "
+
+	SQL = SQL & " ) GROUP BY S20T_KARSITRNUM, S20T_EVRAKNO, S20T_URETILEN_KOD, S20T_URETILEN_MIKTAR, S20T_URETILEN_BIRIM, S20TI_TUKETILEN_KOD, S20TI_TUKETILEN_BIRIM, B01E_MAMULMIKTAR, B01T_HAMMADDE, B01T_HAMMADDE_MIKTARI, (B01T_HAMMADDE_MIKTARI/B01E_MAMULMIKTAR), (S20T_URETILEN_MIKTAR * (B01T_HAMMADDE_MIKTARI/B01E_MAMULMIKTAR)) "
+
+	SQL = SQL & " ) GROUP BY S20T_KARSITRNUM, S20T_EVRAKNO, S20T_URETILEN_KOD, S20T_URETILEN_BIRIM, S20TI_TUKETILEN_KOD, S20TI_TOPLAM_TUKETILEN, S20TI_TUKETILEN_BIRIM, B01E_MAMULMIKTAR, B01T_HAMMADDE, B01T_HAMMADDE_MIKTARI, BIRIM_TUKETIM_MIKTARI "
+
+	SQL = SQL & " ) "
+	SQL = SQL & " WHERE 1=1 "
+	SQL = SQL & " AND TRIM(S20T_EVRAKNO) = '"&UretimFisEvrakNo&"' "  
+	'SQL = SQL & " --AND TRIM(MPSNO) = '14_01306' 
+	'SQL = SQL & " --AND S20T_KARSITRNUM = '000006'
+	SQL = SQL & " ORDER BY S20T_KARSITRNUM "
+	
+	Set SQLTable = Doc.RunSQLQuery("XXXXX11_TT", SQL)
+
+	KayitSayisi = SQLTable.GetRecCount
+	If KayitSayisi = 0 Then Exit Sub
+	
+	Set S_Table = Doc.Select2("dsadd", "XXXXX11_TT", "DURUM2='1'", "", -1)
+	If S_Table.GetRecCount = 0 Then Exit Sub
+
+	k = Doc.d7MsgBox("Tüketilen Hammadde Miktar Uygunsuzluðu." & vbcrlf & vbcrlf & "Detayý Görmek Ýstiyor Musunuz?", "Freedom Uyarý", MB_YESNO)
+	If k<>6 Then Exit Sub
+		
+	Call S_Table.PrintOut("Üretim Fiþi - Tüketilen Miktar Kontrolü","H",FALSE,"S20T_KARSITRNUM, S20T_EVRAKNO, S20T_URETILEN_KOD, S20T_TOP_URETILEN_MIKTAR, S20T_URETILEN_BIRIM, S20TI_TUKETILEN_KOD, S20TI_TOPLAM_TUKETILEN, S20TI_TUKETILEN_BIRIM, TOPLAM_HARCANMASI_GEREKEN, FARK, DURUM1 ")
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK60-01
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Sevk Ýrsaliyesi)
+Kod : 
+'bymozan
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK21-01
+Hangi Tablo için : STOK21
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Stok Giriþ - Çýkýþ Fiþi)
+Kod : 
+'bymozan
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK26-01
+Hangi Tablo için : STOK26
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Depodan Depoya Transfer)
+Kod : 
+'bymozan
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK25-01
+Hangi Tablo için : STOK25
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Stok Kod Lot Ser Transfer)
+Kod : 
+'bymozan
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK63-01
+Hangi Tablo için : STOK63
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Fason Çýkýþ Ýrsaliyesi
+Kod : 
+'bymozan
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK61-01
+Hangi Tablo için : STOK61
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Güvenlik Stoðu Kontrolü - 24.10.2014 - (Depolar Arasý Yol Ýrsaliyesi)
+Kod : 
+'bymozan
+Function AfterSave()
+	If Doc.DataEntryMode <> "GUI" Then Exit Function
+	Doc.RunMacro0 "MAKR7S.GSTOKUYAR", "Makro1"
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ARSAN_2014 / Uygulama : MAKR8S
+Makro Kodu : CARI20-01
+Hangi Tablo için : CARI20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : cari e-fatura mý kontrolü
+Kod : 
+Sub KOD_AfterValidate()
+	Set C20T = Doc.GetTableObject("CARI20T")
+	CariKodu = C20T.KOD
+	
+	Set C00 = Doc.Select1("fsffsf", "CARI00", "KOD='"&CariKodu&"' & EFTR_GONDERILECEK='1' ", "", -1)
+	If C00.GetRecCount > 0 Then
+		Doc.d7Msgbox "[ " & Trim(CariKodu) & " ] Kodlu Firma " & vbcrlf & vbcrlf & "E-Fatura Kullanýcýsýdýr.", "Bilgilendirme", MB_OK
+	End If
+	
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+----------------------------------------------------------------
+

@@ -1,0 +1,378 @@
+Makro Kaynak Kodu
+Firma Kodu : SVL_2014 / Uygulama : MAKR7S
+Makro Kodu : ZZZZ
+Hangi Tablo için : STOK001
+Ýlave Hangi Uygulamalar için : 
+Açýklama : STOK001 // TOPLU STOK KARTI SÝLME V2 18MRT163910
+Kod : 
+Public vTable, xStokKod, xFlag, zSatir, zFlag
+Public Grid
+
+Sub Makro1()
+
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00","")
+	Set T_STOK00 = Doc1.GetTableObject("STOK00")
+	Silinen = 0
+	xStokKod= ""
+	xFlag = 0
+	Call TabloAlan()
+
+	For i = 1 to LISTET.GetRecCount()
+		SKOD = LISTET.KOD(i)
+		xStokKod = Trim(LISTET.KOD(i))
+		zSatir = i
+		zFlag = 0
+
+		Call NerelerdeKullanilmis()
+
+		If zFlag <> 1 Then
+		' -----------------------------------------------------------------
+				nretcode = Doc1.Load_Voucher(SKOD)
+	  		  If nretcode <> 0 Then
+  		  		 MsgBox ("New Error = " & CStr(nretcode) & " - " & CStr(i))
+     	  	 LISTET.AD(i) = "Kart Bulunamadý"
+				End If
+
+				If LISTET.AD(i) <> "Kart Bulunamadý" Then 'Kart Var ise
+		     	nretcode = Doc1.Delete_Voucher()
+	  		   	If nretcode <> 0 Then
+						LISTET.AD(i) = "Silinemedi"
+     			End If		
+			   	If nretcode = 0 Then
+						LISTET.AD(i) = "OK"
+     			   Silinen = Silinen + 1
+						 Doc.StatusBarMessage i & " / " & LISTET.GetRecCount() & " - " & Silinen
+      			End If	
+				End If 'Kart Var ise
+		' -----------------------------------------------------------------
+		End If
+	Next
+	msgbox Silinen & " adet stok kodu silindi"
+	Silinen = 0
+	i=0
+End Sub
+
+Sub NerelerdeKullanilmis()
+	Dim BatchErrorMode
+	Set BatchErrorMode=Doc.CreateSObject("BatchErrorMode") 
+
+	If Trim(xStokKod)="" Then 
+		msgbox zSatir&".nci Satýrdaki Stok Kodu Boþ, Ýþlem durduruluyor"
+		Exit Sub
+	End If
+
+	xFlag = 0
+
+	For j=0 To UBound(Grid, 1)
+		NTable = Trim(Grid(j, 0))
+		If Trim(NTable)<>"" Then
+			NField = Trim(Grid(j, 1))
+			xKontrol = Kullanilmismi(xStokKod, NTable, NField)
+			xFlag = xFlag + xKontrol
+		End If
+	Next	
+	If xFlag<>0 Then
+		Exit Sub
+	Else
+		'''''	Call UrunAgaciniSil()
+		'''''	Call StokKartiniSil()
+	End If
+End Sub
+
+Sub UrunAgaciniSil()
+'---------------------------------------------------------------------------------------
+''	Set vTable = Doc.Select1("ABC","BOMU01E","MAMULCODE='"+xStokKod+"'" ,"MAMULCODE", -1) 
+''	If vTable.GetRowCount>0 Then 
+''		For J=1 To vTable.GetRowCount()
+''			BOMFoyNo = vTable.EVRAKNO(J)	
+''			Set Doc2 = Doc.CreateDocumentNoUI("BOMU01","")
+''			nretcode = Doc2.Load_Voucher(BOMFoyNo)
+''			If nretcode = 0 Then
+''				nretcode = Doc2.Delete_Voucher()
+''     	End If		
+''			Doc.StatusBarMessage zSatir & ".nci Satýrdaki" &" "& xStokKod &" "& "Stok Koduna Ait Ürün Aðacý Silindi !..."
+''		Next
+''	End If
+'---------------------------------------------------------------------------------------
+End Sub
+
+Sub StokKartiniSil()
+'---------------------------------------------------------------------------------------
+'	Set vTable = Doc.Select1("ABC","STOK00","KOD='"+xStokKod+"'" ,"", -1) 
+'	If vTable.GetRowCount>0 Then 
+'		For J=1 To vTable.GetRowCount()
+'			Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+'			nretcode = Doc2.Load_Voucher(xStokKod)
+'			If nretcode = 0 Then
+'				nretcode = Doc2.Delete_Voucher()
+'     	End If		
+'		Next
+'	End If
+'---------------------------------------------------------------------------------------
+End Sub
+
+Function Kullanilmismi(vStokKod, vNTable, vNField)
+	Dim zTable
+	Dim BatchErrorMode
+	Set BatchErrorMode=Doc.CreateSObject("BatchErrorMode") 
+
+	If Trim(vStokKod)="" Then
+		doc.d7msgbox zSatir&".nci Satýr Stok Kodu Boþ", "dinamo",MB_OK
+		Exit Function
+	End If
+
+	If Trim(vNTable)="" Then
+		doc.d7msgbox zSatir&".nci Satýr Tablo Adý Boþ", "dinamo",MB_OK
+		Exit Function
+	End If
+
+	If Trim(vNField)="" Then
+		doc.d7msgbox zSatir&".nci Satýr- " & vNTable & " " & "Tablonun Alan Adý Boþ", "dinamo",MB_OK
+		Exit Function
+	End If
+
+
+		Set zTable = Doc.Select1("xTable",vNTable, vNField&"='"&vStokKod&"'" ,"", 1) 
+		If zTable.GetRowCount>0 Then 
+			Kullanilmismi = 1
+			xK = "Kullanýmýþ"
+			zFlag = 1
+		Else
+			Kullanilmismi = 0
+			xK = "Kullanýlmamýþ"
+			zFlag = 0
+		End If
+
+	Doc.StatusBarMessage zSatir&".nci Satýr- "&vStokKod&" / "&vNTable&" / "&vNField&" - " &xK
+
+End Function
+
+Sub TabloAlan()
+' ------------------------------------
+	Redim Grid(713, 2)
+
+	Grid(0,  0)="STOK2AT"
+	Grid(1,  0)="STOK2AT"
+	Grid(2,  0)="STOK2AT"
+	Grid(3,  0)="STOK2AT"
+	Grid(4,  0)="TEKL20T2"
+	Grid(5,  0)="BOMU01T"
+	Grid(6,  0)="BOMU01T"
+	Grid(7,  0)="BOMU01T"
+	Grid(8,  0)="BOMU01T"
+	Grid(9,  0)="BOMU01T"
+	Grid(10, 0)="BOMU01T"
+	Grid(11, 0)="BOMU01T"
+	Grid(12, 0)="BOMU01T"
+	Grid(13, 0)="BOMU01T"
+	Grid(14, 0)="BOMU01T"
+	Grid(15, 0)="BOMU01T"
+	Grid(16, 0)="BOMU01T"
+	Grid(17, 0)="BOMU01TM"
+	Grid(18, 0)="BOMU01TM"
+	Grid(19, 0)="CGCV70E"
+	Grid(20, 0)="GRNT20E"
+	Grid(21, 0)="GRNT20T"
+	Grid(22, 0)="GRNT20T"
+	Grid(23, 0)="GRNT20T"
+	Grid(24, 0)="GRNT20T"
+	Grid(25, 0)="GRNT30T"
+	Grid(26, 0)="GRNT30T"
+	Grid(27, 0)="GRNT30T"
+	Grid(28, 0)="GRNT30T"
+	Grid(29, 0)="KOBA00E"
+	Grid(30, 0)="KOBA00T"
+	Grid(31, 0)="MMPS10E"
+	Grid(32, 0)="MMPS10E"
+	Grid(33, 0)="MMPS10E"
+	Grid(34, 0)="MMPS10E"
+	Grid(35, 0)="MMPS10E"
+Grid(36, 0)="MMPS10T"
+Grid(37, 0)="MMPS10T"
+Grid(38, 0)="MMPS10T"
+Grid(39, 0)="MMPS10T"
+Grid(40, 0)="MMPS10T"
+Grid(41, 0)="MMPS10T"
+Grid(42, 0)="MMPS10TM"
+Grid(43, 0)="MMPS10TM"
+Grid(44, 0)="MMPS10TM"
+Grid(45, 0)="MMPS10TM"
+Grid(46, 0)="MMPS10TM"
+Grid(47, 0)="MMPS11"
+Grid(48, 0)="MMPS12"
+Grid(49, 0)="MMPS40T"
+Grid(50, 0)="MMPS40T"
+Grid(51, 0)="MMPS40T"
+Grid(52, 0)="MMPS40T"
+Grid(53, 0)="MMPS41T"
+Grid(54, 0)="MMPS41T"
+Grid(55, 0)="MMPS41T"
+Grid(56, 0)="MMPS41T"
+Grid(57, 0)="QVAL01E"
+Grid(58, 0)="QVAL10E"
+Grid(59, 0)="QVAL10E"
+Grid(60,  0)="QVAL10E"
+Grid(61,  0)="QVAL10E"
+Grid(62,  0)="QVAL10E"
+Grid(63,  0)="QVAL10E"
+Grid(64,  0)="QVAL10E"
+Grid(65,  0)="QVAL10E"
+Grid(66,  0)="QVAL10E"
+Grid(67,  0)="QVAL10E"
+Grid(68,  0)="RECL03T"
+Grid(69,  0)="RECL04T"
+Grid(70,  0)="RECL04T"
+Grid(71,  0)="RECL06T"
+Grid(72,  0)="RECL06T"
+Grid(73,  0)="RECL06T"
+Grid(74,  0)="RECL06T"
+Grid(75,  0)="RECL07T"
+Grid(76,  0)="RECL07T"
+Grid(77,  0)="SAYM01T"
+Grid(78,  0)="SAYM01T"
+Grid(79,  0)="SAYM01T"
+Grid(80,  0)="SAYM01T"
+Grid(81,  0)="SAYM11T"
+Grid(82,  0)="SAYM11T"
+Grid(83,  0)="SAYM11T"
+Grid(84,  0)="SAYM11T"
+Grid(85,  0)="SAYM99T"
+Grid(86,  0)="SAYM99T"
+Grid(87,  0)="SAYM99T"
+Grid(88,  0)="SAYM99T"
+Grid(89,  0)="SFDC00T"
+Grid(90,  0)="SFDC00T"
+Grid(91,  0)="SFDC00T"
+Grid(92,  0)="SFDC00T"
+Grid(93,  0)="SFDC10T"
+Grid(94,  0)="SFDC10T"
+Grid(95,  0)="SFDC10T"
+Grid(96,  0)="SFDC10T"
+Grid(97,  0)="SFDC20T"
+Grid(98,  0)="SFDC20T"
+Grid(99,  0)="SFDC20T"
+Grid(100,  0)="SFDC20T"
+Grid(101,  0)="SFDC31E"
+Grid(102,  0)="SFDC31E"
+Grid(103,  0)="SFDC31E"
+Grid(104,  0)="SFDC31E"
+Grid(105,  0)="SFDC31E"
+Grid(106,  0)="SFDC31E"
+Grid(107,  0)="SFDC31E"
+Grid(108,  0)="SFDC31T"
+Grid(109,  0)="SFDC31T"
+Grid(110,  0)="SFDC31T"
+Grid(111,  0)="SFDC31T"
+Grid(112,  0)="SFDC31T"
+Grid(113,  0)="STDMH0E"
+Grid(114,  0)="STDMH0T"
+Grid(115,  0)="STOK00"
+Grid(116,  0)="STOK00"
+Grid(117,  0)="STOK00"
+Grid(118,  0)="STOK00C"
+Grid(119,  0)="STOK01"
+Grid(120,  0)="STOK01"
+Grid(121,  0)="STOK01"
+Grid(122,  0)="STOK01"
+Grid(123,  0)="STOK0F"
+Grid(124,  0)="STOK0F"
+Grid(125,  0)="STOK0F"
+Grid(126,  0)="STOK0F"
+Grid(127,  0)="STOK0GT"
+Grid(128,  0)="STOK0GT"
+Grid(129,  0)="STOK0U"
+Grid(130,  0)="STOK0P"
+Grid(131,  0)="STOK10A"
+Grid(132,  0)="STOK10A"
+Grid(133,  0)="STOK10A"
+Grid(134,  0)="STOK10A"
+Grid(135,  0)="STOK11D"
+Grid(136,  0)="STOK11D"
+Grid(137,  0)="STOK11D"
+Grid(138,  0)="STOK11D"
+Grid(139,  0)="STOK11T"
+Grid(140,  0)="STOK11T"
+Grid(141,  0)="STOK11T"
+Grid(142,  0)="STOK11T"
+Grid(143,  0)="STOK19E"
+Grid(144,  0)="STOK19E"
+Grid(145,  0)="STOK19E"
+Grid(146,  0)="STOK19E"
+Grid(147,  0)="STOK19T"
+Grid(148,  0)="STOK19T"
+Grid(149,  0)="STOK19T"
+Grid(150,  0)="STOK19T"
+Grid(151,  0)="STOK18E"
+Grid(152,  0)="STOK18E"
+Grid(153,  0)="STOK18E"
+Grid(154,  0)="STOK18E"
+Grid(155,  0)="STOK20T"
+Grid(156,  0)="STOK20T"
+Grid(157,  0)="STOK20T"
+Grid(158,  0)="STOK20T"
+Grid(159,  0)="STOK20TI"
+Grid(160,  0)="STOK20TI"
+Grid(161,  0)="STOK20TI"
+Grid(162,  0)="STOK20TI"
+Grid(163,  0)="STOK20TI"
+Grid(164,  0)="STOK20TS"
+Grid(165,  0)="STOK21T"
+Grid(166,  0)="STOK21T"
+Grid(167,  0)="STOK21T"
+Grid(168,  0)="STOK21T"
+Grid(169,  0)="STOK22T"
+Grid(170,  0)="STOK22T"
+Grid(171,  0)="STOK22T"
+Grid(172,  0)="STOK22T"
+Grid(173,  0)="STOK23T"
+Grid(174,  0)="STOK23T"
+Grid(175,  0)="STOK23T"
+Grid(176,  0)="STOK23T"
+Grid(177,  0)="STOK24T"
+Grid(178,  0)="STOK24T"
+Grid(179,  0)="STOK24T"
+Grid(180,  0)="STOK24T"
+Grid(181,  0)="STOK25T"
+Grid(182,  0)="STOK25T"
+Grid(183,  0)="STOK25T"
+Grid(184,  0)="STOK25T"
+Grid(185,  0)="STOK25T"
+Grid(186,  0)="STOK25T"
+Grid(187,  0)="STOK25T"
+Grid(188,  0)="STOK25T"
+Grid(189,  0)="STOK26E"
+Grid(190,  0)="STOK26E"
+Grid(191,  0)="STOK26E"
+Grid(192,  0)="STOK26E"
+Grid(193,  0)="STOK26T"
+Grid(194,  0)="STOK26T"
+Grid(195,  0)="STOK26T"
+Grid(196,  0)="STOK26T"
+Grid(197,  0)="STOK26T"
+Grid(198,  0)="STOK27T"
+Grid(199,  0)="STOK27T"
+Grid(200,  0)="STOK27T"
+Grid(201,  0)="STOK27T"
+Grid(202,  0)="STOK28T"
+Grid(203,  0)="STOK28T"
+Grid(204,  0)="STOK28T"
+Grid(205,  0)="STOK28T"
+Grid(206,  0)="STOK29T"
+Grid(207,  0)="STOK29T"
+Grid(208,  0)="STOK29T"
+Grid(209,  0)="STOK29T"
+Grid(210,
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+

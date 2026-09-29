@@ -1,0 +1,394 @@
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR8S
+Makro Kodu : FIFO
+Hangi Tablo için : TRACK26
+Ýlave Hangi Uygulamalar için : 
+Açýklama : RAF ÖMRÜ VE FIFO KONTROLU
+Kod : 
+'bymozan
+Public FifoKontroluOlacakMi
+
+Sub OnStart()
+    Set STC = Doc.GetTableObject("STACK")
+    Set S26E = Doc.GetTableObject("STOK26E")
+End Sub
+'-------------------------------------------------------------------------------
+Function D_ID2_OnValidate()
+	Set S01 = Doc.GetTableObject("STOK01")
+
+	Hata2 = ""
+	Hata = ""
+
+	Hata2 = RafOmruneUygunMu(S01.D_ID2)
+	If Trim(Hata2) <> "" Then
+		Doc.d7MsgBox Hata2, "Raf Ömrü Hatasý!", MB_OK
+		S01.D_ID2 = ""
+		Exit Function
+	End if
+
+	If FifoKontroluOlacakMi = True Then Hata = FIFOyaUygunMu(S01.D_ID2)
+	
+	If Trim(Hata) <> "" Then
+		Doc.d7MsgBox Hata, "FIFO Hatasý!", MB_OK
+		S01.D_ID2 = ""
+	End if
+End Function
+'------------------------------------------------------------------------------------------------------------------
+Function RafOmruneUygunMu(SeriNo)
+	Set S01 = Doc.Select1("sfsfd", "STOK01", "SERINO='"+Trim(SeriNo)+"'", "", -1)
+	If S01.GetRowCount() = 0 Then Exit Function
+	
+	Depo = Trim(S01.AMBCODE)
+	If Depo = "" Then 
+		y = doc.d7MsgBox("Deposu Tanýmlý Deðil, iptal","Eksik Barkod Bilgisi",MB_OK)
+		Exit Function
+	End If
+ 
+	Set S26E = Doc.getTableObject("STOK26E")
+	If Trim(S26E.TARGETAMBCODE) <> "YEHM" Then 
+		FifoKontroluOlacakMi = True
+		
+		Depo = Trim(S01.AMBCODE)
+		LotNo = Trim(S01.LOTNUMBER)
+		StokKodu = Trim(S01.KOD)
+		OkutulaninSonKullanmaTarihi = Trim(S01.VRI_VR_R1)
+
+		QStr = "SELECT  * FROM ("
+		QStr = QStr & " SELECT "
+		QStr = QStr & " (to_date(VRI_VR_R1, 'DDMMYYYY')) SONKULLANMATARIHI"
+		QStr = QStr & " ,(to_date('"&OkutulaninSonKullanmaTarihi&"', 'DDMMYYYY')) OKUNANTARIH"
+		QStr = QStr & " ,KOD"
+		QStr = QStr & " ,AMBCODE"
+		QStr = QStr & " ,VRI_VR_R1"
+		QStr = QStr & " ,SERINO"
+		QStr = QStr & " ,LOTNUMBER"
+		QStr = QStr & " ,LOCATION1"
+		QStr = QStr & " ,LOCATION2"
+		QStr = QStr & " ,LOCATION3"
+		QStr = QStr & " ,LOCATION4"
+		QStr = QStr & " ,SF_MIKTAR"
+		QStr = QStr & " ,SF_UNIT"
+		QStr = QStr & " FROM STOK01"
+		QStr = QStr & " )"
+		QStr = QStr & " WHERE 1=1 "
+		QStr = QStr & " AND SONKULLANMATARIHI<OKUNANTARIH "
+		QStr = QStr & " AND Trim(VRI_VR_R1) IS NOT NULL"
+		QStr = QStr & " AND Trim(AMBCODE)='YEHM'"
+		QStr = QStr & " AND Trim(KOD)='"&StokKodu&"'"
+		QStr = QStr & " ORDER BY SONKULLANMATARIHI ASC"
+		
+		Set Table_RafOmruOnceBitecekler = Doc.RunSQLQuery ("XYTTTT", QStr)
+		KayitSayisi = Table_RafOmruOnceBitecekler.GetRecCount
+
+		If KayitSayisi > 0 Then
+			Hata2 = "RaF Ömrü Kontrolü " & vbcrlf & _
+			"Okutulmasi Gereken; " & vbcrlf & "---------------------------" & vbcrlf & _
+			"Son Kul.Tarihi: " & Trim(Table_RafOmruOnceBitecekler.VRI_VR_R1(1)) & "," & vbcrlf & _
+			"Seri No: " & Trim(Table_RafOmruOnceBitecekler.SERINO(1)) & "," & vbcrlf & _
+			"Lot No: " & Trim(Table_RafOmruOnceBitecekler.LOTNUMBER(1)) & "," & vbcrlf & _
+			"Lokasyon: " & Trim(GetLokasyon(Table_RafOmruOnceBitecekler, 1)) & ", " & vbcrlf & _
+			"Miktar: " & Table_RafOmruOnceBitecekler.SF_MIKTAR(1) & " " & Trim(Table_RafOmruOnceBitecekler.SF_UNIT(1))
+			RafOmruneUygunMu = Hata2
+			FifoKontroluOlacakMi = False
+		Else
+			'sistemdeki en küçük son kullanma tarihini alýr
+			QStr = "SELECT  min(SONKULLANMATARIHI) MINSONKULLANMATARIHI, OKUNANTARIH FROM ("
+			QStr = QStr & " SELECT "
+			QStr = QStr & " (to_date(VRI_VR_R1, 'DDMMYYYY')) SONKULLANMATARIHI"
+			QStr = QStr & " ,(to_date('"&OkutulaninSonKullanmaTarihi&"', 'DDMMYYYY')) OKUNANTARIH"
+			QStr = QStr & " ,KOD"
+			QStr = QStr & " ,AMBCODE"
+			QStr = QStr & " ,VRI_VR_R1"
+			QStr = QStr & " FROM STOK01"	
+			QStr = QStr & " )"
+			QStr = QStr & " WHERE 1=1 "
+			QStr = QStr & " AND Trim(VRI_VR_R1) IS NOT NULL"
+			QStr = QStr & " AND Trim(AMBCODE)='YEHM'"
+			QStr = QStr & " AND Trim(KOD)='"&StokKodu&"'"
+		
+			Set Table_X = Doc.RunSQLQuery ("cccTTTT", QStr)
+			KayitSayisi = Table_X.GetRecCount
+
+			If KayitSayisi > 0 Then
+				If Trim(Table_X.MINSONKULLANMATARIHI(1))="" Then 
+					FifoKontroluOlacakMi = True
+				ElseIf Table_X.MINSONKULLANMATARIHI(1) = Table_X.OKUNANTARIH(1) Then
+					'Eðer okutulanýn son kullanma tarihi sistemdeki son kullanma tarihi bitimine en yakýn olan ise
+					'Fifo kontrolü yapýlmasýn
+					FifoKontroluOlacakMi = False
+				End If
+			End If
+		End If
+	End if
+End Function
+'---------------------------------------------------------------------------------------------------------------------------------------------------
+Function FIFOyaUygunMu(SeriNo)
+	Set S01 = Doc.Select1("sfsfd", "STOK01", "SERINO='"+Trim(SeriNo)+"'", "", -1)
+	
+	Depo = Trim(S01.AMBCODE)
+	If Depo = "" Then 
+		y = doc.d7MsgBox("Deposu Tanýmlý Deðil, iptal","Eksik Barkod Bilgisi",MB_OK)
+		Exit Function
+	End If
+ 
+	Set S26E = Doc.getTableObject("STOK26E")
+	If Trim(S26E.TARGETAMBCODE) <> "YEHM" Then 
+		If S01.GetRowCount() > 0 Then
+			Depo = S01.AMBCODE
+			LotNo = S01.LOTNUMBER
+			StokKodu = S01.KOD
+
+			Set S01 = Doc.Select1("sfsfd", "STOK01", "KOD='" + StokKodu+"' & AMBCODE='" + Depo+"' & LOTNUMBER<'" + LotNo + "'", "LOTNUMBER", -1)
+
+			For i = 1 to S01.GetRowCount()
+				Lot = Left(S01.LOTNUMBER(i), 6)
+				If Lot <> EskiLot And i > 1 Then Exit For
+				If i = 1 Then Hata = "FIFO Geregi " & vbcrlf & _
+				"Okutulmasi Gereken; " & vbcrlf & "---------------------------" & vbcrlf & _
+				"Ýlk Lot: " & Trim(S01.LOTNUMBER(i)) & "," & vbcrlf & _
+				"Lokasyon: " & Trim(GetLokasyon(S01, i)) & ", " & vbcrlf & _
+				"Miktar: " & S01.SF_MIKTAR(i) & " " & Trim(S01.SF_UNIT(i))
+				EskiLot = Lot
+			Next
+		End if
+		If trim(Hata) <> "" Then
+			FIFOyaUygunMu = Hata
+		End if
+	End if
+End Function
+'---------------------------------------------------------------------------------------------------------------------------------------------------
+Function GetLokasyon(S01, satirNo)
+	GetLokasyon = ""
+	if trim(S01.LOCATION1(satirNo)) = "" Then Exit Function
+	GetLokasyon = S01.LOCATION1(satirNo)
+	if trim(S01.LOCATION2(satirNo)) = "" Then Exit Function
+	GetLokasyon = GetLokasyon & "-" & S01.LOCATION2(satirNo)
+	if trim(S01.LOCATION3(satirNo)) = "" Then Exit Function
+	GetLokasyon = GetLokasyon & "-" & S01.LOCATION3(satirNo)
+	if trim(S01.LOCATION4(satirNo)) = "" Then Exit Function
+	GetLokasyon = GetLokasyon & "-" & S01.LOCATION4(satirNo)
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR8S
+Makro Kodu : FIFO
+Hangi Tablo için : TRACK26
+Ýlave Hangi Uygulamalar için : 
+Açýklama : RAF ÖMRÜ VE FIFO KONTROLU
+Kod : 
+'bymozan
+Public FifoKontroluOlacakMi
+
+Sub OnStart()
+    Set STC = Doc.GetTableObject("STACK")
+    Set S26E = Doc.GetTableObject("STOK26E")
+End Sub
+'-------------------------------------------------------------------------------
+Function D_ID2_OnValidate()
+	Set S01 = Doc.GetTableObject("STOK01")
+
+	Hata2 = ""
+	Hata = ""
+
+	Hata2 = RafOmruneUygunMu(S01.D_ID2)
+	If Trim(Hata2) <> "" Then
+		Doc.d7MsgBox Hata2, "Raf Ömrü Hatasý!", MB_OK
+		S01.D_ID2 = ""
+		Exit Function
+	End if
+
+	If FifoKontroluOlacakMi = True Then Hata = FIFOyaUygunMu(S01.D_ID2)
+	
+	If Trim(Hata) <> "" Then
+		Doc.d7MsgBox Hata, "FIFO Hatasý!", MB_OK
+		S01.D_ID2 = ""
+	End if
+End Function
+'------------------------------------------------------------------------------------------------------------------
+Function RafOmruneUygunMu(SeriNo)
+	Set S01 = Doc.Select1("sfsfd", "STOK01", "SERINO='"+Trim(SeriNo)+"'", "", -1)
+	If S01.GetRowCount() = 0 Then Exit Function
+	
+	Depo = Trim(S01.AMBCODE)
+	If Depo = "" Then 
+		y = doc.d7MsgBox("Deposu Tanýmlý Deðil, iptal","Eksik Barkod Bilgisi",MB_OK)
+		Exit Function
+	End If
+ 
+	Set S26E = Doc.getTableObject("STOK26E")
+	If Trim(S26E.TARGETAMBCODE) <> "YEHM" Then 
+		FifoKontroluOlacakMi = True
+		
+		Depo = Trim(S01.AMBCODE)
+		LotNo = Trim(S01.LOTNUMBER)
+		StokKodu = Trim(S01.KOD)
+		OkutulaninSonKullanmaTarihi = Trim(S01.VRI_VR_R1)
+
+		QStr = "SELECT  * FROM ("
+		QStr = QStr & " SELECT "
+		QStr = QStr & " (to_date(VRI_VR_R1, 'DDMMYYYY')) SONKULLANMATARIHI"
+		QStr = QStr & " ,(to_date('"&OkutulaninSonKullanmaTarihi&"', 'DDMMYYYY')) OKUNANTARIH"
+		QStr = QStr & " ,KOD"
+		QStr = QStr & " ,AMBCODE"
+		QStr = QStr & " ,VRI_VR_R1"
+		QStr = QStr & " ,SERINO"
+		QStr = QStr & " ,LOTNUMBER"
+		QStr = QStr & " ,LOCATION1"
+		QStr = QStr & " ,LOCATION2"
+		QStr = QStr & " ,LOCATION3"
+		QStr = QStr & " ,LOCATION4"
+		QStr = QStr & " ,SF_MIKTAR"
+		QStr = QStr & " ,SF_UNIT"
+		QStr = QStr & " FROM STOK01"
+		QStr = QStr & " )"
+		QStr = QStr & " WHERE 1=1 "
+		QStr = QStr & " AND SONKULLANMATARIHI<OKUNANTARIH "
+		QStr = QStr & " AND Trim(VRI_VR_R1) IS NOT NULL"
+		QStr = QStr & " AND Trim(AMBCODE)='YEHM'"
+		QStr = QStr & " AND Trim(KOD)='"&StokKodu&"'"
+		QStr = QStr & " ORDER BY SONKULLANMATARIHI ASC"
+		
+		Set Table_RafOmruOnceBitecekler = Doc.RunSQLQuery ("XYTTTT", QStr)
+		KayitSayisi = Table_RafOmruOnceBitecekler.GetRecCount
+
+		If KayitSayisi > 0 Then
+			Hata2 = "RaF Ömrü Kontrolü " & vbcrlf & _
+			"Okutulmasi Gereken; " & vbcrlf & "---------------------------" & vbcrlf & _
+			"Son Kul.Tarihi: " & Trim(Table_RafOmruOnceBitecekler.VRI_VR_R1(1)) & "," & vbcrlf & _
+			"Seri No: " & Trim(Table_RafOmruOnceBitecekler.SERINO(1)) & "," & vbcrlf & _
+			"Lot No: " & Trim(Table_RafOmruOnceBitecekler.LOTNUMBER(1)) & "," & vbcrlf & _
+			"Lokasyon: " & Trim(GetLokasyon(Table_RafOmruOnceBitecekler, 1)) & ", " & vbcrlf & _
+			"Miktar: " & Table_RafOmruOnceBitecekler.SF_MIKTAR(1) & " " & Trim(Table_RafOmruOnceBitecekler.SF_UNIT(1))
+			RafOmruneUygunMu = Hata2
+			FifoKontroluOlacakMi = False
+		Else
+			'sistemdeki en küçük son kullanma tarihini alýr
+			QStr = "SELECT  min(SONKULLANMATARIHI) MINSONKULLANMATARIHI, OKUNANTARIH FROM ("
+			QStr = QStr & " SELECT "
+			QStr = QStr & " (to_date(VRI_VR_R1, 'DDMMYYYY')) SONKULLANMATARIHI"
+			QStr = QStr & " ,(to_date('"&OkutulaninSonKullanmaTarihi&"', 'DDMMYYYY')) OKUNANTARIH"
+			QStr = QStr & " ,KOD"
+			QStr = QStr & " ,AMBCODE"
+			QStr = QStr & " ,VRI_VR_R1"
+			QStr = QStr & " FROM STOK01"	
+			QStr = QStr & " )"
+			QStr = QStr & " WHERE 1=1 "
+			QStr = QStr & " AND Trim(VRI_VR_R1) IS NOT NULL"
+			QStr = QStr & " AND Trim(AMBCODE)='YEHM'"
+			QStr = QStr & " AND Trim(KOD)='"&StokKodu&"'"
+		
+			Set Table_X = Doc.RunSQLQuery ("cccTTTT", QStr)
+			KayitSayisi = Table_X.GetRecCount
+
+			If KayitSayisi > 0 Then
+				If Trim(Table_X.MINSONKULLANMATARIHI(1))="" Then 
+					FifoKontroluOlacakMi = True
+				ElseIf Table_X.MINSONKULLANMATARIHI(1) = Table_X.OKUNANTARIH(1) Then
+					'Eðer okutulanýn son kullanma tarihi sistemdeki son kullanma tarihi bitimine en yakýn olan ise
+					'Fifo kontrolü yapýlmasýn
+					FifoKontroluOlacakMi = False
+				End If
+			End If
+		End If
+	End if
+End Function
+'---------------------------------------------------------------------------------------------------------------------------------------------------
+Function FIFOyaUygunMu(SeriNo)
+	Set S01 = Doc.Select1("sfsfd", "STOK01", "SERINO='"+Trim(SeriNo)+"'", "", -1)
+	
+	Depo = Trim(S01.AMBCODE)
+	If Depo = "" Then 
+		y = doc.d7MsgBox("Deposu Tanýmlý Deðil, iptal","Eksik Barkod Bilgisi",MB_OK)
+		Exit Function
+	End If
+ 
+	Set S26E = Doc.getTableObject("STOK26E")
+	If Trim(S26E.TARGETAMBCODE) <> "YEHM" Then 
+		If S01.GetRowCount() > 0 Then
+			Depo = S01.AMBCODE
+			LotNo = S01.LOTNUMBER
+			StokKodu = S01.KOD
+
+			Set S01 = Doc.Select1("sfsfd", "STOK01", "KOD='" + StokKodu+"' & AMBCODE='" + Depo+"' & LOTNUMBER<'" + LotNo + "'", "LOTNUMBER", -1)
+
+			For i = 1 to S01.GetRowCount()
+				Lot = Left(S01.LOTNUMBER(i), 6)
+				If Lot <> EskiLot And i > 1 Then Exit For
+				If i = 1 Then Hata = "FIFO Geregi " & vbcrlf & _
+				"Okutulmasi Gereken; " & vbcrlf & "---------------------------" & vbcrlf & _
+				"Ýlk Lot: " & Trim(S01.LOTNUMBER(i)) & "," & vbcrlf & _
+				"Lokasyon: " & Trim(GetLokasyon(S01, i)) & ", " & vbcrlf & _
+				"Miktar: " & S01.SF_MIKTAR(i) & " " & Trim(S01.SF_UNIT(i))
+				EskiLot = Lot
+			Next
+		End if
+		If trim(Hata) <> "" Then
+			FIFOyaUygunMu = Hata
+		End if
+	End if
+End Function
+'---------------------------------------------------------------------------------------------------------------------------------------------------
+Function GetLokasyon(S01, satirNo)
+	GetLokasyon = ""
+	if trim(S01.LOCATION1(satirNo)) = "" Then Exit Function
+	GetLokasyon = S01.LOCATION1(satirNo)
+	if trim(S01.LOCATION2(satirNo)) = "" Then Exit Function
+	GetLokasyon = GetLokasyon & "-" & S01.LOCATION2(satirNo)
+	if trim(S01.LOCATION3(satirNo)) = "" Then Exit Function
+	GetLokasyon = GetLokasyon & "-" & S01.LOCATION3(satirNo)
+	if trim(S01.LOCATION4(satirNo)) = "" Then Exit Function
+	GetLokasyon = GetLokasyon & "-" & S01.LOCATION4(satirNo)
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK29-01
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : 
+Açýklama : RAF ÖMRÜ ÝÇÝN BÝTÝÞ TARÝHÝ HESABI
+Kod : 
+Sub REF_TARIH1_AfterValidate()
+	GununTarihininSayiKarsiligi = Doc.Cdbl(Replace(Doc.Bugun(),"/",""))
+	Set S29T = Doc.GetTableObject("STOK29T")
+
+	UretimTarihi = Trim(S29T.REF_TARIH1)
+	If UretimTarihi = "" Then 
+		S29T.SF_VRI_VR_R1 = ""
+		Exit Sub
+	End If
+	
+	StokKodu = Trim(S29T.KOD)
+	
+	If StokKodu = "" Then
+		Msgbox "Stok Kodu Seçilmemiþ."
+		S29T.REF_TARIH1 = ""
+		Exit Sub
+	End If
+	
+	RafOmurSuresi = Doc.GetDBFieldValue("STOK00", "B_B_TECH_4", StokKodu, "")
+	If RafOmurSuresi = 0 Then 
+		Msgbox "Stok Kartýnda Raf Ömrü Süresi Girilmemiþ."
+		S29T.REF_TARIH1 = ""
+		S29T.SF_VRI_VR_R1 = ""
+		Exit Sub
+	End If
+	
+	SonKullanmaTarihi = Doc.StrDate_Increment(UretimTarihi, RafOmurSuresi)
+	SonKullanmaTarihininSayiKarsiligi = Doc.Cdbl(Replace(SonKullanmaTarihi,"/",""))
+	Fark = SonKullanmaTarihininSayiKarsiligi-GununTarihininSayiKarsiligi
+		
+	If SonKullanmaTarihininSayiKarsiligi < GununTarihininSayiKarsiligi Then
+		Msgbox "Son Kullanma Tarihi Geçmiþ."
+	ElseIf SonKullanmaTarihininSayiKarsiligi = GununTarihininSayiKarsiligi Then
+		Msgbox "Son Kullanma Tarihi Bugün Bitiyor."
+	End If
+	
+	If Fark < 30 Then Msgbox "Son Kullanma Tarihi 30 Günden Az. Kalan Gün: " & Fark
+	
+	S29T.SF_VRI_VR_R1=Replace(Doc.StrToNorDate(SonKullanmaTarihi),"/","")
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+----------------------------------------------------------------
+

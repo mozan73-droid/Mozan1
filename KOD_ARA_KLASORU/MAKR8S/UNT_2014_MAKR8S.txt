@@ -1,0 +1,1315 @@
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : ++ORNEK
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Örnek Uygulama Event Makrolarý
+Kod : 
+Function OnStart
+'OnStart'a bir deðer atanýr ise ve bu deðer 0'dan farklý olur ise uygulama baþlatýlmaz
+	OnStart=0
+	Msgbox("OnStart")
+End Function
+
+Sub AfterLoad
+	Msgbox("After Load")
+End Sub
+
+Function BeforeSave
+'BeforeSave'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforeSave=0
+	Msgbox("Before Save")
+End Function
+Sub AfterSave
+	Msgbox("AfterSave")
+End Sub
+
+Function BeforeDelete
+'BeforeDelete'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforeDelete=0
+	Msgbox("Before Delete")
+End Function
+Sub AfterDelete
+	Msgbox("After Delete")
+End Sub
+
+Sub AfterNew
+	Msgbox("After New")
+End Sub
+
+Function BeforePrint
+'BeforePrint'e 0 dýþýna deðer atanýr ise iþlem kesilir
+	BeforePrint=0
+	Dim FormIsmi
+	FormIsmi=Doc.GetDocParameterValue("SELECTEDFORM")
+	Msgbox("Before Print, Form Ismi="&FormIsmi)
+End Function
+Sub AfterPrint
+	Msgbox("After Print")
+End Sub
+
+Sub BeforeCommand(StrCmd)
+	Msgbox("Before Command:"&StrCmd)
+End Sub
+Sub AfterCommand(StrCmd)
+	Msgbox("After Command:"&StrCmd)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK40
+Hangi Tablo için : STOK40
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeSave()
+	Hata = MPSeDonusmusveSipDegistirmeOnayiYok()
+	if trim(Hata) <> "" Then
+		Doc.d7MsgBox "Sipariþ Kaydedilmedi", "", MB_OK
+		BeforeSave = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End if
+
+	ret = UretimEmrineDonusmus()
+	ret = UretimTalebineDonusmus()
+End Function
+
+Function BeforeCommand(cmd)
+	if cmd = "DO_SENT_QUESSEL_0" Then
+		BeforeCommand = "CANCELWITHOUTERRORMSG"
+		Doc.RunMacro0 "MAKR7S.BUL_KOD", "Makro1"
+		Exit Function
+	End if
+End Function
+Sub AfterLoad()
+'	Call RezervasyonlariHesapla()
+'	Call Stoksondurum()
+End Sub
+
+'Sub AfterSave()
+'	Call RezervasyonlariHesapla2()
+'End Sub
+
+Sub RezervasyonlariHesapla()
+'	exit sub
+	QStr = "SELECT ALLOC_SIPARTNO, Sum(SF_MIKTAR) SF_MIKTAR, "
+	QStr = QStr & " Sum(CASE WHEN ALLOC_SYSSTATUS<>'3' THEN SF_MIKTAR ELSE 0 END) SV_HARIC"
+	QStr = QStr & " FROM STOK01 WHERE ALLOC_SIPNO='" & STOK40E.EVRAKNO & "'"
+'	QStr = QStr & " AND ALLOC_SYSSTATUS<>'3' AND ALLOC_EVRAKTYPE<>'SP'"
+	QStr = QStr & " GROUP BY ALLOC_SIPARTNO"
+
+	Set S01 = Doc.RunSQLQuery("sdfgsdfhs", QStr)
+	For i = 1 to STOK40T.GetRowCount()
+		Set S01_1 = Doc.Select2("sdfgsdhfs", S01.GetAppName, "ALLOC_SIPARTNO='" & STOK40T.ARTNO(i) & "'", "", -1)
+		if S01_1.GetRowCount() > 0 Then
+'			STOK40T.RZ_AKTIF(i) = S01_1.SF_MIKTAR(1)
+'			STOK40T.REZERVE_MIK(i) = S01_1.SF_MIKTAR(1)
+'			STOK40T.REZERVE_ED_MIKTAR(i) = STOK40T.SF_MIKTAR(i) - STOK40T.SF_NETKAPANANMIK(i) - S01_1.SV_HARIC(1) - STOK40T.S40T3_TOPLAM - STOK40T.S40T2_TOPLAM
+			STOK40T.KOD_STOK00_B_ORTTEMINSURES(i) = S01_1.SF_MIKTAR(1)
+		Else
+			STOK40T.KOD_STOK00_B_ORTTEMINSURES(i) = 0
+		End if
+	Next
+End Sub
+Sub Stoksondurum()
+	Set S40T = Doc.GetTableObject("STOK40T")
+		for i = 1 to S40T.GetRecCount()
+			if trim(S40T.KOD(i)) <> "" Then
+				DEPO = "MA"
+				S40T.ARTIKEL_REF_NUM_1(i) = Doc.Stok00c_SonSerbest(S40T.KOD(i),DEPO,"")
+				S40T.ARTIKEL_REF_NUM_2(i) = Doc.Stok00c_SonRezerve(S40T.KOD(i),DEPO,"")
+			End if
+		Next
+End Sub
+
+
+
+
+Sub RezervasyonlariHesapla2()
+	QStr = "SELECT ALLOC_SIPARTNO, Sum(SF_MIKTAR) SF_MIKTAR, "
+	QStr = QStr & " Sum(CASE WHEN ALLOC_SYSSTATUS<>'3' THEN SF_MIKTAR ELSE 0 END) SV_HARIC"
+	QStr = QStr & " FROM STOK01 WHERE ALLOC_SIPNO='" & STOK40E.EVRAKNO & "'"
+	QStr = QStr & " GROUP BY ALLOC_SIPARTNO"
+
+	Set S01 = Doc.RunSQLQuery("sdfgsdfhs", QStr)
+	For i = 1 to STOK40T.GetRowCount()
+		Set S01_1 = Doc.Select2("sdfgsdhfs", S01.GetAppName, "ALLOC_SIPARTNO='" & STOK40T.ARTNO(i) & "'", "", -1)
+		if S01_1.GetRowCount() > 0 Then
+			STOK40T.RZ_AKTIF(i) = S01_1.SF_MIKTAR(1)
+			STOK40T.REZERVE_MIK(i) = S01_1.SF_MIKTAR(1)
+			STOK40T.REZERVE_ED_MIKTAR(i) = STOK40T.SF_MIKTAR(i) - STOK40T.SF_NETKAPANANMIK(i) - S01_1.SV_HARIC(1) - STOK40T.S40T3_TOPLAM - STOK40T.S40T2_TOPLAM
+			msgbox STOK40T.REZERVE_ED_MIKTAR(i) & "  -  "& STOK40T.KOD(i)
+		End if
+	Next
+End Sub
+Function MPSeDonusmusveSipDegistirmeOnayiYok()
+	Set fffr = Doc.CreateSObject("BATCHERRORMODE")
+	MPSeDonusmusveSipDegistirmeOnayiYok = ""
+	QStr = "SELECT STOK40T.EVRAKNO, STOK40T.TRNUM, STOK40T.KOD, STOK40T.SF_MIKTAR, STOK40T.REV_RTESTARIH, STOK40T.SF_PMIKTAR, STOK40T.SF_IMIKTAR,"
+	QStr = QStr & " STOK40T.TOLERANSTYPE, STOK40T.TOLERANS, MMPS10TM.EVRAKNO MPSNO, MMPS10E.GK_2"
+	QStr = QStr & " FROM STOK40T"
+	QStr = QStr & " LEFT JOIN MMPS10TM ON MMPS10TM.KAYNAKMPS=STOK40T.EVRAKNO AND MMPS10TM.KAYNAKMPS_TRNUM=STOK40T.TRNUM AND KAYNAKMPS_EVRAKTYPE='SP'"
+	QStr = QStr & " LEFT JOIN MMPS10E ON MMPS10TM.EVRAKNO=MMPS10E.EVRAKNO"
+	QStr = QStr & " WHERE STOK40T.EVRAKNO='" & STOK40E.EVRAKNO & "' AND MMPS10TM.EVRAKNO IS NOT NULL AND MMPS10E.GK_2<>'E         '"
+	QStr = QStr & " UNION ALL"
+	QStr = QStr & " SELECT STOK40T.EVRAKNO, STOK40T.TRNUM, STOK40T.KOD, STOK40T.SF_MIKTAR, STOK40T.REV_RTESTARIH, STOK40T.SF_PMIKTAR, STOK40T.SF_IMIKTAR,"
+	QStr = QStr & " STOK40T.TOLERANSTYPE, STOK40T.TOLERANS, M.EVRAKNO MPSNO, MMPS10E.GK_2"
+	QStr = QStr & " FROM STOK51T"
+	QStr = QStr & " INNER JOIN STOK40T ON STOK51T.OLD50_SIPARTNO=STOK40T.ARTNO"
+	QStr = QStr & " INNER JOIN MMPS10TM M ON M.KAYNAKMPS_EVRAKTYPE='PC' AND STOK51T.EVRAKNO=M.KAYNAKMPS AND STOK51T.TRNUM=M.KAYNAKMPS_TRNUM"
+	QStr = QStr & " INNER JOIN MMPS10E ON M.EVRAKNO=MMPS10E.EVRAKNO"
+	QStr = QStr & " WHERE STOK51T.OLD50_EVRAKNO='" & STOK40E.EVRAKNO & "' AND M.EVRAKNO IS NOT NULL AND MMPS10E.GK_2<>'E         '"
+
+	
+	Doc.RunSQLQuery "ef34fgdgrg", QStr
+	Set S40T = Doc.GetTableObject("ef34fgdgrg")
+	if S40T.GetRowCount = 0 Then Exit Function
+	For i = 1 to S40T.GetRowCount()
+		Set S40T1 = Doc.Select2("wffsdfsdf3f", "STOK40T", "TRNUM='" & S40T.TRNUM(i) & "'", "", -1)
+		if S40T1.GetRowCount() = 0 Then
+			Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.MPSNO(i) & " no.lu MPS açýlmýþ. Planlama onayý olmadan silinemez", "", MB_OK
+			MPSeDonusmusveSipDegistirmeOnayiYok = "CANCELWITHOUTERRORMSG"
+		Else
+			if S40T.KOD(i) <> S40T1.KOD(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.MPSNO(i) & " no.lu MPS açýlmýþ. Stok Kodu deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				MPSeDonusmusveSipDegistirmeOnayiYok = "CANCELWITHOUTERRORMSG"
+			End if
+			if S40T.SF_MIKTAR(i) <> S40T1.SF_MIKTAR(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.MPSNO(i) & " no.lu MPS açýlmýþ. Miktar deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK			
+				MPSeDonusmusveSipDegistirmeOnayiYok = "CANCELWITHOUTERRORMSG"
+			Elseif S40T.SF_PMIKTAR(i) <> S40T1.SF_PMIKTAR(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.MPSNO(i) & " no.lu MPS açýlmýþ. Miktar deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK			
+				MPSeDonusmusveSipDegistirmeOnayiYok = "CANCELWITHOUTERRORMSG"
+			End if
+			if S40T.TOLERANSTYPE(i) <> S40T1.TOLERANSTYPE(1) or S40T.TOLERANS(i) <> S40T1.TOLERANS(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.MPSNO(i) & " no.lu MPS açýlmýþ. Tolerans deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK			
+				MPSeDonusmusveSipDegistirmeOnayiYok = "CANCELWITHOUTERRORMSG"
+			End if
+			if S40T.REV_RTESTARIH(i) <> S40T1.REV_RTESTARIH(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.MPSNO(i) & " no.lu MPS açýlmýþ. Teslim Tarihi deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				MPSeDonusmusveSipDegistirmeOnayiYok = "CANCELWITHOUTERRORMSG"
+			End if
+		End if
+	Next
+End Function
+
+Function UretimEmrineDonusmus()
+	Set fffr = Doc.CreateSObject("BATCHERRORMODE")
+	UretimEmrineDonusmus = False
+	QStr = "SELECT STOK40T.EVRAKNO, STOK40T.TRNUM, STOK40T.KOD, STOK40T.SF_MIKTAR, STOK40T.REV_RTESTARIH, STOK40T.SF_PMIKTAR, STOK40T.SF_IMIKTAR,"
+	QStr = QStr & " STOK40T.TOLERANSTYPE, STOK40T.TOLERANS, STOK51T.EVRAKNO URETIM_EMRI"
+	QStr = QStr & " FROM STOK51T"
+	QStr = QStr & " INNER JOIN STOK40T ON STOK51T.OLD50_SIPARTNO=STOK40T.ARTNO"
+	QStr = QStr & " LEFT JOIN MMPS10TM M ON M.KAYNAKMPS_EVRAKTYPE='PC' AND STOK51T.EVRAKNO=M.KAYNAKMPS AND STOK51T.TRNUM=M.KAYNAKMPS_TRNUM"
+	QStr = QStr & " WHERE STOK51T.OLD50_EVRAKNO='" & STOK40E.EVRAKNO & "' and M.EVRAKNO IS NULL"
+	
+	Set S40T = Doc.RunSQLQuery("ef34fgdgrg", QStr)
+
+	if S40T.GetRowCount = 0 Then Exit Function
+	For i = 1 to S40T.GetRowCount()
+		Set S40T1 = Doc.Select2("wffsdfsdf3f", "STOK40T", "TRNUM='" & S40T.TRNUM(i) & "'", "", -1)
+		if S40T1.GetRowCount() = 0 Then
+			Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Emri açýlmýþ.", "", MB_OK
+			UretimEmrineDonusmus = True
+		Else
+			if S40T.KOD(i) <> S40T1.KOD(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Emri açýlmýþ. Stok Kodu deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimEmrineDonusmus = True
+			End if
+			if S40T.SF_MIKTAR(i) <> S40T1.SF_MIKTAR(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Emri açýlmýþ. Miktar deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimEmrineDonusmus = True
+			Elseif S40T.SF_PMIKTAR(i) <> S40T1.SF_PMIKTAR(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Emri açýlmýþ. Miktar deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimEmrineDonusmus = True
+			End if
+			if S40T.TOLERANSTYPE(i) <> S40T1.TOLERANSTYPE(1) or S40T.TOLERANS(i) <> S40T1.TOLERANS(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Emri açýlmýþ. Tolerans deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimEmrineDonusmus = True
+			End if
+			if S40T.REV_RTESTARIH(i) <> S40T1.REV_RTESTARIH(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Emri açýlmýþ. Teslim Tarihi deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimEmrineDonusmus = True
+			End if
+		End if
+	Next
+End Function
+
+Function UretimTalebineDonusmus()
+	Set fffr = Doc.CreateSObject("BATCHERRORMODE")
+	UretimTalebineDonusmus = False
+	QStr = "SELECT STOK40T.EVRAKNO, STOK40T.TRNUM, STOK40T.KOD, STOK40T.SF_MIKTAR, STOK40T.REV_RTESTARIH, STOK40T.SF_PMIKTAR, STOK40T.SF_IMIKTAR,"
+	QStr = QStr & " STOK40T.TOLERANSTYPE, STOK40T.TOLERANS, STOK40T3.EVRAKNO URETIM_EMRI"
+	QStr = QStr & " FROM STOK40T3"
+	QStr = QStr & " INNER JOIN STOK40T ON STOK40T3.ARTNO=STOK40T.ARTNO"
+	QStr = QStr & " LEFT JOIN MMPS10TM M ON M.KAYNAKMPS_EVRAKTYPE='PC' AND STOK40T3.EVRAKNO=M.KAYNAKMPS AND STOK40T3.TRNUM=M.KAYNAKMPS_TRNUM"
+	QStr = QStr & " WHERE STOK40T3.EVRAKNO='" & STOK40E.EVRAKNO & "' and M.EVRAKNO IS NULL"
+	
+	Set S40T = Doc.RunSQLQuery("ef34fgdgr04g", QStr)
+
+	if S40T.GetRowCount = 0 Then Exit Function
+	For i = 1 to S40T.GetRowCount()
+		Set S40T1 = Doc.Select2("wffsdfsdf3f", "STOK40T", "TRNUM='" & S40T.TRNUM(i) & "'", "", -1)
+		if S40T1.GetRowCount() = 0 Then
+			Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Talebi açýlmýþ.", "", MB_OK
+			UretimTalebineDonusmus = True
+		Else
+			if S40T.KOD(i) <> S40T1.KOD(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Talebi açýlmýþ. Stok Kodu deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimTalebineDonusmus = True
+			End if
+			if S40T.SF_MIKTAR(i) <> S40T1.SF_MIKTAR(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Talebi açýlmýþ. Miktar deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimTalebineDonusmus = True
+			Elseif S40T.SF_PMIKTAR(i) <> S40T1.SF_PMIKTAR(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Talebi açýlmýþ. Miktar deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimTalebineDonusmus = True
+			End if
+			if S40T.TOLERANSTYPE(i) <> S40T1.TOLERANSTYPE(1) or S40T.TOLERANS(i) <> S40T1.TOLERANS(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Talebi açýlmýþ. Tolerans deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimTalebineDonusmus = True
+			End if
+			if S40T.REV_RTESTARIH(i) <> S40T1.REV_RTESTARIH(1) Then
+				Doc.d7MsgBox "Bu sipariþin " & S40T.TRNUM(i) & " no.lu satýrý için " & S40T.URETIM_EMRI(i) & " no.lu Üretim Talebi açýlmýþ. Teslim Tarihi deðiþikliði için planlamadan onay alýnmalýdýr.", "", MB_OK
+				UretimTalebineDonusmus = True
+			End if
+		End if
+	Next
+End Function                                                                                                                                                                                   
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : AMBLJ00
+Hangi Tablo için : AMBLJ00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub BeforeSave()
+	AMBLJ00.MKR_ICHACIM = 3.141592654 * (AMBLJ00.MKR_FLANSCAPI^2 - AMBLJ00.MKR_GOBEKCAPI^2) * AMBLJ00.MKR_ICGENISLIK / 1000000000
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : OSF312
+Hangi Tablo için : OSF312
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub BeforeCommand(cmd)
+	if trim(Doc.Getd7UserName()) = "FX" Then
+		'MsgBox cmd
+	End if
+End Sub
+Sub OnStart()
+	if Doc.DataEntryMode <> "GUI" Then
+		SFDC31E.AddField2 "MUSTERI", "CHAR", 50,0, "L", "", ""
+		SFDC31E.AddField2 "NOT2", "CHAR", 70,0, "L", "", ""
+		SFDC31E.AddField2 "B_AGIRLIK", "DOUBLE", 10,3, "R", "", ""
+		SFDC31E.AddField2 "DIRENC", "DOUBLE", 10,3, "R", "", ""
+		SFDC31E.AddField2 "UZAMA", "DOUBLE", 10,1, "R", "", ""
+		SFDC31E.AddField2 "GK1_AD", "CHAR", 50,0, "L", "", ""
+		SFDC31E.AddField2 "URETIM_FISI_STATU", "CHAR", 22,0, "L", "", ""
+		SFDC31E.AddField2 "PARCA_KANGAL", "CHAR", 6,0, "L", "", ""
+	end if
+
+	Set SF31E = Doc.GetTableObject("SFDC31E")	
+
+	Set fd = SF31E.GetFieldDef_E("SF_VRI_VR_R1")
+	fd.F2Fnc="DO_BRW(""AMBLJ00"")"
+	SF31E.SetFieldProperties1 "SF_VRI_VR_R1",fd 
+
+End Sub
+Sub AfterLoad()
+	Doc.RunMacro0 "MAKR7S.OSF312", "GetMusteriAdi"
+	Doc.RunMacro0 "MAKR7S.OSF312", "GetNot"
+	Doc.RunMacro0 "MAKR7S.OSF312", "UretimFisiStatuGuncelle2"
+	Doc.RunMacro0 "MAKR7S.OSF312", "PerformansHesapla"
+
+	SFDC31E.GK1_AD = Doc.GetGecoValue("SF31G1", "AD", SFDC31E.GK_1, -1)
+End Sub
+Sub AfterNew()
+	SFDC31E.LOTNUMBER = ""
+End Sub
+Sub AfterSave()
+	Doc.RunMacro0 "MAKR7S.OSF312", "KTANotaYaz"
+	Doc.RunMacro0 "MAKR7S.OSF312", "MPSHmdGuncelle"
+End Sub
+Function BeforeSave()
+'	Call OtomatikMakaraNumarasi()
+'	if IzolasyondaRenkGirilmemis() Then
+'		BeforeSave = "CANCELWITHOUTERRORMSG"
+'		Exit Function
+'	End if
+'	if ZorunluAlanlarGirilmemis() Then
+'		BeforeSave = "CANCELWITHOUTERRORMSG"
+'		Exit Function
+'	End if
+End Function
+Sub AfterCommand(cmd)
+	if cmd = "MT_DOC_PASTE" Then
+		SFDC31E.SERINO = ""
+		Doc.RunMacro0 "MAKR7S.OSF312", "UretimFisiStatuGuncelle"
+	End if
+End Sub
+Function IzolasyondaRenkGirilmemis()
+	IzolasyondaRenkGirilmemis = False
+	OpGk1 = Doc.GetDBFieldValue("IMLT01", "GK_1", SFDC31E.OPERASYON, "")
+	if trim(OpGk1) = "IZOLASYON" and trim(SFDC31E.GK_1) = "" Then
+		Doc.d7MsgBox "Ýzole operasyonlarýnda Renk girilmesi zorunludur", "Evrak kaydedilmedi", MB_OK
+		IzolasyondaRenkGirilmemis = True
+	End if
+End Function
+Sub OtomatikMakaraNumarasi()
+	Set S31E = Doc.GetTableObject("SFDC31E")
+	if Left(S31E.X_T_ISMERKEZI, 2) = "PS" Then
+		S31E.LOTNUMBER = ""
+		Exit Sub
+	End if
+	if trim(S31E.LOTNUMBER) <> "" Then Exit Sub
+	if Trim(SFDC31E.D7_ISLEM_KODU) <> "U" Then Exit Sub
+
+	K = Doc.d7MsgBox("Yeni makara numarasý alýnsýn mý." & vbcrlf & "(Mevcut makraya devam ediliyor ise Hayýr seçiniz", "Yeni makara", MB_YESNO)
+	if k = 6 Then
+		MakaraNo = Mid(S31E.RECTARIH1, 3,2) & Doc.Sayac0DanAl("LOTNUMBER")
+		S31E.LOTNUMBER = MakaraNo
+	Elseif k = 7 Then
+		MakaraNo = GetSonLotNo(S31E.X_T_ISMERKEZI)
+		S31E.LOTNUMBER = MakaraNo
+	End if
+End Sub
+Function GetSonLotNo(TezgahKodu)
+	Set E = Doc.GetTableObject("SFDC31E")
+	Set S31E = Doc.Select1("de33vbtt", "SFDC31E", "X_T_ISMERKEZI='" & TezgahKodu & "'&EVRAKNO<>'" & E.EVRAKNO & "'", "<EVRAKNO", 1)
+	if S31E.GetRowCount() > 0 Then
+		GetSonLotNo = S31E.LOTNUMBER
+	End if
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : OSF313
+Hangi Tablo için : OSF313
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnStart()
+	if Doc.DataEntryMode <> "GUI" Then
+		SFDC31E.AddField2 "MUSTERI", "CHAR", 50,0, "L", "", ""
+		SFDC31E.AddField2 "NOT2", "CHAR", 70,0, "L", "", ""
+		SFDC31E.AddField2 "B_AGIRLIK", "DOUBLE", 10,3, "R", "", ""
+		SFDC31E.AddField2 "DIRENC", "DOUBLE", 10,3, "R", "", ""
+		SFDC31E.AddField2 "UZAMA", "DOUBLE", 10,1, "R", "", ""
+		SFDC31E.AddField2 "GK1_AD", "CHAR", 50,0, "L", "", ""
+		SFDC31E.AddField2 "URETIM_FISI_STATU", "CHAR", 22,0, "L", "", ""
+		SFDC31E.AddField2 "PARCA_KANGAL", "CHAR", 6,0, "L", "", ""
+	end if
+
+	Set SF31E = Doc.GetTableObject("SFDC31E")	
+
+	Set fd = SF31E.GetFieldDef_E("SF_VRI_VR_R1")
+	fd.F2Fnc="DO_BRW(""AMBLJ00"")"
+	SF31E.SetFieldProperties1 "SF_VRI_VR_R1",fd 
+
+End Sub
+Sub AfterLoad()
+	Doc.RunMacro0 "MAKR7S.OSF312", "GetMusteriAdi"
+	Doc.RunMacro0 "MAKR7S.OSF312", "KangalBoylariniGetir"
+	Doc.RunMacro0 "MAKR7S.OSF312", "GetNot"
+	Doc.RunMacro0 "MAKR7S.OSF312", "StokKodSeriFisNoGetir"
+
+	SFDC31E.GK1_AD = Doc.GetGecoValue("SF31G1", "AD", SFDC31E.GK_1, -1)
+	Doc.RunMacro0 "MAKR7S.OSF312", "KangalBoyuTablosuInit"
+End Sub
+Sub AfterNew()
+	Doc.RunMacro0 "MAKR7S.OSF312", "KangalBoyuTablosuInit"
+	SFDC31E.LOTNUMBER = ""
+End Sub
+Sub AfterSave()
+	Doc.RunMacro0 "MAKR7S.OSF312", "KTANotaYaz"
+'	Doc.RunMacro0 "MAKR7S.OSF312", "MPSHmdGuncelle"
+	Doc.RunMacro0 "MAKR7S.OSF312", "KTAKangalBoyuYaz"
+	Doc.RunMacro0 "MAKR7S.OSF312", "SFDC31TKTAYaz"
+End Sub
+Sub AfterCommand(cmd)
+	if cmd = "MT_DELETE_LINE" Then
+		if Doc.GetGUIControl_Table() = "MAKROTABLET_STACK" Then
+			Doc.RunMacro0 "MAKR7S.OSF312", "KangalBoyuTablosuInit"
+		End if
+	End if
+End Sub
+
+
+
+
+
+Function BeforeSave()
+'	Call OtomatikMakaraNumarasi()
+'	if IzolasyondaRenkGirilmemis() Then
+'		BeforeSave = "CANCELWITHOUTERRORMSG"
+'		Exit Function
+'	End if
+'	if ZorunluAlanlarGirilmemis() Then
+'		BeforeSave = "CANCELWITHOUTERRORMSG"
+'		Exit Function
+'	End if
+	Call KullanilanMakaraMiktariniYaz()
+End Function
+Function IzolasyondaRenkGirilmemis()
+	IzolasyondaRenkGirilmemis = False
+	OpGk1 = Doc.GetDBFieldValue("IMLT01", "GK_1", SFDC31E.OPERASYON, "")
+	if trim(OpGk1) = "IZOLASYON" and trim(SFDC31E.GK_1) = "" Then
+		Doc.d7MsgBox "Ýzole operasyonlarýnda Renk girilmesi zorunludur", "Evrak kaydedilmedi", MB_OK
+		IzolasyondaRenkGirilmemis = True
+	End if
+End Function
+Sub OtomatikMakaraNumarasi()
+	Set S31E = Doc.GetTableObject("SFDC31E")
+	if Left(S31E.X_T_ISMERKEZI, 2) = "PS" Then
+		S31E.LOTNUMBER = ""
+		Exit Sub
+	End if
+	if trim(S31E.LOTNUMBER) <> "" Then Exit Sub
+	if Trim(SFDC31E.D7_ISLEM_KODU) <> "U" Then Exit Sub
+
+	K = Doc.d7MsgBox("Yeni makara numarasý alýnsýn mý." & vbcrlf & "(Mevcut makraya devam ediliyor ise Hayýr seçiniz", "Yeni makara", MB_YESNO)
+	if k = 6 Then
+		MakaraNo = Mid(S31E.RECTARIH1, 3,2) & Doc.Sayac0DanAl("LOTNUMBER")
+		S31E.LOTNUMBER = MakaraNo
+	Elseif k = 7 Then
+		MakaraNo = GetSonLotNo(S31E.X_T_ISMERKEZI)
+		S31E.LOTNUMBER = MakaraNo
+	End if
+End Sub
+Function GetSonLotNo(TezgahKodu)
+	Set E = Doc.GetTableObject("SFDC31E")
+	Set S31E = Doc.Select1("de33vbtt", "SFDC31E", "X_T_ISMERKEZI='" & TezgahKodu & "'&EVRAKNO<>'" & E.EVRAKNO & "'", "<EVRAKNO", 1)
+	if S31E.GetRowCount() > 0 Then
+		GetSonLotNo = S31E.LOTNUMBER
+	End if
+End Function
+Sub KullanilanMakaraMiktariniYaz()
+	if SFDC31T.GetRowCount() = 0 Then Exit Sub
+	'SFDC31T.SF_MIKTAR = SFDC31E.SF_MIKTAR
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : BOMU01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterNew()
+	BOMU01E.MAMULMIKTAR = 1000
+End Sub
+
+Function BeforeCommand(cmd)
+	if cmd = "DO_SENT_QUESSEL_0" Then
+		BeforeCommand = "CANCELWITHOUTERRORMSG"
+		Doc.RunMacro0 "MAKR7S.BUL_KOD4", "Makro1"
+		Exit Function
+	End if
+End Function
+
+
+Sub BeforeSave()
+	BOMU01E.ACIKLAMA = ""
+	BOMU01E.ACIKLAMA = Doc.GetGecoValue("BOMGK1","AD",BOMU01E.GK_1,-1)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK46
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeCommand(cmd)
+	if cmd = "DO_SENT_QUESSEL_0" Then
+		BeforeCommand = "CANCELWITHOUTERRORMSG"
+		Doc.RunMacro0 "MAKR7S.BUL_KOD2", "Makro1"
+		Exit Function
+	End if
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK47
+Hangi Tablo için : STOK47
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeCommand(cmd)
+	if cmd = "DO_SENT_QUESSEL_0" Then
+		BeforeCommand = "CANCELWITHOUTERRORMSG"
+		Doc.RunMacro0 "MAKR7S.BUL_KOD3", "Makro1"
+		Exit Function
+	End if
+End Function
+Function BeforeSave()
+	Hata = SipariseDonusmus()
+	
+	if SipariseDonusmus Then
+		Doc.d7MsgBox "Sipariþ Kaydedilmedi", "", MB_OK
+		BeforeSave = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End if
+End Function
+Function SipariseDonusmus()
+	Set fffr = Doc.CreateSObject("BATCHERRORMODE")
+	SipariseDonusmus = False
+	' QStr = "SELECT STOK47T.EVRAKNO, STOK47T.TRNUM, STOK47T.KOD, STOK47T.SF_MIKTAR, STOK47T.RTALEPEDILENTESTARIH,"
+	' QStr = QStr & " STOK47T.TOLERANSTYPE, STOK47T.TOLERANS, STOK46T.EVRAKNO SIPARIS_NO"
+	' QStr = QStr & " FROM STOK46T"
+	' QStr = QStr & " INNER JOIN STOK47T ON STOK46T.OLD50_SIPARTNO=STOK47T.ARTNO"
+	' QStr = QStr & " LEFT JOIN MMPS10TM M ON M.KAYNAKMPS_EVRAKTYPE='PC' AND STOK46T.EVRAKNO=M.KAYNAKMPS AND STOK46T.TRNUM=M.KAYNAKMPS_TRNUM"
+	' QStr = QStr & " WHERE STOK46T.OLD50_EVRAKNO='" & STOK40E.EVRAKNO & "' and M.EVRAKNO IS NULL"
+	
+	' Set S47T = Doc.RunSQLQuery("ef34fgdgrg", QStr)
+	Set S47T = Doc.Select2("ef34fgdgrg","STOK47T","","",-1)
+	S47T.SafePack
+	
+	if S47T.GetRowCount = 0 Then Exit Function
+	For i = 1 to S47T.GetRowCount()
+		Set S46T1 = Doc.Select1("sa0xa0DSA","STOK46T1","TALEPARTNO = '"& doc.RightJustify(trim(S47T.ARTNO(i)),16) &"'","",-1)
+		if S46T1.GetRowCount() > 0 Then
+			if S47T.KOD(i) <> S46T1.KOD(1) Then
+				Doc.d7MsgBox "Bu Talebin " & S47T.TRNUM(i) & " no.lu satýrý için " & S46T1.EVRAKNO(1) & " no.lu Satýnalma sipariþi açýlmýþ. Stok Kodu deðiþikliði için satýnalmadan onay alýnmalýdýr.", "", MB_OK
+				SipariseDonusmus = True
+			End if
+			if S47T.SF_MIKTAR(i) <> S46T1.SF_MIKTAR(1) Then
+				Doc.d7MsgBox "Bu Talebin " & S47T.TRNUM(i) & " no.lu satýrý için " & S46T1.EVRAKNO(1) & " no.lu Satýnalma sipariþi açýlmýþ. Miktar deðiþikliði için satýnalmadan onay alýnmalýdýr.", "", MB_OK
+				SipariseDonusmus = True
+			End if
+			'   if S47T.REV_RTESTARIH(i) <> S46T1.REV_RTESTARIH(1) Then
+			'    Doc.d7MsgBox "Bu Talebin " & S47T.TRNUM(i) & " no.lu satýrý için " & S46T1.EVRAKNO(1) & " no.lu Satýnalma sipariþi açýlmýþ. Teslim Tarihi deðiþikliði için satýnalmadan onay alýnmalýdýr.", "", MB_OK
+			'    SipariseDonusmus = True
+			'   End if
+		End if
+	Next
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK2A
+Hangi Tablo için : STOK2A
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub AfterLoad()
+	Call KTALoad()
+End Sub
+Sub AfterSave()
+	'Call KTAKaydet()
+End Sub
+Sub KTAKaydet()
+	For i = 1 to STOK2AT.GetRowCount()
+		Doc.StatusBarMessage "KTA 'lar kaydediliyor : " & i & " / " & STOK2AT.GetRowCount()
+		ret = Doc.UFLD00_CreateEditTable("xxx","STOK2AT", STOK2AE.EVRAKNO & STOK2AT.TRNUM(i))
+		Set KTA = Doc.GetTableObject("xxx")   
+
+		KTA.ACIKLAMA = STOK2AT.ACIKLAMA(i)
+		KTA.NET = STOK2AT.NET(i)
+		KTA.BRUT = STOK2AT.BRUT(i)
+		KTA.ESKI_KOD = STOK2AT.ESKI_KOD(i)
+		KTA.SIPARIS = STOK2AT.SIPARIS(i)
+
+		KTA.Exec "SAVE"
+	Next
+End Sub
+Sub KTALoad()
+	For i = 1 to STOK2AT.GetRowCount()
+		Doc.StatusBarMessage "KTA 'lar yükleniyor : " & i & " / " & STOK2AT.GetRowCount()
+		Set KTA = Doc.RunSQLQuery("sdfgsdfsj", "SELECT ACIKLAMA, NET, BRUT, ESKI_KOD, SIPARIS FROM KTA_STOK2AT WHERE KTA_KEY='" & STOK2AE.EVRAKNO & STOK2AT.TRNUM(i) & "'")
+		if KTA.GetRowCount() > 0 Then
+			STOK2AT.ACIKLAMA(i) = KTA.ACIKLAMA(1)
+			STOK2AT.NET(i) = KTA.NET(1)
+			STOK2AT.BRUT(i) = KTA.BRUT(1)
+			STOK2AT.ESKI_KOD(i) = KTA.ESKI_KOD(1)
+			STOK2AT.SIPARIS(i) = KTA.SIPARIS(1)
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : KUR
+Hangi Tablo için : MAINX2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnLogin()
+	Call OtomatikDovizKuru()
+End Sub
+Sub OtomatikDovizKuru()
+	KurUSD = Doc.GetKur("USD", Doc.DefaultPB, Doc.BuGun, "", -1)
+	if KurUSD > 0 Then Exit Sub
+
+	if not YeniEvrakKaydedebilirMi("EXCRAT", Doc.Getd7UserName) Then Exit Sub
+
+	Set objXMLDoc = Nothing
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+
+	Set Doc1 = Doc.CreateDocumentNoUI("EXCRAT", "")
+	Call GetKurTable(Doc1, objXMLDoc, Doc.BuGun)	
+End Sub
+Sub GetKurTable(Doc1, objXMLDoc, Tarih)
+	Set EXCE = Doc1.GetTableObject("EXCRATE")
+	Set EXCT = Doc1.GetTableObject("EXCRATT")
+
+	KURTarih = Doc1.StrDate_Increment(Tarih, -1)
+	Call HaftaSonuysaGeriAl(KURTarih )
+
+	xmlTarih = Replace(Left(KURTarih ,7), "/", "") & "/" & Replace(Doc1.StrToNorDate(KURTarih ), "/", "")
+
+	objXMLDoc.Load "http://www.tcmb.gov.tr/kurlar/" & xmlTarih & ".xml"
+'	objXMLDoc.Load "c:\today.xml"
+
+	Set Root = objXMLDoc.documentElement
+	if Root is Nothing Then
+'		k = doc.d7MsgBox("Kurlar alýnamadý " & xmlTarih, "Hata", MB_OK)
+		Exit Sub
+	End if
+	Set KurList = Root.getElementsByTagName("Currency")
+
+	EXCE.EVRAKNOTARIH = Tarih
+
+	EXCT.Empty    
+	For Each Kur In KurList
+		ParaBirimi = Kur.Attributes(1).NodeValue
+		if trim(Doc1.GetGecoValue("*PUNIT", "KOD", ParaBirimi, d7c_ErrMsgNo)) <> "" Then
+			Birim = GetKurValue(Kur, "Unit")
+			DovizAlis = GetKurValue(Kur, "ForexBuying")
+			DovizSatis = GetKurValue(Kur, "ForexSelling")
+			EfektifAlis = GetKurValue(Kur, "BanknoteBuying")
+			EfektifSatis = GetKurValue(Kur, "BanknoteSelling")
+		
+			satirNo = EXCT.AddRow
+			EXCT.SetCurrentRow(satirNo)
+			EXCT.CODEFROM(satirNo) = ParaBirimi
+			EXCT.CODETO(satirNo) = Doc1.DefaultPB
+'			EXCT.KURS_1(satirNo) = DovizSatis / Doc1.CDbl(Birim)
+'			EXCT.KURS_3(satirNo) = DovizAlis / Doc1.CDbl(Birim)
+
+			EXCT.KURS_1(satirNo) = DovizAlis / Doc1.CDbl(Birim)
+			EXCT.KURS_3(satirNo) = DovizSatis / Doc1.CDbl(Birim)
+
+'****Muhasebe servisininde onayý ile 07.02.2013 tarihi itibari ile alýþ kuru baz alýnacaktýr.
+
+			EXCT.KURS_4(satirNo) = DovizSatis / Doc1.CDbl(Birim)
+			EXCT.KURS_5(satirNo) = EfektifAlis / Doc1.CDbl(Birim)
+			EXCT.KURS_6(satirNo) = EfektifSatis / Doc1.CDbl(Birim)
+		End if
+	Next
+	Doc1.Save_Voucher
+	Doc1.LoadEmpty_Voucher
+End Sub
+Function GetKurValue(Kurxml, KurTipi)
+'	Set KurAlisSatisxml = Kurxml.SelectSingleNode(KurTipi)
+'	If Not KurAlisSatisxml Is Nothing Then
+'		If Not KurAlisSatisxml.FirstChild Is Nothing Then
+'			GetKurValue = KurAlisSatisxml.FirstChild.Data
+'		End If
+'	End If
+	Set KurAlisSatisxml = Kurxml.SelectSingleNode(KurTipi)
+	If Not KurAlisSatisxml Is Nothing Then
+		If Not KurAlisSatisxml.FirstChild Is Nothing Then
+			GetKurValue = KurAlisSatisxml.FirstChild.Data
+		End If
+	End If
+
+
+End Function
+Sub HaftaSonuysaGeriAl(ByRef Tarih)
+	Set d7Date = Doc.CreateSObject("d7Date")
+	d7Date.SetDate(Tarih)
+	DOW = d7Date.GetDOW()
+	if DOW = 6 or DOW = 7 Then
+		d7Date.Increment(5 - DOW)
+		Tarih = d7Date.GetRevDate
+	End if
+End Sub
+Function YeniEvrakKaydedebilirMi(ProgramKodu, KullaniciAdi)
+	if trim(KullaniciAdi) = "D7KSUPER" or KullaniciAdi = "FX" Then
+		YeniEvrakKaydedebilirMi = True
+		Exit Function
+	End if
+
+	GrupKullanici = Doc.GetDBFieldValue("UDEF", "AYNIHAK", KullaniciAdi, "")
+	if trim(GrupKullanici) <> "" Then KullaniciAdi = GrupKullanici
+
+	YeniEvrakKaydedebilirMi = False
+	Set UT1 = Doc.Select1("daef3ff", "UDEFT1", "KOD='" & KullaniciAdi & "'&PROGRAMKODU='" & ProgramKodu & "'", "", -1)
+	if UT1.GetRowCount() > 0 Then
+		if UT1.RIGHT_W="1" Then
+			YeniEvrakKaydedebilirMi = True
+			Exit Function
+		End if
+	Else
+		YeniHakki = Doc.GetDBFieldValue("UDEF", "PR_RIGHT_W", KullaniciAdi, "")
+		if YeniHakki = "1" Then
+			YeniEvrakKaydedebilirMi = True
+			Exit Function
+		End if
+	End if
+End Function                                                                                                                                                                                                               
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : MMPS10
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnStart()
+	if Doc.IsBlank(M22_MMPS10T_SUB_LIST) Then Set M22_MMPS10T_SUB_LIST = Doc.GetTableObject("M22_MMPS10T_SUB_LIST")
+	if not Doc.IsBlank(M22_MMPS10T_SUB_LIST) Then
+		M22_MMPS10T_SUB_LIST.Setd7FieldEvent "R_TRANSFER_DIKKATE_ALINSIN","AFTERVALIDATE","MAKR7S.MPS", "R_TRANSFER_DIKKATE_ALINSIN_AV"
+	End if
+End Sub
+Function BeforeSave()
+	Call SiparisBaglantisi()
+End Function
+Sub SiparisBaglantisi()
+	Set M10TM = Doc.GetTableObject("MMPS10TM")
+	bos = ""
+		for i = 1 to M10TM.GetRecCount()
+			if trim(M10TM.MUSTERISIPINO(i)) <> bos and trim(M10TM.KAYNAKMPS_EVRAKTYPE(i)) = bos then
+				M10TM.KAYNAKMPS_EVRAKTYPE(i) = "SP"
+				M10TM.KAYNAKMPS(i) = M10TM.MUSTERISIPINO(i)
+				M10TM.KAYNAKMPS_TRNUM(i) = Right(M10TM.MUSTERISIPIARTNO(i),6)
+			End if
+		Next
+End Sub
+Function BeforeNew()
+	Doc.Load_Voucher GetYeniEvrakNo
+	BeforeNew = 9999
+End Function
+Sub AfterCommand(cmd)
+	if cmd = "CMD_SUZ" or cmd = "CMD_SUZ_K" Then
+		Call MPSMiktarlariniToleransKadarArttir()
+	End if
+End Sub
+Function GetYeniEvrakNo()
+	Set ggg = Doc.CreateSObject("BATCHERRORMODE")
+	MaxEvrakNo = Doc.RightJustify("1205289", 10)
+	if Doc.IsBlank(MMPS10E) Then Set MMPS10E = Doc.GetTableObject("MMPS10E")
+	if Doc.IsBlank(MMPS10T) Then Set MMPS10T = Doc.GetTableObject("MMPS10T")
+	GetYeniEvrakNo = ""
+	QStr = "SELECT MAX(EVRAKNO) EVRAKNO FROM MMPS10E WHERE 1=1"
+	if trim(MaxEvrakNo) <> "" Then
+		QStr = QStr & " AND EVRAKNO<'" & MaxEvrakNo & "'"
+	End if
+
+	Set M10E = Doc.RunSQLQuery("sdw4gsh", QStr)
+	if M10E.GetRowCount() = 0 Then
+		GetYeniEvrakNo = Doc.RightJustify("1",10)
+	Else
+		GetYeniEvrakNo = Doc.StrIncrement(M10E.EVRAKNO(1))
+	End if
+
+	QStr = "SELECT LPAD(TRIM(MAX(EVRAKNO)), 10,' ') EVRAKNO FROM D7WLOCK " & _
+				"WHERE EVRAKTYPE='MMPS10E' AND EVRAKNO>='" & Doc.RightJustify(trim(GetYeniEvrakNo),50) & "'"
+	if trim(MaxEvrakNo) <> "" Then
+		QStr = QStr & " AND EVRAKNO<'" & Doc.RightJustify(trim(MaxEvrakNo),50) & "'"
+	End if
+	Set d7W = Doc.RunSQLQuery("sdw4gshdd", QStr)
+	if d7W.GetRowCount() = 0 Then Exit Function
+	if trim(D7W.EVRAKNO(1)) <> "" Then
+		GetYeniEvrakNo = Doc.StrIncrement(Doc.RightJustify(trim(D7W.EVRAKNO(1)),10))
+	End if
+End Function
+Sub MPSMiktarlariniToleransKadarArttir()
+	If MMPS22E.READ_OPT = "1" Then Exit Sub
+	Set f = doc.CreateSObject("BATCHERRORMODE")
+	Dim Par
+	Set Par=Doc.CreateSObject("Parameters")
+
+	For i = 1 to M22_MMPS10E_LIST.GetRowCount()
+		Doc.StatusBarMessage "Toleranslar Uygulanýyor : " & i & " / " & M22_MMPS10E_LIST.GetRowCount()
+		if Left(M22_MMPS10E_LIST.MAMULSTOKKODU(i), 1) = "M" Then
+			Par.SetParameter "USR_TABLE_NAME_001",M22_MMPS10E_LIST.GetAppName()	
+			Par.SetParameter "USR_TABLE_CURENT_ROW",i
+			Doc.RunCommand1 "CMD_SET_CURRENT_ROW",Par
+
+			For j = 1 to M22_MMPS10T_SUB_LIST.GetRowCount()
+				Par.SetParameter "USR_TABLE_NAME_001",M22_MMPS10T_SUB_LIST.GetAppName()	
+				Par.SetParameter "USR_TABLE_CURENT_ROW",j
+				Doc.RunCommand1 "CMD_SET_CURRENT_ROW",Par
+
+				ToleransTuru = M22_MMPS10T_SUB_LIST.EVRAKNO_MMPS10E_TOLERANSTYPE
+				if trim(ToleransTuru) = "-+" or trim(ToleransTuru) = "+" Then
+					Tolerans = 1 + M22_MMPS10T_SUB_LIST.EVRAKNO_MMPS10E_TOLERANS / 100
+					M22_MMPS10T_SUB_LIST.R_HM_BAKIYE = Doc.Round((M22_MMPS10T_SUB_LIST.R_MIKTART - M22_MMPS10T_SUB_LIST.R_HM_NET_TRANSFER) * Tolerans,0)
+				End if
+			Next
+		End if
+	Next
+	Par.SetParameter "USR_TABLE_NAME_001",M22_MMPS10E_LIST.GetAppName()	
+	Par.SetParameter "USR_TABLE_CURENT_ROW",1
+	Doc.RunCommand1 "CMD_SET_CURRENT_ROW",Par
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : BOMU01T
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub BOMREC_KAYNAK0_BV_AfterValidate()
+	Call SureHesapla()
+End Sub
+Sub BOMREC_KAYNAK0_BU_AfterValidate()
+	Call SureHesapla()
+End Sub
+Sub BOMREC_YMAMULPS_AfterValidate()
+	Call SureHesapla()
+End Sub
+Sub BOMREC_YMAMULPM_AfterValidate()
+	Call SureHesapla()
+End Sub
+Sub SureHesapla()
+	Set BOMU01E = Doc.GetTableObject("BOMU01E")
+	Set BOMU01T = Doc.GetTableObject("BOMU01T")
+	if trim(BOMU01T.BOMREC_KAYNAK0_BU) = "mamul/dk" Then
+		Miktar = BOMU01E.MAMULMIKTAR
+	Elseif trim(BOMU01T.BOMREC_KAYNAK0_BU) = "ymmul/dk" Then
+		Miktar = BOMU01T.BOMREC_YMAMULPS * BOMU01T.BOMREC_YMAMULPM
+	End if
+	if Miktar > 0 Then
+		BOMU01T.BOMREC_KAYNAK0 = Doc.Div(Miktar, BOMU01T.BOMREC_KAYNAK0_BV) / 60
+	End if
+End Sub
+Sub BOMREC_KAYNAKCODE_AfterValidate()
+	Call MiktarHesapla()
+End Sub
+Sub REFNUM01_AfterValidate()
+	Call MiktarHesapla()
+End Sub
+Sub MiktarHesapla()
+	Set BOMU01T = Doc.GetTableObject("BOMU01T")
+	if trim(BOMU01T.BOMREC_INPUTTYPE) <> "H" Then Exit Sub
+	if trim(BOMU01T.BOMREC_KAYNAKCODE) = "" Then Exit Sub
+
+	Set S00 = Doc.RunSQLQuery("SEsdfshs", "SELECT B_YOGUNLUK FROM STOK00 WHERE KOD='" & BOMU01T.BOMREC_KAYNAKCODE & "'")
+	if S00.GetRowCount() = 0 Then Exit Sub
+
+	if S00.B_YOGUNLUK(1) = 0 Then Exit Sub
+
+	BOMU01T.BOMREC_KAYNAK0 = Doc.Round(BOMU01T.REFNUM01 * S00.B_YOGUNLUK(1),6)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK25
+Hangi Tablo için : STOK25
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnStart()
+	Set S25T = Doc.GetTableObject("STOK25T")	
+
+	Set fd = S25T.GetFieldDef_E("OSF_VRI_VR_R1")
+	fd.F2Fnc="DO_BRW(""AMBLJ00"")"
+	S25T.SetFieldProperties1 "OSF_VRI_VR_R1",fd 
+
+
+	Set fd = S25T.GetFieldDef_E("PN_SF_VRI_VR_R1")
+	fd.F2Fnc="DO_BRW(""AMBLJ00"")"
+	S25T.SetFieldProperties1 "PN_SF_VRI_VR_R1",fd 
+End Sub
+Sub Beforesave()
+	for i=1 to STOK25T.GetRecCount()
+
+		if STOK25T.KOD(i) <> STOK25T.NEWCODE(i) THEN
+			k = STOK25T.SRNUM & " numaralý satýrdaki ürün kodlarý birbirinden farklý"
+			Y = doc.d7MsgBox(k,"Freedom",MB_OKCANCEL+MB_ICONWARNING)
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK40T
+Hangi Tablo için : STOK40
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub SF_SF_UNIT_OnValidate()
+	Call BirimKontrol()
+End Sub
+Sub KOD_OnValidate()
+	Call Stoksondurum()
+End Sub
+Sub KOD_AfterValidate()
+	Call OtomatikPB()
+End Sub
+Sub OtomatikPB()
+	Set STOK40E = Doc.GetTableObject("STOK40E")
+	Set STOK40T = Doc.GetTableObject("STOK40T")
+	if trim(STOK40E.CH_KUR) <> "" and STOK40T.OR_FIYAT = 0 Then
+		STOK40T.PRICEUNIT = STOK40E.CH_KUR
+	End if
+End Sub
+Sub BirimKontrol()
+	Set STOK40T = Doc.GetTableObject("STOK40T")
+	if trim(STOK40T.SF_SF_UNIT) <> "" Then
+		Set S00 = Doc.RunSQLQuery("SDFSDFHSJ", "SELECT IUNIT FROM STOK00 WHERE KOD='" & STOK40T.KOD & "'")
+		if S00.GetRowCount() > 0 Then
+			if STOK40T.SF_SF_UNIT <> S00.IUNIT(1) Then
+				Doc.d7MsgBox "Ýþlem birimi " & trim(S00.IUNIT(1)) & " olmalýdýr", "", MB_OK
+				STOK40T.SF_SF_UNIT = S00.IUNIT
+			End if
+		End if
+	End if
+End Sub
+
+Sub Stoksondurum()
+	Set S40T = Doc.GetTableObject("STOK40T")
+	for i = 1 to S40T.GetRecCount()
+		if trim(S40T.KOD(i)) <> "" Then
+			DEPO = "MA"
+			S40T.ARTIKEL_REF_NUM_1(i) = Doc.Stok00c_SonSerbest(S40T.KOD(i),DEPO,"")
+			S40T.ARTIKEL_REF_NUM_2(i) = Doc.Stok00c_SonRezerve(S40T.KOD(i),DEPO,"")
+		End if
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK60
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeSave()
+	if BolmeEmriVarmi Then
+		BeforeSave = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End if
+End Function
+Function BolmeEmriVarmi()
+	Set S60E = Doc.GetTableObject("STOK60E")
+	Set S60T = Doc.GetTableObject("STOK60T")
+	S60T.SafePack()
+	Set s = Doc.CreateSObject("BATCHERRORMODE")
+
+	BolmeEmriVarmi = False
+'	msgbox BolmeEmriVarmi
+bos = ""
+
+	Set S60T2 = Doc.Select2("wdfwefwed", "STOK60T", "SF_VRI_VR_R1<>'"& Doc.LeftJustify("0000",24) &"' & SF_VRI_NUM1='"& bos &"' ", "", -1)
+	if S60T2.GetRowCount() = 0 Then Exit Function
+
+	For i = 1 to S60T2.GetRowCount()
+
+		Set S01 = Doc.Select1("sdfsaf", "STOK01", "KOD = '"& S60T2.KOD(i) &"' & LOTNUMBER = '"& S60T2.LOTNUMBER(i) &"' & SERINO = '"& S60T2.SERINO(i) &"' & VRI_VR_R1='"& S60T2.SF_VRI_VR_R1(i) &"' & VRI_NUM1 = '"& S60T2.SF_VRI_NUM1(i) &"'", "", -1)
+
+		if S01.GetRowCount() > 0 Then
+			if S60T2.SF_MIKTAR(i) <> S01.SF_MIKTAR(1) then
+				Doc.d7MsgBox trim(S60T2.SRNUM(i)) &". sýradaki " &trim(S60T2.KOD(i)) & " Stokkodu Bölme Emri var Lütfen Önce Paket Bölme Ýþlemi yapýnýz.", "", MB_OK
+				BolmeEmriVarmi = True
+			End if
+		End if
+	Next
+'msgbox BolmeEmriVarmi
+
+End Function
+
+
+Sub AfterSave()
+	Call NotlariGetir()
+End Sub
+Sub NotlariGetir()
+	Set T_STOK60T = Doc.GetTableObject("STOK60T")
+
+	for i = 1 to T_STOK60T.GetRecCount()
+		pozno = ""
+		ch_sip = ""
+		mkod = ""
+		ch_kod = ""
+
+		if trim(T_STOK60T.SIPARTNO(i)) <> "" and trim(T_STOK60T.NOTES(i)) = "" Then
+			Set S00 = Doc.RunSQLQuery("SDFSDFHSJ", "SELECT * FROM STOK40T WHERE ARTNO='" & T_STOK60T.SIPARTNO(i) & "'")
+
+			if S00.GetRowCount() > 0 Then
+				ch_sip = Doc.GetDBFieldValue("STOK40E","CHSIPNO",S00.EVRAKNO(1),"")
+				ch_sip2 = replace(ch_sip,"MLZ.NO:","")
+				pozno = S00.ARTIKEL_REF_REF_1(1)
+
+				pozno = replace(trim(pozno),"trim(ch_sip2)","")
+
+				ch_kod = Doc.GetDBFieldValue("STOK40E","MUSTERIKODU",S00.EVRAKNO(1),"")
+
+				Set C00 = Doc.Select1("cdscs","STOK0GT","KOD = '"& ch_kod &"' & STOKCODE = '"& T_STOK60T.KOD(i) &"'","",-1)
+				if C00.GetRowCount() > 0 Then
+					mkod = C00.MSTOKCODE(1)
+				End if
+'				T_STOK60T.NOTES(i) = trim(ch_sip) & " / " &trim(mkod) & " / " & trim(pozno)
+				T_STOK60T.NOTES(i) = trim(mkod) & " / " & trim(pozno)
+			End if
+		End if
+	Next
+	STOK60T.SORT(ARTIKEL_REF_REF_1)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK20
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnStart()
+	Set S20T = Doc.GetTableObject("STOK20T")	
+
+	Set fd = S20T.GetFieldDef_E("SF_VRI_VR_R1")
+	fd.F2Fnc="DO_BRW(""AMBLJ00"")"
+	S20T.SetFieldProperties1 "SF_VRI_VR_R1",fd 
+
+End Sub
+
+Sub AfterNew()
+	Set S20E = Doc.GetTableObject("STOK20E")
+	Set S20T = Doc.GetTableObject("STOK20T")
+	If Trim(S20T.KOD(1)) = "" Then
+'		S20E.AMBCODE = "QMA"
+		S20E.IMALATAMBCODE = "IM"
+		S20E.YANMAMULAMBCODE = "HU"
+
+		S20E.ONAYEH1="H"
+'		S20E.MPSSREZ1="E"
+	End If
+
+End Sub
+Function BeforeSave()
+	if MPSArtikelVarmi Then
+		BeforeSave = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End if
+
+	Set S20E = Doc.GetTableObject("STOK20E")
+	Set S20T = Doc.GetTableObject("STOK20T")
+
+	if left(Trim(S20T.KOD(1)),5) >= "YM400" and left(Trim(S20T.KOD(1)),5) < "YM451" then
+		S20E.AMBCODE = "YMGR"
+		S20E.IMALATAMBCODE = "YMGR"
+		S20E.YANMAMULAMBCODE = "HU"
+
+	Elseif left(Trim(S20T.KOD(1)),5) >= "YM220" and left(Trim(S20T.KOD(1)),5) < "YM230" then
+		S20E.AMBCODE = "YMCU"
+		S20E.IMALATAMBCODE = "YMCU"
+		S20E.YANMAMULAMBCODE = "HU"
+
+	Elseif left(Trim(S20T.KOD(1)),5) >= "YM300" and left(Trim(S20T.KOD(1)),5) < "YM348" then
+		S20E.AMBCODE = "IM"
+		S20E.IMALATAMBCODE = "IM"
+		S20E.YANMAMULAMBCODE = "HU"
+
+	Elseif left(Trim(S20T.KOD(1)),5) >= "YM700" and left(Trim(S20T.KOD(1)),5) < "YM751" then
+		S20E.AMBCODE = "IM"
+		S20E.IMALATAMBCODE = "IM"
+		S20E.YANMAMULAMBCODE = "HU"
+
+	Elseif left(Trim(S20T.KOD(1)),3) >= "YI1" and left(Trim(S20T.KOD(1)),3) < "YT6" then
+		S20E.AMBCODE = "IM"
+		S20E.IMALATAMBCODE = "IM"
+		S20E.YANMAMULAMBCODE = "HU"
+
+	Elseif left(Trim(S20T.KOD(1)),2) >= "M1" and left(Trim(S20T.KOD(1)),2) < "MZ" then
+		S20E.AMBCODE = "MA"
+		S20E.IMALATAMBCODE = "IM"
+		S20E.YANMAMULAMBCODE = "HU"
+
+	End if
+
+		Doc.RunCommand "CMD_SIRALIK_ISLEM_003"
+		Doc.RunCommand "HESAPLANMIS_RECETENIN_LOT_SERI_BUL"
+		Doc.RunCommand "CMD_STOK01DEBULUNDUMU_BILGISATIRIE"
+End Function
+Function MPSArtikelVarmi()
+	Set S20E = Doc.GetTableObject("STOK20E")
+	Set S20T = Doc.GetTableObject("STOK20T")
+	S20T.SafePack()
+	Set s = Doc.CreateSObject("BATCHERRORMODE")
+
+	MPSArtikelVarmi = False
+
+'msgbox MPSArtikelVarmi
+bos = ""
+
+	Set S20T2 = Doc.Select2("wdfwefwed", "STOK20T", "MPSTM_TRNUM='"& bos &"'", "", -1)
+	if S20T2.GetRowCount() = 0 Then Exit Function
+
+	For i = 1 to S20T2.GetRowCount()
+
+		Doc.d7MsgBox trim(S20T2.MPSNO(i)) &" Numaralý MPS inizin Artikel numarasý girilmemiþ.", "", MB_OK
+		MPSArtikelVarmi = True
+	Next
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : MMPS10TM
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub MUSTERISIPIARTNO_AfterValidate()
+	Call KaynakEvrakNolariGuncelle()
+End Sub
+Sub KaynakEvrakNolariGuncelle()
+	Set MMPS10TM = Doc.GetTableObject("MMPS10TM")
+	if trim(MMPS10TM.KAYNAKMPS_EVRAKTYPE) = "SP" or trim(MMPS10TM.KAYNAKMPS_EVRAKTYPE) = "" Then
+		MMPS10TM.KAYNAKMPS_EVRAKTYPE = "SP"
+		MMPS10TM.KAYNAKMPS = Left(MMPS10TM.MUSTERISIPIARTNO, 10)
+		MMPS10TM.KAYNAKMPS_TRNUM = Right(MMPS10TM.MUSTERISIPIARTNO, 6)
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : MMPSR5
+Hangi Tablo için : MMPSR5
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnStart()
+	Doc.Load_Voucher "1"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK30
+Hangi Tablo için : STOK30
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function BeforeSave()
+	if BolmeEmriVarmi Then
+		BeforeSave = "CANCELWITHOUTERRORMSG"
+		Exit Function
+	End if
+End Function
+Function BolmeEmriVarmi()
+	Set S30E = Doc.GetTableObject("STOK30E")
+	Set S30T = Doc.GetTableObject("STOK30T")
+	S30T.SafePack()
+	Set s = Doc.CreateSObject("BATCHERRORMODE")
+
+	BolmeEmriVarmi = False
+
+bos = ""
+
+	Set S30T2 = Doc.Select2("wdfwefwed", "STOK30T", "SF_VRI_VR_R1<>'"& Doc.LeftJustify("0000",24) &"' & SF_VRI_NUM1 ='"& bos &"' ", "", -1)
+	if S30T2.GetRowCount() = 0 Then Exit Function
+
+	For i = 1 to S30T2.GetRowCount()
+
+		Set S01 = Doc.Select1("sdfsaf", "STOK01", "KOD = '"& S30T2.KOD(i) &"' & LOTNUMBER = '"& S30T2.LOTNUMBER(i) &"' & SERINO = '"& S30T2.SERINO(i) &"' & VRI_VR_R1='"& S30T2.SF_VRI_VR_R1(i) &"' & VRI_NUM1 = '"& S30T2.SF_VRI_NUM1(i) &"'", "", -1)
+
+		if S01.GetRowCount() > 0 Then
+			if S30T2.SF_MIKTAR(i) <> S01.SF_MIKTAR(1) then
+				Doc.d7MsgBox trim(S30T2.SRNUM(i)) &". sýradaki " &trim(S30T2.KOD(i)) & " Stokkodu Bölme Emri var Lütfen Önce Paket Bölme Ýþlemi yapýnýz.", "", MB_OK
+				BolmeEmriVarmi = True
+			End if
+		End if
+	Next
+'msgbox BolmeEmriVarmi
+
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : MMPS10-2
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub R_TRANSFER_DIKKATE_ALINSIN_AfterValidate()
+	Set M22_MMPS10T_SUB_LIST = Doc.GetTableObject("M22_MMPS10T_SUB_LIST")
+	ToleransTuru = M22_MMPS10T_SUB_LIST.EVRAKNO_MMPS10E_TOLERANSTYPE
+	if trim(ToleransTuru) = "-+" or trim(ToleransTuru) = "+" Then
+		Tolerans = 1 + M22_MMPS10T_SUB_LIST.EVRAKNO_MMPS10E_TOLERANS / 100
+		M22_MMPS10T_SUB_LIST.R_HM_BAKIYE = Doc.Round((M22_MMPS10T_SUB_LIST.R_MIKTART - M22_MMPS10T_SUB_LIST.R_HM_NET_TRANSFER) * Tolerans,0)
+	End if	
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK204
+Hangi Tablo için : STOK204
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub OnStart()
+	Set S20T = Doc.GetTableObject("STOK20T1")	
+
+	Set fd = S20T.GetFieldDef_E("SF_VRI_VR_R1")
+	fd.F2Fnc="DO_BRW(""AMBLJ00"")"
+	S20T.SetFieldProperties1 "SF_VRI_VR_R1",fd 
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : UNT_2014 / Uygulama : MAKR8S
+Makro Kodu : OSF313-1
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub JOBNO_AfterValidate()
+	Call OperasyonKapalimi()
+End Sub
+Sub OperasyonKapalimi()
+	Set SF31E = Doc.GetTableObject("SFDC31E")
+	Set M10T = Doc.Select1("sacda","MMPS10T","JOBNO ='"& SF31E.JOBNO &"'","",-1)
+
+	if M10T.GetRecCount() > 0 then
+		if trim(M10T.R_ACIK_KAPALI)= "K" then
+			mesaj = "Seçtiðiniz operasyon kapalý durumdadýr, Buna raðmen Operasyon bildirmek istediðinize emin misiniz?... "
+			y = doc.d7MsgBox(mesaj,"Freedom",MB_OK+MB_ICONINFORMATION)
+		End if
+	End if
+End Sub
+
+Sub SF_MIKTAR_AfterValidate()
+	Call MiktarFazlami()
+End Sub
+Sub MiktarFazlami()
+	Set SF31E = Doc.GetTableObject("SFDC31E")
+	Set M10T = Doc.Select1("sacda","MMPS10T","JOBNO ='"& SF31E.JOBNO &"'","",-1)
+
+	if M10T.GetRecCount() > 0 then
+		bakiye = M10T.R_BAKIYEYMAMULMIKTAR(1)
+		if SF31E.SF_MIKTAR > bakiye then
+			mesaj = "Seçtiðiniz operasyonun bakiyesinden daha fazla miktar girdiniz, Buna raðmen Operasyon bildirmek istediðinize emin misiniz?... "
+			y = doc.d7MsgBox(mesaj,"Freedom",MB_OK+MB_ICONINFORMATION)
+		End if
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+----------------------------------------------------------------
+
