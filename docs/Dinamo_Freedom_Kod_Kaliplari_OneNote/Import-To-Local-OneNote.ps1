@@ -1,25 +1,38 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Dinamo/Freedom kod kalıplarını yerel OneNote (masaüstü) defterine aktarır.
-
-.DESCRIPTION
-  OneNote COM API kullanır. Windows + yüklü OneNote masaüstü (OneNote 2016 / Microsoft 365 OneNote)
-  gerekir. "OneNote for Windows 10" (UWP) COM desteklemez.
+  Dinamo/Freedom kod kaliplarini yerel OneNote (masaustu) defterine aktarir.
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\Import-To-Local-OneNote.ps1
+  powershell -ExecutionPolicy Bypass -File .\Import-To-Local-OneNote.ps1 -ContentRoot "C:\path\to\Dinamo_Freedom_Kod_Kaliplari_OneNote"
 #>
 [CmdletBinding()]
 param(
   [string]$NotebookName = "Dinamo Freedom Kod Kaliplari",
-  [string]$NotebookPath = $(Join-Path $env:USERPROFILE "Documents\OneNote Notebooks"),
+  [string]$NotebookPath = "",
   [string]$SectionName = "Kod Kaliplari",
-  [string]$ContentRoot = $PSScriptRoot
+  [string]$ContentRoot = ""
 )
 
 $ErrorActionPreference = "Stop"
 $oneNs = "http://schemas.microsoft.com/office/onenote/2013/onenote"
+
+# Resolve ContentRoot when $PSScriptRoot is empty (common with some -File invocations)
+if ([string]::IsNullOrWhiteSpace($ContentRoot)) {
+  if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+    $ContentRoot = $PSScriptRoot
+  } elseif ($MyInvocation.MyCommand.Path) {
+    $ContentRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
+  } else {
+    $ContentRoot = (Get-Location).Path
+  }
+}
+$ContentRoot = $ContentRoot.TrimEnd('\', '/')
+
+if ([string]::IsNullOrWhiteSpace($NotebookPath)) {
+  $NotebookPath = Join-Path $env:USERPROFILE "Documents\OneNote Notebooks"
+}
 
 function Get-OneNoteApp {
   try {
@@ -28,10 +41,10 @@ function Get-OneNoteApp {
     throw @"
 OneNote COM baslatilamadi: $($_.Exception.Message)
 
-Kontrol listesi:
-  1) OneNote masaüstü (2016 / Microsoft 365) kurulu mu?
-  2) UWP 'OneNote for Windows 10' COM desteklemez — masaüstü OneNote kullanin.
-  3) OneNote'u bir kez acip Microsoft hesabina giris yapin, sonra scripti tekrar calistirin.
+Kontrol:
+  1) OneNote masaustu (2016 / Microsoft 365) kurulu mu?
+  2) UWP 'OneNote for Windows 10' COM desteklemez.
+  3) OneNote'u bir kez acip giris yapin, scripti tekrar calistirin.
 "@
   }
 }
@@ -62,7 +75,6 @@ function Convert-MarkdownToPlain([string]$md) {
 function New-PageXml([string]$pageId, [string]$title, [string]$body) {
   $oeBlocks = New-Object System.Collections.Generic.List[string]
   foreach ($line in ($body -split "`n")) {
-    # CDATA icinde ]]> kirilmasin
     $safeLine = $line -replace ']]>', ']]]]><![CDATA[>'
     [void]$oeBlocks.Add("<one:OE><one:T><![CDATA[$safeLine]]></one:T></one:OE>")
   }
@@ -91,7 +103,7 @@ function Get-Attr([System.Xml.XmlNode]$node, [string]$name) {
 
 function Get-SectionId([object]$onenote, [string]$notebookId, [string]$sectionName, [string]$ns) {
   $hier = ""
-  $onenote.GetHierarchy($notebookId, 3, [ref]$hier) # hsSections = 3
+  $onenote.GetHierarchy($notebookId, 3, [ref]$hier)
   [xml]$hx = $hier
   $nsMgr = New-Object System.Xml.XmlNamespaceManager($hx.NameTable)
   $nsMgr.AddNamespace("one", $ns)
@@ -103,30 +115,29 @@ function Get-SectionId([object]$onenote, [string]$notebookId, [string]$sectionNa
 }
 
 Write-Host "=== Dinamo/Freedom -> OneNote aktarim ===" -ForegroundColor Cyan
-Write-Host "Icerik: $ContentRoot"
+Write-Host ("Icerik: " + $ContentRoot)
 
-$sayfalar = Join-Path $ContentRoot "sayfalar"
-if (-not (Test-Path $sayfalar)) {
-  throw "sayfalar klasoru bulunamadi: $sayfalar`nScripti docs\Dinamo_Freedom_Kod_Kaliplari_OneNote klasorunden calistirin."
+$sayfalar = Join-Path -Path $ContentRoot -ChildPath "sayfalar"
+if (-not (Test-Path -LiteralPath $sayfalar)) {
+  throw ("sayfalar klasoru bulunamadi: " + $sayfalar + "`nScripti docs\Dinamo_Freedom_Kod_Kaliplari_OneNote klasorunden calistirin.")
 }
 
 $files = @()
-$readme = Join-Path $ContentRoot "00_README_ONENOTE.md"
-if (Test-Path $readme) { $files += Get-Item $readme }
-$files += @(Get-ChildItem -Path $sayfalar -Filter "*.md" | Sort-Object Name)
+$readme = Join-Path -Path $ContentRoot -ChildPath "00_README_ONENOTE.md"
+if (Test-Path -LiteralPath $readme) { $files += Get-Item -LiteralPath $readme }
+$files += @(Get-ChildItem -LiteralPath $sayfalar -Filter "*.md" | Sort-Object Name)
 if ($files.Count -eq 0) { throw "Aktarilacak .md dosyasi yok." }
 
 $onenote = Get-OneNoteApp
 Write-Host "OneNote COM baglandi."
 
-if (-not (Test-Path $NotebookPath)) {
+if (-not (Test-Path -LiteralPath $NotebookPath)) {
   New-Item -ItemType Directory -Path $NotebookPath -Force | Out-Null
 }
 
-$nbFolder = Join-Path $NotebookPath $NotebookName
+$nbFolder = Join-Path -Path $NotebookPath -ChildPath $NotebookName
 $notebookId = ""
-Write-Host "Defter aciliyor/olusturuluyor: $nbFolder"
-# cftNotebook = 1
+Write-Host ("Defter aciliyor/olusturuluyor: " + $nbFolder)
 $onenote.OpenHierarchy($nbFolder, "", [ref]$notebookId, 1)
 if ([string]::IsNullOrWhiteSpace($notebookId)) {
   throw "Notebook olusturulamadi. OneNote'u acip Documents\OneNote Notebooks yazma iznini kontrol edin."
@@ -134,7 +145,7 @@ if ([string]::IsNullOrWhiteSpace($notebookId)) {
 
 $sectionId = Get-SectionId $onenote $notebookId $SectionName $oneNs
 if ([string]::IsNullOrWhiteSpace($sectionId)) {
-  Write-Host "Bolum olusturuluyor: $SectionName"
+  Write-Host ("Bolum olusturuluyor: " + $SectionName)
   $sectionXml = @"
 <?xml version="1.0"?>
 <one:Notebook xmlns:one="$oneNs" ID="$notebookId">
@@ -146,12 +157,12 @@ if ([string]::IsNullOrWhiteSpace($sectionId)) {
   $sectionId = Get-SectionId $onenote $notebookId $SectionName $oneNs
 }
 if ([string]::IsNullOrWhiteSpace($sectionId)) {
-  throw "Bolum olusturulamadi: $SectionName"
+  throw ("Bolum olusturulamadi: " + $SectionName)
 }
 Write-Host "Bolum ID alindi."
 
 $ph = ""
-$onenote.GetHierarchy($sectionId, 4, [ref]$ph) # hsPages = 4
+$onenote.GetHierarchy($sectionId, 4, [ref]$ph)
 [xml]$px = $ph
 $nsMgr2 = New-Object System.Xml.XmlNamespaceManager($px.NameTable)
 $nsMgr2.AddNamespace("one", $oneNs)
@@ -172,7 +183,7 @@ foreach ($f in $files) {
   }
 
   if ($existing.ContainsKey($title)) {
-    Write-Host "  atla (var): $title" -ForegroundColor DarkYellow
+    Write-Host ("  atla (var): " + $title) -ForegroundColor DarkYellow
     $skipped++
     continue
   }
@@ -181,15 +192,14 @@ foreach ($f in $files) {
   $onenote.CreateNewPage($sectionId, [ref]$pageId)
   $body = Convert-MarkdownToPlain $raw
   $xml = New-PageXml -pageId $pageId -title $title -body $body
-  # dateExpectedLastModified bos = zorla yaz
   $onenote.UpdatePageContent($xml, [System.DateTime]::MinValue)
-  Write-Host "  sayfa: $title" -ForegroundColor Green
+  Write-Host ("  sayfa: " + $title) -ForegroundColor Green
   $created++
   Start-Sleep -Milliseconds 120
 }
 
 Write-Host ""
-Write-Host "Tamam. Yeni sayfa: $created  Atlanan: $skipped" -ForegroundColor Cyan
-Write-Host "OneNote'ta acin: $NotebookName / $SectionName"
+Write-Host ("Tamam. Yeni sayfa: " + $created + "  Atlanan: " + $skipped) -ForegroundColor Cyan
+Write-Host ("OneNote'ta acin: " + $NotebookName + " / " + $SectionName)
 Write-Host ""
 Write-Host "Alternatif: Dinamo_Freedom_Kod_Kaliplari.docx -> Word -> Dosya > Gonder > OneNote"
