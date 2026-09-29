@@ -1,0 +1,57 @@
+Makro Kaynak Kodu
+Firma Kodu : EMTAELEKT_2014 / Uygulama : MAKR7S
+Makro Kodu : STOK00
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1
+	msgbox "xx"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : EMTAELEKT_2014 / Uygulama : MAKR7S
+Makro Kodu : STOK00-01
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Stok Kartý Liste Tabýndakileri Silme
+Kod : 
+Sub Makro1()
+	Dim LISTET
+	Dim i
+	Set LISTET = doc.gettableobject("LISTET")
+	
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00", "")
+	Set S00 = Doc1.Select1("1111", "STOK00", "", "", -1) 
+	
+	For i = 1 to S00.getreccount()
+		Doc1.Load_Voucher(S00.KOD(i))
+		Doc1.Delete_Voucher()
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+

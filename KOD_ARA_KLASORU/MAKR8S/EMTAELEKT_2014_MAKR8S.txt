@@ -1,0 +1,146 @@
+Makro Kaynak Kodu
+Firma Kodu : EMTAELEKT_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK46-01
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function KOD_STOK00_AD_AfterValidate
+	Call StokAdiF2Degistir
+End Function
+
+Sub StokAdiF2Degistir()
+
+    TabloStr = "STOK46T"
+    AlanAdi = "KOD_STOK00_AD"
+    BrowseTable = "BRW_KOD_STOK00_AD_1"
+    BrowseCaption = "Stok Kartlarý"
+    Width1 = 1000
+    Height1 = 600
+
+    Set Tbl = Doc.GetTableObject(TabloStr)
+    Set FieldDef = Tbl.GetFieldDef_E(AlanAdi)
+
+    QStr = "SELECT S0.CODETYPE, S0.KART_TIPI, S0.KOD, S0.AD, S0.NAME2, S0.IUNIT, " & vbCrLf 
+    QStr = QStr & " (C.CUM_1-C.CUM_2) TOPLAM_MIKTAR, "
+    QStr = QStr & " (C.CUM_3+C.CUM_4+C.CUM_5+C.CUM_6+C.CUM_7+C.CUM_8+C.CUM_9) REZERVE_MIKTAR, "
+    QStr = QStr & " (C.CUM_1-C.CUM_2) - (C.CUM_3+C.CUM_4+C.CUM_5+C.CUM_6+C.CUM_7+C.CUM_8+C.CUM_9) SERBEST_MIKTAR, "
+    QStr = QStr & " S0.B_GUVENLIKSTOGU, S0.B_ORTTEMINSURES, "
+    QStr = QStr & " B_MINPARTIBUYUKLUGU, B_MINIMUMSIPMIKTARI, "
+    QStr = QStr & " GK_1, GK_2, GK_3, GK_4,GK_5, GK_6, GK_7, GK_8,GK_9,GK_10"
+    QStr = QStr & " FROM STOK00 S0" & vbCrLf 
+    QStr = QStr & " LEFT JOIN STOK00C C ON C.KOD=S0.KOD AND TRIM(C.AMBCODE) IS NULL " & vbCrLf 
+    QStr = QStr & " WHERE 1=1 AND S0.AP10='1'" & vbCrLf 
+    QStr = QStr & " AND (UPPER(S0.AD) LIKE '%@@@CR1@@@%' " & vbCrLf 
+    QStr = QStr & " OR UPPER(REPLACE(S0.AD,',','.')) LIKE '%@@@CR1@@@%'" & vbCrLf
+    QStr = QStr & " OR UPPER(REPLACE(S0.AD,'.',',')) LIKE '%@@@CR1@@@%'" & vbCrLf
+    QStr = QStr & " OR REPLACE(UPPER(S0.AD),'I','Ý') LIKE '%@@@CR1@@@%'" & vbCrLf
+    QStr = QStr & " OR REPLACE(UPPER(S0.AD),'Ý','I') LIKE '%@@@CR1@@@%'" & vbCrLf
+    QStr = QStr & " )" & vbCrLf
+    QStr = QStr & " ORDER BY InStr(UPPER(S0.AD), '@@@CR1@@@'), S0.AD"
+
+    QStr = "'" & Replace(QStr, "'", "\:q") & "'"
+
+    ColStr = "'<COL COLLEN=20p>A/D</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=20p>Kart Türü</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=110p>Stok Kodu</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=280p>Stok Açýklamasý</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=160p>Stok Açýklamasý-2</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=40p>Birim</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=3 COLLEN=60p>Toplam Miktar</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=3 COLLEN=60p>Rezerve Miktar</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=3 COLLEN=60p>Serbest Miktar</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=3 COLLEN=60p>Güvenlik Stoðu</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=0 COLLEN=60p>Temin Süresi</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=0 COLLEN=60p>Parti Büyüklüðü</COL>'"
+    ColStr = ColStr & ",'<COL FLEN=10 FSIG=0 COLLEN=60p>Minimum Sipariþ Miktarý</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-1</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-2</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-3</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-4</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-5</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-6</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-7</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-8</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-9</COL>'"
+    ColStr = ColStr & ",'<COL COLLEN=60p>Grup Kodu-10</COL>'"
+
+    BrowseFunc = "F2=DO_SQL_BRW("
+    BrowseFunc = BrowseFunc & "'" & BrowseTable & "'"
+    'BrowseFunc = BrowseFunc & ",'KOD=3," & AlanAdi & "=4'"
+    BrowseFunc = BrowseFunc & ",'KOD=3'"
+    BrowseFunc = BrowseFunc & "," & QStr
+    BrowseFunc = BrowseFunc & ",'" & BrowseCaption & "'"
+    BrowseFunc = BrowseFunc & ",'W=" & Width1 & "p,H=" & Height1 & "p'"
+    BrowseFunc = BrowseFunc & "," & ColStr
+    BrowseFunc = BrowseFunc & ")"
+    BrowseFunc = Replace(BrowseFunc, "'", """")
+
+    FieldDef.F2Fnc = BrowseFunc
+    Tbl.SetFieldProperties1 AlanAdi,FieldDef    
+End Sub
+
+
+Function KOD_AfterValidate
+	Set SatirTable = Doc.GetTableObject("STOK46T")
+	StokKodu = Trim(SatirTable.KOD)
+	
+	If StokKodu = "153 ÝLT OPGW0000044" Then
+		Call Varyant1_F2(SatirTable)
+	Else
+		'Call Normal
+	End If
+		
+	'153 ÝLT OPGW0000044
+End Function
+'--------------------------------------------------------------------------------
+Sub Varyant1_F2(SatirTable)
+		AlanAdi = "SF_VRI_VR_R1"
+		GrupKodu = "!DETAY1"
+				
+		Set fd=SatirTable.GetFieldDef_E(AlanAdi) 
+		fd.GrupKodu=GrupKodu  ' Sað klik ile gidilecek grupd kodu
+		fd.F2Fnc="DO_SBRW_GECO('"&GrupKodu&"')"
+		fd.FTFFnc="G."&GrupKodu  ' Sadece grup kodundaki veriler gelmesi için  
+		SatirTable.SetFieldProperties1 AlanAdi,fd
+End Sub
+'-------------------------------------------------------------------------------
+Function SF_VRI_VR_R1_AfterValidate
+	Set SatirTable = Doc.GetTableObject("STOK46T")
+	'StokKodu = Trim(SatirTable.KOD)
+	Varyant1 = Trim(SatirTable.SF_VRI_VR_R1)
+	
+	If Varyant1 = "G 652 D" Then
+		Call Varyant2_F2(SatirTable)
+	Else
+		'Call Normal
+		Call Varyant2_F2_2(SatirTable)
+	End If
+		
+	'153 ÝLT OPGW0000044
+End Function
+'--------------------------------------------------------------------------------
+Sub Varyant2_F2(SatirTable)
+		AlanAdi = "SF_VRI_VR_R2"
+		GrupKodu = "!DETAY2"
+				
+		Set fd=SatirTable.GetFieldDef_E(AlanAdi) 
+		fd.GrupKodu=GrupKodu  ' Sað klik ile gidilecek grupd kodu
+		fd.F2Fnc="DO_SBRW_GECO('"&GrupKodu&"')"
+		fd.FTFFnc="G."&GrupKodu  ' Sadece grup kodundaki veriler gelmesi için  
+		SatirTable.SetFieldProperties1 AlanAdi,fd
+End Sub
+'--------------------------------------------------------------------------------
+Sub Varyant2_F2_2(SatirTable)
+		AlanAdi = "SF_VRI_VR_R2"
+		GrupKodu = "!DETAY3"
+				
+		Set fd=SatirTable.GetFieldDef_E(AlanAdi) 
+		fd.GrupKodu=GrupKodu  ' Sað klik ile gidilecek grupd kodu
+		fd.F2Fnc="DO_SBRW_GECO('"&GrupKodu&"')"
+		fd.FTFFnc="G."&GrupKodu  ' Sadece grup kodundaki veriler gelmesi için  
+		SatirTable.SetFieldProperties1 AlanAdi,fd
+End Sub                                                                                                                                 
+
+----------------------------------------------------------------
+

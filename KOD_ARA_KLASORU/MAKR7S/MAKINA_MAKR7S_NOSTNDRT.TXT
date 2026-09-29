@@ -1,0 +1,2169 @@
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : ASN
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Ford sevk irsaliyesi (ASN) - Müþteri stok kodlu (Stok Kodu bazýnda birleþtirilmiþ)
+Kod : 
+Public S60
+Sub Makro1()
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	if trim(SeferNumarasi) = "" then
+		k = doc.d7msgbox("Kullanýcý tanýmlý alanlarda sefer numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+		exit sub
+	end if
+	PlakaNo = STOK60E.BOX1_3
+	if trim(PlakaNo) = "" then
+		k = doc.d7msgbox("Plaka Numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo", MB_OK)
+		exit sub
+	end if
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	Select case trim(SevkAdresKodu)
+		case "FORD26" 				'ÝNÖNÜ KAMYON
+			FabrikaKodu = "D1D4T"
+		case "FORD1"	 				'GÖLCÜK
+			FabrikaKodu = "D1D4F"
+		case "FORD34-1"					'KARTAL YP DEPO
+			FabrikaKodu = "AUF9A"
+		case "FORD34-2"					'KARTAL YP DEPO
+			FabrikaKodu = "CVR1B"
+		case "4" 				'KOCAELÝ YEDEK PARÇA
+			FabrikaKodu = "D1D4Y"
+		case else
+			y = Doc.d7msgbox("Sevk adresi girilmemiþ veya tanýmsýz" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+	End Select
+	if not AmbalajVarmi then
+		EH = Doc.d7msgbox("Hiç konteyner gönderilmemektedir" & vbcrlf & vbcrlf & "Onaylýyor musunuz.", "dinamo",MB_YESNO)
+		if EH <> 6 then 
+			z = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+		end if
+	End if
+	
+	Doc.CreateTableObject "ZZZ=STOK60T","TMPCOPY"		
+	Set S60 = Doc.GetTableObject("ZZZ")
+	Set ST60 = Doc.GetTableObject("STOK60T")
+	S60.CopyTable(ST60)
+	S60.GroupBy("KOD")
+
+	Set Fso = CreateObject("Scripting.FileSystemObject")
+	dosyaAdi = "c:\asn" & trim(STOK60E.EVRAKNO) & ".xml"
+	Set ASN = Fso.CreateTextFile(dosyaAdi,True)
+
+	Set xmlDoc = CreateObject("Microsoft.XMLDOM")
+	xmlDoc.async = False
+	
+	Doc.StatusBarMessage "XML Dosyasý oluþturuluyor"
+	Call Header(ASN)
+	Call SatirYaz(ASN)
+	Call Footer(ASN)
+
+	ASN.Close
+	xmlDoc.Load(dosyaAdi)
+	Set IE = CreateObject("InternetExplorer.Application")
+	IE.Navigate("file:\\" & dosyaAdi)
+	IE.TheaterMode = true
+	IE.Visible = true
+
+	EH = doc.d7Msgbox("Oluþturulan ASN uygun mu?","dinamo",MB_YESNO)
+	if EH <> 6 then 
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+
+	KullaniciAdi = trim(Doc.Customp_Gets("!ASNUSER"))
+	KullaniciSifre = trim(Doc.Customp_Gets("!ASNPWD"))
+
+	Doc.StatusBarMessage "ford.com.tr 'ye baðlanýlýyor"
+	k = Doc.HTTPRequest("<https://login.ford.com.tr/authenticate.asp?userid=" & KullaniciAdi & "password=" & KullaniciSifre)
+	Doc.StatusBarMessage "ASN gönderiliyor"
+
+	sonuc = sendData(xmlDoc)
+
+	Doc.StatusBarMessage "Baðlantý kesiliyor"
+	k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+
+	xmlDoc.LoadXML(sonuc)
+	ret = xmldoc.documentElement.selectSingleNode("RETURN").Text
+	if ret <> "0" or ret <> 0 then 
+		k = Doc.d7MsgBox("ASN Gönderilemedi , " & ret,"dinamo",MB_OK)
+		k = Doc.d7MsgBox(xmlDoc.xml,"dinamo",MB_OK)
+	else
+		k = Doc.d7MsgBox("Ýþlem Tamam","dinamo",MB_OK)
+	end if
+
+	Set Fso = Nothing
+	Set xmlDoc = Nothing
+'	STOK60E.XNITELIK0 = "ASN_OK"
+'	Doc.RunCommand("MT_SAVE")
+End Sub
+Sub Header(ASN)
+	IrsaliyeNo = "A " & cstr(right(string(10,"0") & trim(STOK60E.EVRAKNO(1)),6))
+	Sender = "AS4MA"
+	TransContNum = trim(Sender & IrsaliyeNo)
+	ShippedFrom = "AS4MA"
+
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	Select case trim(SevkAdresKodu)
+		case "FORD26" 				'ÝNÖNÜ KAMYON
+			FabrikaKodu = "D1D4T"
+		case "FORD1"	 				'GÖLCÜK
+			FabrikaKodu = "D1D4F"
+		case "FORD34-1"					'KARTAL YP DEPO
+			FabrikaKodu = "AUF9A"
+		case "FORD 34-2"					'KARTAL YP DEPO
+			FabrikaKodu = "CVR1B"
+		case "4" 				'KOCAELÝ YEDEK PARÇA
+			FabrikaKodu = "D1D4Y"
+		case else
+			k = Doc.d7msgbox("Sevk adresi girilmemiþ veya tanýmsýz" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+	End Select
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	ASNAmaci = "00"
+
+	IrsaliyeTarihi = replace(STOK60E.TARIH,"/","")
+	IrsaliyeTarihi = Mid(IrsaliyeTarihi,3)
+	IrsaliyeSaati = Doc.Saat(6)
+	TahminiVarisTarihi = IrsaliyeTarihi
+	TahminiVarisSaati = IrsaliyeSaati
+	NetAgirlik = NetAgirlikBul()
+	BrutAgirlik = BrutAgirlikBul()
+	TasimaSekli = "M"
+	PlakaNo = ucase(replace(STOK60E.BOX1_3," ",""))
+	ResmiIrsaliyeNo = IrsaliyeNo
+	NavlunFaturaNo = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"NAVLUN_FAT",0)
+	TasiyiciKodu = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"TASIYICI",0)
+
+	ASN.WriteLine("<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & """windows-1254""" & "?>")
+	ASN.WriteLine("<ASN>")
+	ASN.WriteLine(cTab(1) & "<HEADER>")
+	ASN.WriteLine(cTab(2) & "<TRANSACTION_CONTROL_NUMBER>" & TransContNum & "</TRANSACTION_CONTROL_NUMBER>")
+	ASN.WriteLine(cTab(2) & "<SENDER>" & Sender & "</SENDER>")
+	ASN.WriteLine(cTab(2) & "<RECEIVER>" & FabrikaKodu & "</RECEIVER>")
+	ASN.WriteLine(cTab(1) & "</HEADER>")
+	ASN.WriteLine(cTab(1) & "<ASN_NUMBER>" & trim(IrsaliyeNo) & "</ASN_NUMBER>")
+	ASN.WriteLine(cTab(1) & "<SHIPPED_FROM>" & Sender & "</SHIPPED_FROM>")
+	ASN.WriteLine(cTab(1) & "<SHIP_TO_PLANT>" & FabrikaKodu & "</SHIP_TO_PLANT>")
+	ASN.WriteLine(cTab(1) & "<INTERMEDIATE_CONSIGNEE></INTERMEDIATE_CONSIGNEE>")
+	ASN.WriteLine(cTab(1) & "<CONVEYANCE_NO>" & trim(SeferNumarasi) & "</CONVEYANCE_NO>")
+	ASN.WriteLine(cTab(1) & "<ASN_PURPOSE>" & ASNAmaci & "</ASN_PURPOSE>")
+	ASN.WriteLine(cTab(1) & "<DATE_CREATED>" & IrsaliyeTarihi & "</DATE_CREATED>")
+	ASN.WriteLine(cTab(1) & "<TIME_CREATED>" & IrsaliyeSaati & "</TIME_CREATED>")
+	ASN.WriteLine(cTab(1) & "<DATE_SHIPPED>" & IrsaliyeTarihi & "</DATE_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<TIME_SHIPPED>" & IrsaliyeSaati & "</TIME_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_DATE>" & TahminiVarisTarihi & "</EXPECTED_ARRIVAL_DATE>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_TIME>" & TahminiVarisSaati & "</EXPECTED_ARRIVAL_TIME>")
+	ASN.WriteLine(cTab(1) & "<NET_WEIGHT>" & NetAgirlik & "</NET_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<GROSS_WEIGHT>" & BrutAgirlik & "</GROSS_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<WEIGHT_UOM>KG</WEIGHT_UOM>")
+	ASN.WriteLine(cTab(1) & "<CARRIER1>" & TasiyiciKodu & "</CARRIER1>")
+	ASN.WriteLine(cTab(1) & "<MODE_OF_TRANSPORT>" & TasimaSekli & "</MODE_OF_TRANSPORT>")
+	ASN.WriteLine(cTab(1) & "<FREIGHT_BILL_NO>" & NavlunFaturaNo & "</FREIGHT_BILL_NO>")
+	ASN.WriteLine(cTab(1) & "<BILL_OF_LADING_NO>" & trim(PlakaNo) & "</BILL_OF_LADING_NO>")
+	ASN.WriteLine(cTab(1) & "<LICENCE_PLATE_NO>" & trim(PlakaNo) & "</LICENCE_PLATE_NO>")
+	ASN.WriteLine(cTab(1) & "<WAYBILL>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_NO>" & trim(ResmiIrsaliyeNo) & "</PACKING_SLIP_NO>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_DATE>" & IrsaliyeTarihi & "</PACKING_SLIP_DATE>")
+	ASN.WriteLine(cTab(2) & "<PARTS>")        
+End Sub
+Sub SatirYaz(ASN)
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	if trim(SevkAdresKodu) = "FORD 1" then 'GÖLCÜK
+		Birim = "EA"
+	else
+		Birim = "AD"
+	end if
+	CHKodu = STOK60E.CH_KODU
+	for i = 1 to S60.GetRecCount()
+		if trim(S60.KOD(i)) <> "" then
+			Ambalaj = S60.FATURASIZMI(i)
+			Kod = S60.KOD(i)
+			if trim(Ambalaj) = "E" then
+				StokKodu = Kod
+			else
+				StokKodu = trim(Doc.GetCHStokKodu(Kod,CHKodu))
+			end if
+			Miktar = S60.SF_MIKTAR(i)
+'			Birim = S60.SF_SF_UNIT(i)
+			PART_CUM_QTY = 0
+			PART_PRIOR_CUM_QTY = 0 
+			SiparisNo = S60.SIPNO(i)
+			MusteriSipNo = Doc.GetDBFieldValue("STOK40E","CHSIPNO",SiparisNo,"")
+			PART_PO_NO = trim(MusteriSipNo)
+			if trim(Ambalaj) <> "E" then
+				KontSayisi = S60.BRUTAGIRLIK(i)
+				ParcaTuru = "PP"
+				if trim(cstr(KontSayisi)) = "" or trim(cstr(KontSayisi)) = "0" then
+'					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_B_TECH_1",Kod,"")
+					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",Kod,"")
+					kontParcaSayisi = Doc.Round(kontParcaSayisi,0)
+					ParcaKontSayisi = Doc.Div(Miktar,kontParcaSayisi)
+					ParcaKontSayisi = Doc.Ceil(ParcaKontSayisi)
+				else
+					ParcaKontSayisi = Doc.CDbl(KontSayisi)
+					kontParcaSayisi = Doc.Div(Miktar,ParcaKontSayisi)
+					kontParcaSayisi = Doc.Ceil(kontParcaSayisi)
+				end if
+				KonteynerTipi = "BOX90"
+			else
+				ParcaTuru = "CT"
+				kontParcaSayisi = "0000"
+				ParcaKontSayisi = "0000"
+				KonteynerTipi = ""
+			end if
+			ASN.WriteLine(cTab(3) & "<PART>")        
+			ASN.WriteLine(cTab(4) & "<NO_PART>" & trim(StokKodu) & "</NO_PART>")
+			ASN.WriteLine(cTab(4) & "<PART_NO_TYPE>" & ParcaTuru & "</PART_NO_TYPE>")
+			ASN.WriteLine(cTab(4) & "<PART_QUANTITY>" & Miktar & "</PART_QUANTITY>")
+			ASN.WriteLine(cTab(4) & "<PART_UOM>" & Birim & "</PART_UOM>")
+			ASN.WriteLine(cTab(4) & "<PART_CUM_QTY>" & PART_CUM_QTY & "</PART_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PRIOR_CUM_QTY>" & PART_PRIOR_CUM_QTY & "</PART_PRIOR_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PO_NO>" & PART_PO_NO & "</PART_PO_NO>")
+			ASN.WriteLine(cTab(4) & "<CONTAINERS>")
+			ASN.WriteLine(cTab(5) & "<CONTAINER>")
+			ASN.WriteLine(cTab(6) & "<CONTAINER_TYPE_CODE>" & KonteynerTipi & "</CONTAINER_TYPE_CODE>")
+			ASN.WriteLine(cTab(6) & "<PARTS_PER_CONT>" & KontParcaSayisi & "</PARTS_PER_CONT>")
+			ASN.WriteLine(cTab(6) & "<CONTS_PER_PART>" & ParcaKontSayisi & "</CONTS_PER_PART>")
+			ASN.WriteLine(cTab(5) & "</CONTAINER>")
+			ASN.WriteLine(cTab(4) & "</CONTAINERS>")
+			ASN.WriteLine(cTab(3) & "</PART>")        
+		end if
+	Next
+End Sub
+Sub Footer(ASN)
+	ASN.WriteLine(cTab(2) & "</PARTS>")        
+	ASN.WriteLine(cTab(1) & "</WAYBILL>")
+	ASN.WriteLine("</ASN>")
+End Sub
+Function cTab(sayi)
+	for i = 1 to sayi
+		cTab = cTab & Chr(9)
+	Next
+End Function
+Function sendData(xmlDoc)
+	Set xmlhttp = CreateObject("Microsoft.XMLHTTP")
+	call xmlhttp.Open("POST", "https://fosn.ford.com.tr/asnposter/postxmlasn.asp", false)
+	call xmlhttp.Send(xmlDoc)
+	sendData = xmlhttp.responseText
+End Function
+Sub XMLHTTPStateChange(xmlhttp)
+	dim errText
+	if (xmlHTTP.readystate <> 4) then 	' 4: Bilgiler karþýya ulaþtý
+		msgbox "Tüm data Ford 'a ulaþmadý"
+		exit sub
+	end if
+	if(xmlHTTP.status <> 207)  then 		'207 : Server 'dan bilgi geri geldi
+		msgbox "Hata : " & CStr(xmlHTTP.status) & vbcrlf & xmlHTTP.statusText
+	else 
+		
+	end if
+End Sub
+Function AmbalajVarMi()
+	AmbalajVarMi = False
+	for i = 1 to STOK60T.GetRecCount()
+		Ambalaj = STOK60T.FATURASIZMI(i)
+		if trim(Ambalaj) = "E" then
+			AmbalajVarMi = True
+			Exit Function
+		end if
+	Next
+End Function
+Function NetAgirlikBul()
+	ToplamNet = 0
+	for i = 1 to S60.GetRecCount()
+		StokKodu = S60.KOD(i)
+		SevkMiktari = S60.SF_MIKTAR(i)
+
+		KasaNetAgirligi = Doc.GetDBFieldValue("STOK00","B_B_TECH_3",StokKodu,"")
+		KasaNetAgirligi = doc.Round(KasaNetAgirligi,0)
+		KasaIciMiktar = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",StokKodu,"")
+		KasaAdedi = Doc.Ceil(Doc.Div(SevkMiktari,KasaIciMiktar))
+		ToplamNet = ToplamNet + KasaAdedi * KasaNetAgirligi
+	Next
+	NetAgirlikBul = ToplamNet
+End Function
+Function BrutAgirlikBul()
+	ToplamBrut = 0
+	for i = 1 to S60.GetRecCount()
+		StokKodu = S60.KOD(i)
+		SevkMiktari = S60.SF_MIKTAR(i)
+
+		KasaBrutAgirligi = Doc.GetDBFieldValue("STOK00","B_B_TECH_4",StokKodu,"")
+		KasaBrutAgirligi = doc.Round(KasaBrutAgirligi,0)
+		KasaIciMiktar = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",StokKodu,"")
+		KasaAdedi = Doc.Ceil(Doc.Div(SevkMiktari,KasaIciMiktar))
+		ToplamBrut = ToplamBrut + KasaAdedi * KasaBrutAgirligi
+	Next
+	BrutAgirlikBul = ToplamBrut
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : CARI
+Hangi Tablo için : 0CARI2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ch açýlýþ fiþi
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open("C:\DEVIR1.xls")
+	Colcarihesapkodu = 1
+	Colborcbakiye = 2
+	Colalacakbakiye = 3
+	Colparabirimi = 4
+	SheetAdi = "DEVIR1"
+	Baslangic = 1
+	Bitis = 162
+	Set CARI2T = Doc.GetTableObject("CARI2AT")
+
+	For i = Baslangic To Bitis
+		If CARI2T.GetRecCount = 1 Then 
+			If trim(CARI2T.KOD(1)) <> "" Then
+				CARI2T.AddRow()
+			End If
+		Else
+			CARI2T.AddRow()
+		End If
+		SatirNo = CARI2T.GetRecCount
+		CARI2T.SetCurrentRow(satirNo)
+		CARI2T.KOD(satirNo) = Doc.LeftJustify(Wb.Sheets(SheetAdi).Cells(i,Colcarihesapkodu).value,16)
+		CARI2T.CH_BORCFIYAT(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,Colborcbakiye).value)
+		CARI2T.CH_ALACAKFIYAT(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,Colalacakbakiye).value)
+		CARI2T.CH_KUR(satirNo) = Wb.Sheets(SheetAdi).Cells(i,Colparabirimi).value
+	Next
+	Wb.Close
+	Excel.Quit
+End Sub                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : FATURA
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Mevcut Ýrsaliyenin Faturasý
+Kod : 
+Sub Makro1
+	OldFaturaNo = ""
+	IrsaliyeArtNo = STOK60T.SYSIRSALIYEPOSNO(1)
+	rows = Doc.SelectEQ("STOK70T","SYSIRSALIYEPOSNO",IrsaliyeArtNo)
+	if rows > 0 then
+		set ST70 = Doc.GEtTableObject("AU_STOK70T_SELECT")
+		ST70.Sort("EVRAKNO")
+		for i = 1 to ST70.GetRecCount
+			FaturaNo = ST70.EVRAKNO(i)
+			if FaturaNo <> OldFaturaNo then
+				FaturaNo = OldFaturaNo & FaturaNo & vbcrlf
+				OldFaturaNo = FaturaNo
+			end if
+		Next
+		msgbox "Fatura No : " & FaturaNo
+	else
+		msgbox "Fatura Bulunamadý"
+	end if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : FORD
+Hangi Tablo için : STOK40
+Ýlave Hangi Uygulamalar için : 
+Açýklama : FORD XML SÝPARÝÞ OKUMA
+Kod : 
+Sub Makro1()
+	basla = Timer
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	objXMLDoc.Load ("c:\fo.xml")
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set ScCn = Sc.childNodes
+			If ScCn.Item(1).Text <> "0" Then
+				If y <> 1 Then
+					k = STOK40T.AddRow()
+				Else
+					If STOK40T.GetRecCount = 0 Then
+						k = STOK40T.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = STOK40T.GetRecCount()
+				STOK40T.SetCurrentRow(SatirNo)
+				STOK40T.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				STOK40T.SF_MIKTAR(satirNo) = ScCn.Item(1).Text
+				STOK40T.RTESTARIH(satirNo) = FmtTarih(ScCn.Item(0).Text)
+				yy = yy + 1 
+'				If yy Mod 20 = 0 Then
+'					Doc.DoEvents
+'				End If
+			End If
+		Next
+	Next
+	bitis = Timer
+'	msgbox bitis - basla & " s"
+End Sub
+Function Temizle(Yazi)
+  For i = 1 To 4
+    Yazi = Replace(Yazi, "  ", " ")
+  Next
+  Temizle = Yazi
+End Function
+Function FmtTarih(Tarih)
+	Yil = Left(Tarih,4)
+	Ay = Mid(Tarih,5,2)
+	Gun = Right(Tarih,2)
+'	FmtTarih = Gun & "/" & Ay & "/" & Yil
+	FmtTarih = Yil & "/" & Ay & "/" & Gun
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : FOSN
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Ford sipariþ aktarma
+Kod : 
+Sub Makro1()
+	basla = Timer
+	OTOSP1T.Empty
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	URL = "https://fosn.ford.com.tr/prg_daily_summary_xml.asp?e=1"
+	URL2 = "https://fosn.ford.com.tr/prg_weekly_summary_xml.asp?e=1"
+
+	Doc.StatusBarMessage "Ford.com.tr 'ye baðlanýlýyor"
+	k = Doc.HTTPRequest("<https://login.ford.com.tr/authenticate.asp?userid=ASNATDCA&password=DSTLMTY1")
+	Ek = "<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & chr(34) & "ISO-8859-9" & chr(34) &"?>"
+
+'	dosya = "c:\fosn.xml"
+	Doc.StatusBarMessage "Günlük program alýnýyor"
+
+'	objXMLDoc.Load dosya
+
+	objXMLDoc.Load URL
+	objXMLDoc.LoadXML Ek & vbcrlf & objXMLDoc.xml
+	
+'	msgbox objXMLDoc.xml
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+	
+	kk = ElemanSayisi(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("DATE")
+			If Qty.Text <> "0" Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+	BTarih = IlkTarih(ST40)
+
+	Starih = Sontarih(ST40)
+	Fark = 8 - Weekday(Starih, 2)
+	Ptesi = replace(Doc.StrDate_Increment(Starih, Fark),"/","")
+
+	ST40.Sort("KOD+RTESTARIH")
+	ST40.GroupBy("KOD+RTESTARIH")
+
+
+	stSatirSayisi = ST40.GetRecCount()
+	SonKolon = 1
+	For i = 1 To stSatirSayisi
+		Doc.StatusBarMessage "Yazýlýyor : " & i & " / " & stSatirSayisi
+		If OTOSP1T.GetRecCount = 0 Then
+			OTOSP1T.AddRow
+			satirNo = OTOSP1T.GetRecCount
+			OTOSP1T.SetCurrentRow(satirNo)
+			OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+		ElseIf OTOSP1T.GetRecCount = 1 And trim(OTOSP1T.KOD(1)) = "" Then
+			satirNo = 1
+			OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+		ElseIf OTOSP1T.KOD(satirNo) <> ST40.KOD(i) Then
+			OTOSP1T.AddRow
+			satirNo = OTOSP1T.GetRecCount
+			OTOSP1T.SetCurrentRow(satirNo)
+			OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+		End If
+		Tarih = ST40.RTESTARIH(i)
+		Rep = AlanBul(Tarih,BTarih)
+		sKol = cint(Replace(Rep,"REPCOL",""))
+		if sKol > SonKolon then SonKolon = SKol
+		if Tarih > STarih then STarih = Tarih
+		Miktar = ST40.SF_MIKTAR(i)
+		res = Doc.SetFieldValue("OTOSP1T",Rep,satirNo,Miktar + OTOSP1T.GetFieldvalue(Rep,satirNo))
+	Next
+	OTOSP1E.ACIKLAMA = "Baþlangýç tarihi : " & Doc.StrToNordate(BTarih)
+
+
+	bitis = Timer
+	Set ST40 = Nothing
+	Set ObjXMLDoc = Nothing
+
+	Fark = 8 - Weekday(Starih, 2)
+	Ptesi = Doc.StrDate_Increment(Starih, Fark)
+	sCol = CInt(replace(SonKolon,"REPCOL",""))
+
+	for j = 1 to OTOSP1T.GetRecCount
+		For i = 1 to sCol
+			Tarih = Doc.StrDate_Increment(BTarih,i-1)	
+			res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,j,Tarih)	
+			res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,j,"G")	
+		Next
+	Next
+	BaslangicKolon = SonKolon + 1
+	Call HaftalikPlan(Ptesi, BaslangicKolon)
+	Call Tamamla()
+	Call ToplamHesapla()
+
+	Doc.RunCommand("CMD_SETCAPTIONS")
+	Doc.RunCommand("CMD_STOK_VE_MPS_HESAPLA")
+
+	Doc.StatusBarMessage "ford.com.tr baðlantýsý kesiliyor"
+	k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+
+	msgbox "Bitti " & bitis - basla & " s"
+End Sub
+Sub HaftalikPlan(BaslangicTarih, BaslangicKolon)
+	basla = Timer
+
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	URL2 = "https://fosn.ford.com.tr/prg_weekly_summary_xml.asp?e=1"
+
+	Doc.StatusBarMessage "Ford.com.tr 'ye baðlanýlýyor"
+	k = Doc.HTTPRequest("<https://login.ford.com.tr/authenticate.asp?userid=ASNATDCA&password=DSTLMTY1")
+	Ek = "<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & chr(34) & "ISO-8859-9" & chr(34) &"?>"
+
+	Doc.StatusBarMessage "Haftalýk program alýnýyor"
+'	dosya = "c:\fosn-hafta.xml"
+'	objXMLDoc.Load dosya
+
+	objXMLDoc.Load URL2
+	objXMLDoc.LoadXML Ek & vbcrlf & objXMLDoc.xml
+
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+	
+	kk = ElemanSayisiHafta(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("PERIOD_START_DATE")
+			If Qty.Text <> "0" and ForecastType = "W" and TesTarih.Text >= Replace(BaslangicTarih,"/","") Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+
+	ST40.Sort("KOD+RTESTARIH")
+	ST40.GroupBy("KOD+RTESTARIH")
+
+	stSatirSayisi = ST40.GetRecCount()
+	For i = 1 To stSatirSayisi
+		Doc.StatusBarMessage "Yazýlýyor : " & i & " / " & stSatirSayisi
+
+		StokKodu = ST40.KOD(i)
+		satir = 0
+		satir = SatirBul(StokKodu)
+		if satir > 0 then
+			satirNo = satir
+		Else 
+			OTOSP1T.AddRow
+			satirNo = OTOSP1T.GetRecCount
+			OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+		End If
+
+		OTOSP1T.SetCurrentRow(satirNo)
+
+		Tarih = ST40.RTESTARIH(i)
+		Rep = AlanBulHafta(Tarih,BaslangicTarih,BaslangicKolon)
+		sKol = cint(Replace(Rep,"REPCOL",""))
+		if sKol > SonKolon then SonKolon = SKol
+
+		Miktar = ST40.SF_MIKTAR(i)
+		if rep <> -1 then
+			res = Doc.SetFieldValue("OTOSP1T",Rep,satirNo,Miktar + OTOSP1T.GetFieldvalue(Rep,satirNo))
+		end if
+	Next
+
+	bCol = CInt(replace(BaslangicKolon,"REPCOL",""))
+	sCol = CInt(replace(SonKolon,"REPCOL",""))
+
+	for j = 1 to OTOSP1T.GetRecCount
+		For i = bCol to sCol
+			Tarih = Doc.StrDate_Increment(BaslangicTarih,(i-bCol) * 7)	
+			res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,j,Tarih)	
+			res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,j,"H")	
+		Next
+	Next
+
+
+	BaslangicKolon = SonKolon + 1
+	call AylikPlan(BaslangicKolon, objXMLDoc)
+	Set ST40 = Nothing
+End Sub
+Sub AylikPlan(BaslangicKolon, objXMLDoc)
+
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+	
+	kk = ElemanSayisiAy(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("PERIOD_START_DATE")
+			If Qty.Text <> "0" and ForecastType = "F" Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+
+	BTarih = IlkTarih(ST40)
+	ST40.Sort("KOD+RTESTARIH")
+	ST40.GroupBy("KOD+RTESTARIH")
+
+	stSatirSayisi = ST40.GetRecCount()
+	For i = 1 To stSatirSayisi
+		Doc.StatusBarMessage "Yazýlýyor : " & i & " / " & stSatirSayisi
+		StokKodu = ST40.KOD(i)
+		satir = SatirBul(StokKodu)
+		if satir > 0 then
+			satirNo = satir
+		Else
+			OTOSP1T.AddRow
+			satirNo = OTOSP1T.GetRecCount
+			OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+		End If
+		OTOSP1T.SetCurrentRow(satirNo)
+		Tarih = ST40.RTESTARIH(i)
+		BaslangicCol = 1
+		Rep = AlanBulAy(Tarih,BTarih,BaslangicKolon)
+		sKol = cint(Replace(Rep,"REPCOL",""))
+		if sKol > SonKolon then SonKolon = SKol
+
+		Miktar = ST40.SF_MIKTAR(i)
+		if rep <> -1 then
+			res = Doc.SetFieldValue("OTOSP1T",Rep,satirNo,Miktar + OTOSP1T.GetFieldvalue(Rep,satirNo))
+		end if
+	Next
+
+	bCol = CInt(replace(BaslangicKolon,"REPCOL",""))
+	sCol = CInt(replace(SonKolon,"REPCOL",""))
+	for j = 1 to OTOSP1T.GetRecCount
+		For i = bCol to sCol
+			Tarih = Doc.StrDate_Increment(BTarih,(i-bCol) * 31)	
+			Tarih = Left(Tarih,8) & "01"
+			res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,j,Tarih)	
+			res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,j,"A")	
+		Next
+	Next
+
+	Set ST40 = Nothing
+	Set ObjXMLDoc = Nothing
+End Sub
+Sub Tamamla()
+	for j = 1 to 40
+		if trim(OTOSP1T.GetFieldValue("TARIH" & j,1)) <> "" then
+			for i = 2 to OTOSP1T.GetRecCount()
+				if trim(OTOSP1T.GetFieldValue("TARIH" & j,i)) = "" then
+					OncekiTarih = OTOSP1T.GetFieldValue("TARIH" & j,i-1)
+					OncekiAttrib = OTOSP1T.GetFieldValue("ATTRIB" & j,i-1)				
+					res = Doc.SetFieldValue("OTOSP1T","TARIH" & j,i,OncekiTarih)	
+					res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & j,i,OncekiAttrib)	
+				end if
+			Next
+		end if
+	Next
+End Sub
+Sub ToplamHesapla()
+	For i = 1 to OTOSP1T.GetRecCount()
+		GunlukToplam = 0
+		HaftalikToplam = 0
+		AylikToplam = 0
+		For j = 1 to 40
+			Ozellik = OTOSP1T.GetFieldValue("ATTRIB" & j,i)
+			Deger = OTOSP1T.GetFieldValue("REPCOL" & j,i)
+			if Ozellik = "G" then
+				GunlukToplam = GunlukToplam + Deger
+			Elseif Ozellik = "H" then
+				HaftalikToplam = HaftalikToplam + Deger
+			Elseif Ozellik = "A" then
+				AylikToplam = AylikToplam + Deger			
+			end if
+		Next
+		OTOSP1T.GUN_TOPLAMI(i) = GunlukToplam
+		OTOSP1T.HAFTA_TOPLAMI(i) = HaftalikToplam
+		OTOSP1T.AY_TOPLAMI(i) = AylikToplam
+		OTOSP1T.GENEL_TOPLAM(i) = GunlukToplam + HaftalikToplam + AylikToplam 
+	Next
+End Sub
+Function Temizle(Yazi)
+  For i = 1 To 4
+    Yazi = Replace(Yazi, "  ", " ")
+  Next
+  Temizle = Yazi
+End Function
+Function FmtTarih(Tarih)
+	Yil = Left(Tarih,4)
+	Ay = Mid(Tarih,5,2)
+	Gun = Right(Tarih,2)
+'	FmtTarih = Gun & "/" & Ay & "/" & Yil
+	FmtTarih = Yil & "/" & Ay & "/" & Gun
+End Function
+Function ElemanSayisi(objXMLDoc)
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set ScCn = Sc.childNodes
+			If ScCn.Item(1).Text <> "0" Or _
+					Doc.GetDBFieldValue("STOK00","AD",Doc.LeftJustify(Temizle(Attr.Item(0).Text),24),"") <> "" Then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisi = yy
+End Function
+Function ElemanSayisiHafta(objXMLDoc)
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set ScCn = Sc.childNodes
+			If Qty.Text <> "0" and ForecastType = "W" then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisiHafta = yy
+End Function
+Function ElemanSayisiAy(objXMLDoc)
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set ScCn = Sc.childNodes
+			If Qty.Text <> "0" and ForecastType = "F" then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisiAy = yy
+End Function
+Function AlanBul(Tarih,Bastarih)
+	If trim(BasTarih) = "" Then BasTarih = Doc.BuGun
+	Baslangic = Doc.CDateToInt(BasTarih)
+	TesTarih = Doc.CDateToInt(Tarih)
+	Fark = TesTarih - Baslangic
+	If Fark < 0 Then Fark = 0
+	AlanBul = "REPCOL" & Fark + 1
+End Function
+Function AlanBulHafta(Tarih,Bastarih,BasCol)
+	If trim(BasTarih) = "" Then BasTarih = Doc.BuGun
+	Baslangic = Doc.CDateToInt(BasTarih)
+	TesTarih = Doc.CDateToInt(Tarih)
+	Fark = (TesTarih - Baslangic)/7
+	If Fark < 0 or Fark > 9 Then
+		AlanBulHafta = -1
+		exit function
+	end if
+	AlanBulHafta = "REPCOL" & Fark + BasCol
+End Function
+Function AlanBulAy(Tarih,Bastarih,BasCol)
+	If trim(BasTarih) = "" Then BasTarih = Doc.BuGun
+	BaslangicAy = Cint(Mid(BasTarih,6,2))
+	TesTarih = Cint(Mid(Tarih,6,2))
+	Fark = TesTarih - BaslangicAy
+	If Fark < 0 Then
+		AlanBulAy = -1
+		exit function
+	end if
+	AlanBulAy = "REPCOL" & Fark + BasCol
+End Function
+Function IlkTarih(Table)
+	Table.Sort("RTESTARIH")
+	For i = 1 To Table.GetRecCount()
+		If Table.SF_MIKTAR(i) > 0 Then
+			IlkTarih = Table.RTESTARIH(i)
+			Exit Function
+		End If
+	Next
+End Function
+Function SonTarih(Table)
+	Table.Sort("<RTESTARIH")
+	For i = 1 to Table.GetRecCount() 
+		If Table.SF_MIKTAR(i) > 0 Then
+			SonTarih = Table.RTESTARIH(i)
+			Exit Function
+		End If
+	Next
+End Function
+Sub ExceleYaz(Table)
+	Doc.StatusBarMessage "Excel'e yazýlýyor"
+
+	Set Excel = CreateObject("Excel.Application")
+	Set WB = Excel.Workbooks.Add
+	for i = 1 to table.GetRecCount
+		Doc.StatusBarMessage i & " / " & table.GetRecCount
+		Wb.Sheets(1).cells(i,1) = TABLE.KOD(i)
+		Wb.Sheets(1).cells(i,2) = TABLE.SF_MIKTAR(i)
+		Wb.Sheets(1).cells(i,3) = TABLE.RTESTARIH(i)	
+	Next
+	excel.visible = true
+	Doc.StatusBarMessage "Baðlantý kesiliyor"
+	k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+End Sub
+Function SatirBul(StokKodu)
+	SatirBul = 0
+	for i = 1 to OTOSP1T.GetRecCount()
+		if OTOSP1T.KOD(i) = StokKodu then
+			satirBul = i
+			exit Function
+		end if
+	Next
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : FOSN-1
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 20.11.2003
+Kod : 
+Option Explicit
+'Public OTOSP1E,OTOSP1T
+Public Webden, GecersizKodlar()
+
+'öncelikle bu rutin çaðrýlýyor....
+'/*main*/
+Sub Makro1()
+	Dim Uid
+	Dim Password, Basla, objxmlDoc, URL, URL2, k,z,Ek,dosya	
+
+'	Set OTOSP1E=Doc.GetTableObject("OTOSP1E")
+'	Set OTOSP1T=Doc.GetTableObject("OTOSP1T")	
+	ReDim GecersizKodlar(0)
+	Webden = 0
+	if Webden = 1 then
+		Uid=Trim(OTOSP1E.UID)
+		Password=Trim(OTOSP1E.PASSWORD)
+		if Uid="" or Password="" then
+			Doc.d7MsgBox "Kullanýcý Adý veya Þifre Boþ Olamaz. Ýþlem Ýptal.","dinamo",MB_OK
+			Exit Sub
+		end if
+	end if
+	basla = Timer
+	OTOSP1T.Empty
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	URL = "https://fosn.ford.com.tr/prg_daily_summary_xml.asp?e=1"
+	URL2 = "https://fosn.ford.com.tr/prg_weekly_summary_xml.asp?e=1"
+	if Webden = 1 then
+		Doc.StatusBarMessage "Ford.com.tr 'ye baðlanýlýyor"
+		k = Doc.HTTPRequest("<https://login.ford.com.tr/authenticate.asp?userid=" & Uid & "&password=" & Password)
+		if trim(k) = "" then
+			z = Doc.D7MsgBox("ford.com.tr 'ye baðlanýlamýyor." & vbcrlf & "Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			Doc.StatusBarMessage ""
+			exit Sub
+		end if
+		Ek = "<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & chr(34) & "ISO-8859-9" & chr(34) &"?>"
+		objXMLDoc.Load URL
+	else
+		dosya = "c:\FO_GUNLUKP_ATDCA.xml"
+		objXMLDoc.Load dosya
+	end if
+	Doc.StatusBarMessage "Günlük program alýnýyor"
+
+	if trim(objXMLDoc.xml) = "" then
+		z = Doc.D7MsgBox("Günlük program alýnamadý." & vbcrlf & "Ýþlem kesilmiþtir.","dinamo",MB_OK)
+		Doc.StatusBarMessage ""
+		exit Sub
+	end if
+	objXMLDoc.LoadXML Ek & vbcrlf & objXMLDoc.xml
+	
+'	msgbox objXMLDoc.xml
+	Dim i,y, Root,NodeList, ST40, kk, Attr, Schedule, Qty, TesTarih, SatirNo, yy, Sc
+
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+
+	Dim ST40T1
+	Doc.CreateTableObject "YYY=STOK40T","TMPCOPY"
+	Set ST40T1 = Doc.GetTableObject("YYY")	
+
+	kk = ElemanSayisi(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("DATE")
+			If Qty.Text <> "0" Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+					k = ST40T1.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+						k = ST40T1.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+
+				ST40T1.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40T1.SF_MIKTAR(satirNo) = Qty.Text
+				ST40T1.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+
+	Dim Btarih, STarih,Fark,Ptesi, stSatirSayisi, sonKolon
+	BTarih = IlkTarih(ST40)
+
+	Starih = Sontarih(ST40)
+	Fark = 8 - Weekday(Starih, 2)
+	Ptesi = replace(Doc.StrDate_Increment(Starih, Fark),"/","")
+
+'***********
+	Dim Tarih
+	ST40T1.Sort("RTESTARIH")
+	ST40T1.GroupBy("RTESTARIH")
+	OTOSP1T.AddRow
+	for i = 1 to ST40T1.GetRecCount()
+		Tarih = 	ST40T1.RTESTARIH(i)
+		res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,1,Tarih)	
+		res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,1,"G")				
+	Next
+'***********
+	ST40.Sort("KOD+RTESTARIH")
+	ST40.GroupBy("KOD+RTESTARIH")
+
+	Dim rep,sKol, Miktar, res, KodVar, StokKodu,MstokKodu, Birim
+	stSatirSayisi = ST40.GetRecCount()
+	SonKolon = 1
+	For i = 1 To stSatirSayisi
+		Doc.StatusBarMessage "Yazýlýyor : " & i & " / " & stSatirSayisi
+		StokKodu = ST40.KOD(i)
+		Birim = Doc.GetDBFieldValue("STOK00","KOD", StokKodu,"")
+		if trim(Birim) = "" then
+			MStokKodu = Doc.Get0G0U(StokKodu,OTOSP1E.CH_KODU,"12")
+			if trim(MStokKodu) = "" or trim(MStokKodu) = trim(StokKodu) then
+				KodVar = 0
+			else
+				KodVar = 1
+			end if
+		else
+			KodVar = 1
+		end if
+		if KodVar = 1 then
+			If OTOSP1T.GetRecCount = 0 Then
+				OTOSP1T.AddRow
+				satirNo = OTOSP1T.GetRecCount
+				OTOSP1T.SetCurrentRow(satirNo)
+				OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+			ElseIf OTOSP1T.GetRecCount = 1 And trim(OTOSP1T.KOD(1)) = "" Then
+				satirNo = 1
+				OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+			Else
+				satirNo = satirBul(ST40.KOD(i))
+				if satirNo = 0 then
+					OTOSP1T.AddRow
+					satirNo = OTOSP1T.GetRecCount()
+				end if
+				OTOSP1T.SetCurrentRow(satirNo)
+				OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+			End If
+			Tarih = ST40.RTESTARIH(i)
+			Rep = AlanBul1(Tarih,"G")
+			if Tarih > STarih then STarih = Tarih
+			Miktar = ST40.SF_MIKTAR(i)
+			res = Doc.SetFieldValue("OTOSP1T",Rep,satirNo,Miktar + OTOSP1T.GetFieldvalue(Rep,satirNo))
+		else
+			if GecersizBul(StokKodu) = 0 then
+				GecersizKodlar(uBound(GecersizKodlar)) = StokKodu
+				Redim Preserve GecersizKodlar(uBound(GecersizKodlar)+1)
+			end if
+		end if
+	Next
+	OTOSP1E.ACIKLAMA = "Baþlangýç tarihi : " & Doc.StrToNordate(BTarih)
+
+	dim bitis, sCol, j, BaslangicKolon, xAttrib
+
+
+	for j = 2 to OTOSP1T.GetRecCount
+		For i = 1 to 40
+			xAttrib = OTOSP1T.GetFieldValue("ATTRIB" & i,1)
+			if xAttrib = "G" then
+				Tarih = OTOSP1T.GetFieldValue("TARIH" & i,1)
+				res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,j,Tarih)	
+				res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,j,"G")	
+			end if
+		Next
+	Next
+
+	Set ST40 = Nothing
+	Set ObjXMLDoc = Nothing
+
+	Call HaftalikPlan()
+	Call Tamamla()
+	Call ToplamHesapla()
+
+	Doc.RunCommand("CMD_SETCAPTIONS")
+	Doc.RunCommand("CMD_STOK_VE_MPS_HESAPLA")
+	if Webden = 1 then
+		Doc.StatusBarMessage "ford.com.tr baðlantýsý kesiliyor"
+		k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+	end if
+	dim ret, Gecersiz, Gecersizler
+	if isArray(GecersizKodlar) then
+		Call VPEYaz(GecersizKodlar)
+	end if
+'	for each Gecersiz in GecersizKodlar
+'		Gecersizler = Gecersizler & Gecersiz & vbcrlf
+'	Next
+'	if trim(replace(Gecersizler,vbcrlf,"")) <> "" then
+'		ret = Doc.d7MsgBox("Geçersiz Kodlar : " & vbcrlf &	Gecersizler,"dinamo",MB_OK)
+'	end if
+
+	bitis = Timer
+	dim son
+	son = doc.d7msgbox("Ýþlem Tamamlandý, " & Doc.Round(bitis - basla,0) & " saniye","dinamo",MB_OK)
+End Sub
+Sub HaftalikPlan()
+	Dim Basla, objXMLDoc, URL2, k, Ek, z
+
+	basla = Timer
+
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	URL2 = "https://fosn.ford.com.tr/prg_weekly_summary_xml.asp?e=1"
+
+	Ek = "<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & chr(34) & "ISO-8859-9" & chr(34) &"?>"
+
+	dim dosya
+	Doc.StatusBarMessage "Haftalýk program alýnýyor"
+	if Webden = 1 then
+		objXMLDoc.Load URL2
+		if trim(objXMLDoc.xml) = "" then
+			z = Doc.D7MsgBox("Haftalýk/Aylýk program alýnamadý." & vbcrlf & "Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			Doc.StatusBarMessage ""
+			exit Sub
+		end if
+		objXMLDoc.LoadXML Ek & vbcrlf & objXMLDoc.xml
+	else
+		dosya = "C:\FO_HAFTALIKP_ATDCA.xml"
+		objXMLDoc.Load dosya
+	end if
+	Dim y, Root,NodeList,ST40,kk,i,Attr,Schedule, Sc,ForecastType, Qty, TesTarih,satirNo, yy
+
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+	
+	Dim ST40T1
+	Doc.CreateTableObject "YYY=STOK40T","TMPCOPY"
+	Set ST40T1 = Doc.GetTableObject("YYY")	
+
+	Dim xAttrib
+	kk = ElemanSayisiHafta(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("PERIOD_START_DATE")
+'			If Qty.Text <> "0" and ForecastType = "W" and TesTarih.Text >= Replace(BaslangicTarih,"/","") Then 
+			If Qty.Text <> "0" Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+					k = ST40T1.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+						k = ST40T1.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				ST40.ACIKKAPALI(satirNo) = ForecastType
+
+				if ForecastType = "W" then
+					xAttrib = "H"
+				elseif ForecastType = "F" then
+					xAttrib = "A"
+				End if
+				ST40T1.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40T1.SF_MIKTAR(satirNo) = Qty.Text
+				ST40T1.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				ST40T1.ACIKKAPALI(satirNo) = xAttrib
+
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+	Dim BaslangicKolon
+	for i = 1 to 40
+		xAttrib = OTOSP1T.GetFieldValue("ATTRIB" & i,1)
+		if trim(xAttrib) = "" then
+			BaslangicKolon = i
+			exit for
+		end if
+	Next
+'***********
+	Dim Tarih
+	ST40T1.GroupBy("ACIKKAPALI+RTESTARIH")
+	ST40T1.Sort("<ACIKKAPALI+RTESTARIH")
+	if OTOSP1T.GetRecCount() = 0 then
+		OTOSP1T.AddRow
+	end if
+	for i = 1 to ST40T1.GetRecCount()
+		Tarih = ST40T1.RTESTARIH(i)
+		xAttrib = ST40T1.ACIKKAPALI(i)
+		res = Doc.SetFieldValue("OTOSP1T","TARIH" & BaslangicKolon + i - 1,1,Tarih)	
+		res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & BaslangicKolon + i - 1,1,xAttrib)				
+	Next
+'***********
+	ST40.GroupBy("KOD+ACIKKAPALI+RTESTARIH")
+	ST40.Sort("KOD+<ACIKKAPALI+RTESTARIH")
+
+	dim stSatirSayisi, StokKodu,satir,Rep,sKol,Miktar, res, SonKolon, MStokKodu, Birim, KodVar
+	stSatirSayisi = ST40.GetRecCount()
+	For i = 1 To stSatirSayisi
+		Doc.StatusBarMessage "Yazýlýyor : " & i & " / " & stSatirSayisi
+		StokKodu = ST40.KOD(i)
+		Birim = Doc.GetDBFieldValue("STOK00","KOD",StokKodu,"")
+		if trim(Birim) = "" then
+			MStokKodu = Doc.Get0G0U(StokKodu,OTOSP1E.CH_KODU,"12")
+			if trim(MStokKodu) = "" or trim(MStokKodu) = trim(StokKodu) then
+				KodVar = 0
+			else
+				KodVar = 1
+			end if
+		else
+			KodVar = 1
+		end if
+		if KodVar = 1 then
+'			if trim(StokKodu) = "1C15 V10649 BD" then
+'				msgbox MStokKodu
+'			end if
+			satirNo = SatirBul(StokKodu)
+			if satirNo = 0 then
+				OTOSP1T.AddRow
+				satirNo = OTOSP1T.GetRecCount
+				OTOSP1T.SetCurrentRow(satirNo)
+				OTOSP1T.KOD(satirNo) = ST40.KOD(i)
+			End If
+			Tarih = ST40.RTESTARIH(i)
+			xAttrib = ST40.ACIKKAPALI(i)
+			Rep = AlanBul1(Tarih,xAttrib)
+			Miktar = ST40.SF_MIKTAR(i)
+			if rep <> -1 then
+				res = Doc.SetFieldValue("OTOSP1T",Rep,satirNo,Miktar + OTOSP1T.GetFieldvalue(Rep,satirNo))
+			end if
+		else
+			if GecersizBul(StokKodu) = 0 then
+				GecersizKodlar(uBound(GecersizKodlar)) = StokKodu
+				Redim Preserve GecersizKodlar(uBound(GecersizKodlar)+1)
+			end if
+		end if
+	Next
+
+	Dim j
+	for j = 1 to OTOSP1T.GetRecCount
+		For i = BaslangicKolon to 40
+			Tarih = OTOSP1T.GetFieldValue("TARIH" & i,1)
+			xAttrib = OTOSP1T.GetFieldValue("ATTRIB" & i,1)
+			res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,j,Tarih)	
+			res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,j,xAttrib)	
+		Next
+	Next
+
+	Set ST40 = Nothing
+	Set ST40T1 = Nothing
+End Sub
+Sub Tamamla()
+	Dim j,i, OncekiTarih, OncekiAttrib, res
+	for j = 1 to 40
+		if trim(OTOSP1T.GetFieldValue("TARIH" & j,1)) <> "" then
+			for i = 2 to OTOSP1T.GetRecCount()
+				if trim(OTOSP1T.GetFieldValue("TARIH" & j,i)) = "" then
+					OncekiTarih = OTOSP1T.GetFieldValue("TARIH" & j,i-1)
+					OncekiAttrib = OTOSP1T.GetFieldValue("ATTRIB" & j,i-1)				
+					res = Doc.SetFieldValue("OTOSP1T","TARIH" & j,i,OncekiTarih)	
+					res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & j,i,OncekiAttrib)	
+				end if
+			Next
+		end if
+	Next
+End Sub
+Sub ToplamHesapla()
+	Dim i,GunlukToplam, HaftalikToplam, AylikToplam, j, Ozellik, Deger
+	For i = 1 to OTOSP1T.GetRecCount()
+		GunlukToplam = 0
+		HaftalikToplam = 0
+		AylikToplam = 0
+		For j = 1 to 40
+			Ozellik = OTOSP1T.GetFieldValue("ATTRIB" & j,i)
+			Deger = OTOSP1T.GetFieldValue("REPCOL" & j,i)
+			if Ozellik = "G" then
+				GunlukToplam = GunlukToplam + Deger
+			Elseif Ozellik = "H" then
+				HaftalikToplam = HaftalikToplam + Deger
+			Elseif Ozellik = "A" then
+				AylikToplam = AylikToplam + Deger			
+			end if
+		Next
+		OTOSP1T.GUN_TOPLAMI(i) = GunlukToplam
+		OTOSP1T.HAFTA_TOPLAMI(i) = HaftalikToplam
+		OTOSP1T.AY_TOPLAMI(i) = AylikToplam
+		OTOSP1T.GENEL_TOPLAM(i) = GunlukToplam + HaftalikToplam + AylikToplam 
+	Next
+End Sub
+Function Temizle(Yazi)
+	dim i
+  For i = 1 To 4
+    Yazi = Replace(Yazi, "  ", " ")
+  Next
+  Temizle = Yazi
+End Function
+Function FmtTarih(Tarih)
+	dim Yil, Ay, Gun
+	Yil = Left(Tarih,4)
+	Ay = Mid(Tarih,5,2)
+	Gun = Right(Tarih,2)
+'	FmtTarih = Gun & "/" & Ay & "/" & Yil
+	FmtTarih = Yil & "/" & Ay & "/" & Gun
+End Function
+Function ElemanSayisi(objXMLDoc)
+	Dim Root, NodeList, i, Attr, Schedule, Sc, yy, ScCn
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set ScCn = Sc.childNodes
+			If ScCn.Item(1).Text <> "0" Or _
+					Doc.GetDBFieldValue("STOK00","AD",Doc.LeftJustify(Temizle(Attr.Item(0).Text),24),"") <> "" Then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisi = yy
+End Function
+Function ElemanSayisiHafta(objXMLDoc)
+
+	Dim Root, NodeList, i, Attr, Schedule, Sc, yy, Qty, ScCn, ForecastType
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set ScCn = Sc.childNodes
+'			If Qty.Text <> "0" and ForecastType = "W" then
+			If Qty.Text <> "0" then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisiHafta = yy
+End Function
+Function ElemanSayisiAy(objXMLDoc)
+	Dim Root, NodeList, i, Attr, Schedule, Sc, yy, Qty, ScCn, ForecastType
+
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set ScCn = Sc.childNodes
+			If Qty.Text <> "0" and ForecastType = "F" then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisiAy = yy
+End Function
+Function AlanBul1(ArananTarih,ArananAttr)
+	dim i,Attr,Tarih
+	if ArananAttr = "W" then
+		ArananAttr = "H"
+	Elseif ArananAttr = "F" then
+		ArananAttr = "A"
+	end if
+	for i = 1 to 40
+		Tarih = OTOSP1T.GetFieldValue("TARIH" & i,1)
+		Attr = OTOSP1T.GetFieldValue("ATTRIB" & i,1)
+		if Tarih = ArananTarih and trim(Attr) = trim(ArananAttr) then
+			AlanBul1 = "REPCOL" & i
+			Exit Function
+		end if
+	Next
+End Function
+Function IlkTarih(Table)
+	Dim i
+	Table.Sort("RTESTARIH")
+	For i = 1 To Table.GetRecCount()
+		If Table.SF_MIKTAR(i) > 0 Then
+			IlkTarih = Table.RTESTARIH(i)
+			Exit Function
+		End If
+	Next
+End Function
+Function SonTarih(Table)
+	Dim i
+	Table.Sort("<RTESTARIH")
+	For i = 1 to Table.GetRecCount() 
+		If Table.SF_MIKTAR(i) > 0 Then
+			SonTarih = Table.RTESTARIH(i)
+			Exit Function
+		End If
+	Next
+End Function
+Sub ExceleYaz(Table)
+	Dim Excel, WB, i, k
+
+	Doc.StatusBarMessage "Excel'e yazýlýyor"
+
+	Set Excel = CreateObject("Excel.Application")
+	Set WB = Excel.Workbooks.Add
+	for i = 1 to table.GetRecCount
+		Doc.StatusBarMessage i & " / " & table.GetRecCount
+		Wb.Sheets(1).cells(i,1) = TABLE.KOD(i)
+		Wb.Sheets(1).cells(i,2) = TABLE.SF_MIKTAR(i)
+		Wb.Sheets(1).cells(i,3) = TABLE.RTESTARIH(i)	
+	Next
+	excel.visible = true
+	Doc.StatusBarMessage "Baðlantý kesiliyor"
+	k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+End Sub
+Function satirBul(StokKodu)
+	dim CHKodu, MStokKodu, i
+	satirBul = 0
+	For i = 1 to OTOSP1T.GetRecCount()
+		if OTOSP1T.KOD(i) = StokKodu then
+			satirBul = i
+			exit Function
+		end if
+	Next
+	if satirBul = 0 then
+		CHKodu = OTOSP1E.CH_KODU
+		MStokKodu = Doc.Get0G0U(StokKodu,CHKodu,"12")
+		For i = 1 to OTOSP1T.GetRecCount()
+			if trim(OTOSP1T.KOD(i)) = trim(MStokKodu) then
+				satirBul = i
+				exit Function
+			end if
+		Next		
+	end if
+End Function
+Function GecersizBul(StokKodu)
+	GecersizBul = 0
+	dim x
+	for each x in GecersizKodlar
+		if x = StokKodu then
+			GecersizBul = 1
+			Exit Function
+		end if
+	Next
+End Function
+Sub VPEYaz(HataArray)
+	dim pe1, ustmargin, solMargin, sagMargin, altMargin, satirYuksekligi, res, x, satirPozr
+	set pe1 = Doc.CreatePrintEngineOutput()
+	res = pe1.Open(0,"Hata", -1,-1,"")
+	ustMargin = 25
+	solMargin = 15 
+	sagMargin = 200
+	AltMargin = 275
+	satirYuksekligi = 6
+	res = pe1.SetBold(1)
+	res = pe1.Write(ustMargin,solMargin,5,sagMargin-solmargin,"Geçersiz Kodlar :")
+	res = pe1.SetBold(0)
+	for each x in HataArray
+		if (pe1.getTop + satirYuksekligi) > altMargin then
+			res = pe1.PageBreak()
+			satirPozr = UstMargin
+		else
+			satirPozr = pe1.GetTop + satirYuksekligi
+		end if
+		res = pe1.Write(satirPozr,solMargin + 5,5,sagMargin-solmargin - 5,x)
+	Next
+	res = pe1.Show()
+	doc.ActivateAftermacro(1)
+End Sub                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : FOSN-XLS
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Excel 'e çýktý.
+Kod : 
+Option Explicit
+'Public OTOSP1E,OTOSP1T
+Public Webden, GecersizKodlar()
+
+'öncelikle bu rutin çaðrýlýyor....
+'/*main*/
+Sub Makro1()
+	Dim Uid
+	Dim Password, Basla, objxmlDoc, URL, URL2, k,z,Ek,dosya	
+
+'	Set OTOSP1E=Doc.GetTableObject("OTOSP1E")
+'	Set OTOSP1T=Doc.GetTableObject("OTOSP1T")	
+	ReDim GecersizKodlar(0)
+	Webden = 0
+	if Webden = 1 then
+		Uid=Trim(OTOSP1E.UID)
+		Password=Trim(OTOSP1E.PASSWORD)
+		if Uid="" or Password="" then
+			Doc.d7MsgBox "Kullanýcý Adý veya Þifre Boþ Olamaz. Ýþlem Ýptal.","dinamo",MB_OK
+			Exit Sub
+		end if
+	end if
+	basla = Timer
+	OTOSP1T.Empty
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	URL = "https://fosn.ford.com.tr/prg_daily_summary_xml.asp?e=1"
+	URL2 = "https://fosn.ford.com.tr/prg_weekly_summary_xml.asp?e=1"
+	if Webden = 1 then
+		Doc.StatusBarMessage "Ford.com.tr 'ye baðlanýlýyor"
+		k = Doc.HTTPRequest("<https://login.ford.com.tr/authenticate.asp?userid=" & Uid & "&password=" & Password)
+		if trim(k) = "" then
+			z = Doc.D7MsgBox("ford.com.tr 'ye baðlanýlamýyor." & vbcrlf & "Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			Doc.StatusBarMessage ""
+			exit Sub
+		end if
+		Ek = "<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & chr(34) & "ISO-8859-9" & chr(34) &"?>"
+		objXMLDoc.Load URL
+	else
+		dosya = "c:\FO_GUNLUKP_ATDCA.xml"
+		objXMLDoc.Load dosya
+	end if
+	Doc.StatusBarMessage "Günlük program alýnýyor"
+
+	if trim(objXMLDoc.xml) = "" then
+		z = Doc.D7MsgBox("Günlük program alýnamadý." & vbcrlf & "Ýþlem kesilmiþtir.","dinamo",MB_OK)
+		Doc.StatusBarMessage ""
+		exit Sub
+	end if
+	objXMLDoc.LoadXML Ek & vbcrlf & objXMLDoc.xml
+	
+'	msgbox objXMLDoc.xml
+	Dim i,y, Root,NodeList, ST40, kk, Attr, Schedule, Qty, TesTarih, SatirNo, yy, Sc
+
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+
+	Dim ST40T1
+	Doc.CreateTableObject "YYY=STOK40T","TMPCOPY"
+	Set ST40T1 = Doc.GetTableObject("YYY")	
+
+	kk = ElemanSayisi(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("DATE")
+			If Qty.Text <> "0" Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+					k = ST40T1.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+						k = ST40T1.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+
+				ST40T1.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40T1.SF_MIKTAR(satirNo) = Qty.Text
+				ST40T1.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+
+	Dim Btarih, STarih,Fark,Ptesi, stSatirSayisi, sonKolon
+	BTarih = IlkTarih(ST40)
+
+	Starih = Sontarih(ST40)
+	Fark = 8 - Weekday(Starih, 2)
+	Ptesi = replace(Doc.StrDate_Increment(Starih, Fark),"/","")
+
+'***********
+	Dim Tarih, res
+	ST40T1.Sort("RTESTARIH")
+	ST40T1.GroupBy("RTESTARIH")
+	OTOSP1T.AddRow
+	for i = 1 to ST40T1.GetRecCount()
+		Tarih = 	ST40T1.RTESTARIH(i)
+		res = Doc.SetFieldValue("OTOSP1T","TARIH" & i,1,Tarih)	
+		res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & i,1,"G")				
+	Next
+'***********
+	ST40.Sort("KOD+RTESTARIH")
+	ST40.GroupBy("KOD+RTESTARIH")
+	
+	Call ExceleYaz(ST40)
+
+	Set ST40 = Nothing
+	Set ObjXMLDoc = Nothing
+
+	Call HaftalikPlan()
+
+	if Webden = 1 then
+		Doc.StatusBarMessage "ford.com.tr baðlantýsý kesiliyor"
+		k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+	end if
+	dim ret, Gecersiz, Gecersizler
+	for each Gecersiz in GecersizKodlar
+		Gecersizler = Gecersizler & Gecersiz & vbcrlf
+	Next
+	if trim(replace(Gecersizler,vbcrlf,"")) <> "" then
+		ret = Doc.d7MsgBox("Geçersiz Kodlar : " & vbcrlf &	Gecersizler,"dinamo",MB_OK)
+	end if
+
+	dim Bitis
+	bitis = Timer
+
+	msgbox "Bitti " & bitis - basla & " s"
+End Sub
+Sub HaftalikPlan()
+	Dim Basla, objXMLDoc, URL2, k, Ek, z
+
+	basla = Timer
+
+	Set objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	objXMLDoc.async = False
+	URL2 = "https://fosn.ford.com.tr/prg_weekly_summary_xml.asp?e=1"
+
+	Ek = "<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & chr(34) & "ISO-8859-9" & chr(34) &"?>"
+
+	dim dosya
+	Doc.StatusBarMessage "Haftalýk program alýnýyor"
+	if Webden = 1 then
+		objXMLDoc.Load URL2
+		if trim(objXMLDoc.xml) = "" then
+			z = Doc.D7MsgBox("Haftalýk/Aylýk program alýnamadý." & vbcrlf & "Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			Doc.StatusBarMessage ""
+			exit Sub
+		end if
+		objXMLDoc.LoadXML Ek & vbcrlf & objXMLDoc.xml
+	else
+		dosya = "C:\FO_HAFTALIKP_ATDCA.xml"
+		objXMLDoc.Load dosya
+	end if
+	Dim y, Root,NodeList,ST40,kk,i,Attr,Schedule, Sc,ForecastType, Qty, TesTarih,satirNo, yy
+
+	y = 1
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+
+	Doc.StatusBarMessage "Aktarýlýyor"
+
+	Doc.CreateTableObject "XXX=STOK40T","TMPCOPY"
+	Set ST40 = Doc.GetTableObject("XXX")
+	
+	Dim ST40T1
+	Doc.CreateTableObject "YYY=STOK40T","TMPCOPY"
+	Set ST40T1 = Doc.GetTableObject("YYY")	
+
+	Dim xAttrib
+	kk = ElemanSayisiHafta(objXMLDoc)
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			Set TesTarih = Sc.SelectSingleNode("PERIOD_START_DATE")
+'			If Qty.Text <> "0" and ForecastType = "W" and TesTarih.Text >= Replace(BaslangicTarih,"/","") Then 
+			If Qty.Text <> "0" Then 
+				If y <> 1 Then
+					k = ST40.AddRow()
+					k = ST40T1.AddRow()
+				Else
+					If ST40.GetRecCount = 0 Then
+						k = ST40.AddRow()
+						k = ST40T1.AddRow()
+					End If
+				End If
+				y = 2
+				SatirNo = ST40.GetRecCount()
+				ST40.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40.SF_MIKTAR(satirNo) = Qty.Text
+				ST40.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				ST40.ACIKKAPALI(satirNo) = ForecastType
+
+				if ForecastType = "W" then
+					xAttrib = "H"
+				elseif ForecastType = "F" then
+					xAttrib = "A"
+				End if
+				ST40T1.KOD(satirNo) = Temizle(Attr.Item(0).Text)
+				ST40T1.SF_MIKTAR(satirNo) = Qty.Text
+				ST40T1.RTESTARIH(satirNo) = FmtTarih(TesTarih.Text)
+				ST40T1.ACIKKAPALI(satirNo) = xAttrib
+
+				yy = yy + 1 
+				Doc.StatusBarMessage "XML okunuyor : " & yy & " / " & kk
+			End If
+		Next
+	Next
+	Dim BaslangicKolon
+	for i = 1 to 40
+		xAttrib = OTOSP1T.GetFieldValue("ATTRIB" & i,1)
+		if trim(xAttrib) = "" then
+			BaslangicKolon = i
+			exit for
+		end if
+	Next
+'***********
+	Dim Tarih, res
+	ST40T1.GroupBy("ACIKKAPALI+RTESTARIH")
+	ST40T1.Sort("<ACIKKAPALI+RTESTARIH")
+	if OTOSP1T.GetRecCount() = 0 then
+		OTOSP1T.AddRow
+	end if
+	for i = 1 to ST40T1.GetRecCount()
+		Tarih = ST40T1.RTESTARIH(i)
+		xAttrib = ST40T1.ACIKKAPALI(i)
+		res = Doc.SetFieldValue("OTOSP1T","TARIH" & BaslangicKolon + i - 1,1,Tarih)	
+		res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & BaslangicKolon + i - 1,1,xAttrib)				
+	Next
+'***********
+	ST40.GroupBy("KOD+ACIKKAPALI+RTESTARIH")
+	ST40.Sort("KOD+<ACIKKAPALI+RTESTARIH")
+
+	call ExceleYaz(ST40)
+	
+	Set ST40 = Nothing
+	Set ST40T1 = Nothing
+End Sub
+Sub Tamamla()
+	Dim j,i, OncekiTarih, OncekiAttrib, res
+	for j = 1 to 40
+		if trim(OTOSP1T.GetFieldValue("TARIH" & j,1)) <> "" then
+			for i = 2 to OTOSP1T.GetRecCount()
+				if trim(OTOSP1T.GetFieldValue("TARIH" & j,i)) = "" then
+					OncekiTarih = OTOSP1T.GetFieldValue("TARIH" & j,i-1)
+					OncekiAttrib = OTOSP1T.GetFieldValue("ATTRIB" & j,i-1)				
+					res = Doc.SetFieldValue("OTOSP1T","TARIH" & j,i,OncekiTarih)	
+					res = Doc.SetFieldValue("OTOSP1T","ATTRIB" & j,i,OncekiAttrib)	
+				end if
+			Next
+		end if
+	Next
+End Sub
+Sub ToplamHesapla()
+	Dim i,GunlukToplam, HaftalikToplam, AylikToplam, j, Ozellik, Deger
+	For i = 1 to OTOSP1T.GetRecCount()
+		GunlukToplam = 0
+		HaftalikToplam = 0
+		AylikToplam = 0
+		For j = 1 to 40
+			Ozellik = OTOSP1T.GetFieldValue("ATTRIB" & j,i)
+			Deger = OTOSP1T.GetFieldValue("REPCOL" & j,i)
+			if Ozellik = "G" then
+				GunlukToplam = GunlukToplam + Deger
+			Elseif Ozellik = "H" then
+				HaftalikToplam = HaftalikToplam + Deger
+			Elseif Ozellik = "A" then
+				AylikToplam = AylikToplam + Deger			
+			end if
+		Next
+		OTOSP1T.GUN_TOPLAMI(i) = GunlukToplam
+		OTOSP1T.HAFTA_TOPLAMI(i) = HaftalikToplam
+		OTOSP1T.AY_TOPLAMI(i) = AylikToplam
+		OTOSP1T.GENEL_TOPLAM(i) = GunlukToplam + HaftalikToplam + AylikToplam 
+	Next
+End Sub
+Function Temizle(Yazi)
+	dim i
+  For i = 1 To 4
+    Yazi = Replace(Yazi, "  ", " ")
+  Next
+  Temizle = Yazi
+End Function
+Function FmtTarih(Tarih)
+	dim Yil, Ay, Gun
+	Yil = Left(Tarih,4)
+	Ay = Mid(Tarih,5,2)
+	Gun = Right(Tarih,2)
+'	FmtTarih = Gun & "/" & Ay & "/" & Yil
+	FmtTarih = Yil & "/" & Ay & "/" & Gun
+End Function
+Function ElemanSayisi(objXMLDoc)
+	Dim Root, NodeList, i, Attr, Schedule, Sc, yy, ScCn
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("SCHEDULE_ITEM")
+		For Each Sc In Schedule
+			Set ScCn = Sc.childNodes
+			If ScCn.Item(1).Text <> "0" Or _
+					Doc.GetDBFieldValue("STOK00","AD",Doc.LeftJustify(Temizle(Attr.Item(0).Text),24),"") <> "" Then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisi = yy
+End Function
+Function ElemanSayisiHafta(objXMLDoc)
+
+	Dim Root, NodeList, i, Attr, Schedule, Sc, yy, Qty, ScCn, ForecastType
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set ScCn = Sc.childNodes
+'			If Qty.Text <> "0" and ForecastType = "W" then
+			If Qty.Text <> "0" then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisiHafta = yy
+End Function
+Function ElemanSayisiAy(objXMLDoc)
+	Dim Root, NodeList, i, Attr, Schedule, Sc, yy, Qty, ScCn, ForecastType
+
+	Set Root = objXMLDoc.documentElement
+	Set NodeList = Root.getElementsByTagName("PART")
+	For i = 0 To NodeList.Length - 1
+		Set Attr = NodeList.Item(i).Attributes
+		Set Schedule = NodeList.Item(i).getElementsByTagName("FORECAST_ITEM")
+		For Each Sc In Schedule
+			Set Qty = Sc.SelectSingleNode("NET_QUANTITY")
+			ForecastType = Sc.Attributes.Item(0).Text
+			Set ScCn = Sc.childNodes
+			If Qty.Text <> "0" and ForecastType = "F" then
+				yy = yy + 1 
+			End If
+		Next
+	Next
+	ElemanSayisiAy = yy
+End Function
+Function AlanBul1(ArananTarih,ArananAttr)
+	dim i,Attr,Tarih
+	if ArananAttr = "W" then
+		ArananAttr = "H"
+	Elseif ArananAttr = "F" then
+		ArananAttr = "A"
+	end if
+	for i = 1 to 40
+		Tarih = OTOSP1T.GetFieldValue("TARIH" & i,1)
+		Attr = OTOSP1T.GetFieldValue("ATTRIB" & i,1)
+		if Tarih = ArananTarih and trim(Attr) = trim(ArananAttr) then
+			AlanBul1 = "REPCOL" & i
+			Exit Function
+		end if
+	Next
+End Function
+Function IlkTarih(Table)
+	Dim i
+	Table.Sort("RTESTARIH")
+	For i = 1 To Table.GetRecCount()
+		If Table.SF_MIKTAR(i) > 0 Then
+			IlkTarih = Table.RTESTARIH(i)
+			Exit Function
+		End If
+	Next
+End Function
+Function SonTarih(Table)
+	Dim i
+	Table.Sort("<RTESTARIH")
+	For i = 1 to Table.GetRecCount() 
+		If Table.SF_MIKTAR(i) > 0 Then
+			SonTarih = Table.RTESTARIH(i)
+			Exit Function
+		End If
+	Next
+End Function
+Sub ExceleYaz(Table)
+	Dim Excel, WB, i, k
+
+	Doc.StatusBarMessage "Excel'e yazýlýyor"
+
+	Set Excel = CreateObject("Excel.Application")
+	Set WB = Excel.Workbooks.Add
+	for i = 1 to table.GetRecCount
+		Doc.StatusBarMessage i & " / " & table.GetRecCount
+		Wb.Sheets(1).cells(i,1) = TABLE.KOD(i)
+		Wb.Sheets(1).cells(i,2) = TABLE.SF_MIKTAR(i)
+		Wb.Sheets(1).cells(i,3) = TABLE.RTESTARIH(i)	
+		Wb.Sheets(1).cells(i,4) = TABLE.ACIKKAPALI(i)
+	Next
+	excel.visible = true
+	Doc.StatusBarMessage "Baðlantý kesiliyor"
+	k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+End Sub
+Function satirBul(StokKodu)
+	dim CHKodu, MStokKodu, i
+	satirBul = 0
+	For i = 1 to OTOSP1T.GetRecCount()
+		if OTOSP1T.KOD(i) = StokKodu then
+			satirBul = i
+			exit Function
+		end if
+	Next
+	if satirBul = 0 then
+		CHKodu = OTOSP1E.CH_KODU
+		MStokKodu = Doc.Get0G0U(StokKodu,CHKodu,"12")
+		For i = 1 to OTOSP1T.GetRecCount()
+			if OTOSP1T.KOD(i) = MStokKodu then
+				satirBul = i
+				exit Function
+			end if
+		Next		
+	end if
+End Function
+Function GecersizBul(StokKodu)
+	GecersizBul = 0
+	dim x
+	for each x in GecersizKodlar
+		if x = StokKodu then
+			GecersizBul = 1
+			Exit Function
+		end if
+	Next
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : GENISLIK
+Hangi Tablo için : REP17S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Sütun Geniþliði Ayarlama
+Kod : 
+Sub Makro1
+	Oran = REP17RT.R_OUTF_GENISLIKCM(1) / 10
+	if Oran = 0 then Exit Sub
+	for i = 1 to REP17RT.GetREcCount
+		REP17RT.R_OUTF_GENISLIKCM(i) = REP17RT.FIELDLEN(i) * Oran
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : MUHA1
+Hangi Tablo için : 0MUHA1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Excel 'den açýlýþ / MUHASEBE
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open("C:\DETAY.xls")
+	ColHesapKodu = 1
+	ColBorcTutar = 2
+	ColAlacakTutar = 3
+	SheetAdi = "Sayfa1"
+	Baslangic = 1
+	Bitis = 540
+	Set MUHA1T = Doc.GetTableObject("MUHA1AT")
+
+	For i = Baslangic To Bitis
+		If MUHA1T.GetRecCount = 1 And trim(MUHA1T.KOD) = "" Then
+	
+		Else
+			MUHA1T.AddRow()
+		End If
+		SatirNo = MUHA1T.GetRecCount
+		MUHA1T.SetCurrentRow(satirNo)
+		MUHA1T.KOD(satirNo) = Wb.Sheets(SheetAdi).Cells(i,ColHesapKodu).value
+		MUHA1T.BORCFIYAT(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,ColBorcTutar).value)
+		MUHA1T.ALACAKFIYAT(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,ColAlacakTutar).value)
+	Next
+	Wb.Close
+	Excel.Quit
+End Sub                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : MAKINA / Uygulama : MAKR7S
+Makro Kodu : STOK
+Hangi Tablo için : 0STOK2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : STOK AÇILIÞ FÝÞÝ
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open("C:\DOST03.xls")
+	ColstokKodu = 1
+	Colmiktar = 2
+	Colfiyat = 3
+	colparabirimi=4
+	SheetAdi = "HAMMADE"
+	Baslangic = 1
+	Bitis =106 
+	Set STOK2T = Doc.GetTableObject("STOK2AT")
+
+	For i = Baslangic To Bitis
+		If STOK2T.GetRecCount = 1 And trim(STOK2T.KOD) = "" Then
+	
+		Else
+			STOK2T.AddRow()
+		End If
+		SatirNo = STOK2T.GetRecCount
+		STOK2T.SetCurrentRow(satirNo)
+		STOK2T.KOD(satirNo) = Wb.Sheets(SheetAdi).Cells(i,Colstokkodu).value
+		STOK2T.SF_MIKTAR(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,Colmiktar).value)
+		STOK2T.OR_FIYAT(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,Colfiyat).value)
+		STOK2T.PUNIT_ORG(satirNo) = Wb.Sheets(SheetAdi).Cells(i,Colparabirimi).value
+
+
+
+	Next
+	Wb.Close
+	Excel.Quit
+End Sub                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

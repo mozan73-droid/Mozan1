@@ -1,0 +1,2347 @@
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : ETIKET
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : STOK60,STOK25,STOK2A,STOK21,D7KIDSPL,D7KIDSLB,STOK29,STOK68,STOK29I,TRACK25,STOK19,STOK26,STOK61,STOK63,TRACK63,STOK63T,STOK24,STOK36, MMPS10,STOKFR2,SAYM11,SFDC31,TRACK26,TRACK29
+Açýklama : BARKOD ETÝKETÝ - ÖNAYSAN - 12.05.2014
+Kod : 
+'--------------------------------------------------------------------------------------------------------------------
+Sub PrintForm()
+	Call PrintLabel()
+End Sub
+
+'-------------------------------------------------------------------------------------------------------------------
+Sub PrintLabel()
+	ETKETSEC=""
+	KULLANICI=Trim(Doc.Getd7UserName)
+	'----------------------------------------------------------------------------------------------------------
+	ETIKETSEC = "3"
+	SATIRYAZ=3
+	'-----------------------------------------------------------------------------------------------------------------
+	ETIKET="ETK-HM"
+	'-----------------------------------------------------------------------------------------------------------------
+	Set Doc1 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+	Set D7LB = Doc1.GetTableObject("D7KIDSLB")
+	Set MTable = Doc.GetTableObject("MAKROTABLE_SF")
+	
+	If Doc.GetDocType = "STOK20" Then
+		Call STOK20_Print()
+	Elseif Doc.GetDocType = "STOK68" Then
+		Call STOK68_Print()
+	Elseif Doc.GetDocType = "STOK60" Then
+		Call STOK60_Print()
+		
+	Elseif Doc.GetDocType = "STOK25" Or Doc.GetDocType = "STOKFR2" Or Doc.GetDocType = "TRACK25" Then
+		Call STOK25_Print()
+		
+		
+	'BÖL VE TRANSFER ET
+	Elseif Doc.GetDocType = "TRACK251" Then
+		Call STOK251_Print()
+	Elseif Doc.GetDocType = "STOK29" or Doc.GetDocType = "STOK29I" Then
+		Call STOK29_Print()
+	Elseif Doc.GetDocType = "STOK36" Then
+		Call STOK36_Print()
+	Elseif Doc.GetDocType = "D7KIDSLB" Then
+		ETK_BIRLES_PALETLEME = InputBox ("ETÝKET BÝRLEÞTÝRME (B) / PALETLEME (P)", "ETÝKET BÝRLEÞTÝRME veya PALETLEME", "B/P")
+		If ETK_BIRLES_PALETLEME = "B" or ETK_BIRLES_PALETLEME = "b" Then
+			Call D7KIDSLB_Print1()
+		ElseIf ETK_BIRLES_PALETLEME = "P" or ETK_BIRLES_PALETLEME = "p" Then 
+			Call D7KIDSLB_Print()
+		End If
+	Elseif Doc.GetDocType = "STOK19" Then
+		Call STOK19_Print()
+	Elseif Doc.GetDocType = "SAYM11" Then
+		Call SAYM11_Print()
+	Elseif Doc.GetDocType = "STOK21" Then
+		Call STOK21_Print()
+	Elseif Doc.GetDocType = "STOK2A" Then
+		Call STOK2A_Print
+	Elseif Doc.GetDocType = "STOK26" Then 
+		Call Transfer_Print(STOK26T)
+	Elseif Doc.GetDocType = "TRACK26" Then 
+
+	Elseif Doc.GetDocType = "STOK63" Then
+		Call Transfer_Print(STOK63T)
+	Elseif Doc.GetDocType = "STOK61" Then
+		Call Transfer_Print(STOK61T)
+	Elseif Doc.GetDocType = "STOK24" Then
+		Call STOK24_Print()
+	Elseif Doc.GetDocType = "MMPS10" Then
+		Call MMPS10_Print()
+	Elseif Doc.GetDocType= "TRACK01" Then
+		Call TRACK01_Print()
+	Elseif Doc.GetDocType= "SFDC31" Then
+		Call SFDC31_Print()
+	End if
+
+	Doc.DeleteDocumentNoUI "D7KIDSLB", ""
+End Sub
+'--------------------------------------------------------------------------------
+Sub D7KIDSLB_Print()
+	dim i,D7SPL,pe1
+	sayfaBoyu = 75
+	sayfaEni = 260
+	satiryuksekligi = 3
+	sayac = 1
+
+	Call KTA_Yaz()
+	
+	Set pe1 = doc.CreatePrintEngineOutput()
+	res = pe1.Open(0, "Paletleme", SayfaBoyu, SayfaEni, "")
+
+	set D7SPL = Doc.GetTableObject("D7KIDSPL")
+	BARKODNO = trim(D7SPL.KOD(1))
+
+	D7KIDSPL.SafePack()
+	D7KIDSPL.Sort("SKOD")
+	PALET_KAYITSATIR_SAYISI=D7KIDSPL.GetRecCount()
+
+	Call ALANLAR(D7SPL)
+
+	If doc.ErrorNumber Then
+		MsgBox ("Hata main : " & doc.ErrorNumber)
+		Exit Sub
+	End If
+
+	Call Print_form_sayfabasi(pe1)
+
+	For i = 1 To PALET_KAYITSATIR_SAYISI
+		Call Print_form_satir(pe1, i, D7SPL)
+	Next
+
+	'res = pe1.Show()
+	res	=	pe1.PrintDoc(0)
+	res = Doc.ActivateAfterMacro(0)
+End Sub
+'---------------------------------------------------------------------------------------------------------
+Sub ALANLAR(D7SPL)
+
+	dim i
+	ReDim Grid(8,7)
+	Grid(1,0) = "_POS"
+	Grid(2,0) = "SKOD"
+	Grid(3,0) = "SKOD_STOK00_AD"
+	Grid(4,0) = "LOTNUMBER"
+	Grid(5,0) = "SERINO"
+	Grid(6,0) = "SF_MIKTAR"
+	Grid(7,0) = "SF_SF_UNIT"
+
+	Grid(1,1) = 3.5
+	Grid(2,1) = 20.5
+	Grid(3,1) = 30
+	Grid(4,1) = 12
+	Grid(5,1) = 14
+	Grid(6,1) = 10
+	Grid(7,1) = 7
+
+		'FIELD ADI - CUSTOM
+	Grid(1,2) = "SN"
+	Grid(2,2) = "PARÇA KODU"
+	Grid(3,2) = "MÜÞTERÝ PARÇA KODU"
+	Grid(4,2) = "PARTÝ NO"
+	Grid(5,2) = "BARKOD NO"
+	Grid(6,2) = "MÝKTAR"
+	Grid(7,2) = "BÝRÝM"
+
+	Grid(1,4) = "C"
+	Grid(2,4) = "C"
+	Grid(3,4) = "C"
+	Grid(4,4) = "C"
+	Grid(5,4) = "C"
+	Grid(6,4) = "N"
+	Grid(7,4) = "C"
+	
+	For i = 1 To 7
+		DEGISKEN = Grid(i,0)
+	Next	
+
+End Sub
+'------------------------------------------------------------------------------------------------------
+Sub Print_form_sayfabasi(pe1)
+	ustmargin = 1
+	solmargin = 2
+	sagmargin = 1
+	altmargin = 4
+
+	res = pe1.pensize(0.5)
+	res = pe1.box(UstMargin, SolMargin, sayfaboyu-(ustmargin+altmargin), sayfaeni-(solmargin+sagmargin))
+	CERCEVE_ALTI_KONUM = pe1.GetBottom	
+	CERCEVE_SOL_KONUM = pe1.GetLeft
+	CERCEVE_UST_KONUM = pe1.GetTop
+
+	'LOGO
+	res = pe1.NoPen()
+	logo = Doc.Getd7Directory_DataFirm() & trim(Doc.Customp_Gets("!LOGO"))
+	msgbox logo
+	If trim(logo) <> "" Then
+		res = pe1.Picture(CERCEVE_UST_KONUM+0.5, CERCEVE_SOL_KONUM+0.5, 6, 16, logo, 114)
+	End If
+
+	'LOGO SAÐI DÝKEY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(CERCEVE_UST_KONUM, pe1.GetRight, pe1.GetBottom, 0)
+	BASLIK_ALT_KONUM = pe1.GetBottom
+	LOGO_SAGI_DIK_CIZGI_KONUM = pe1.GetLeft
+	
+	res = pe1.nopen()
+	res = pe1.selectfont("Arial", 16)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+
+	'PALETLEME BARKODU BAÞLIK
+	res = pe1.Write(CERCEVE_UST_KONUM+0.5, pe1.GetRight+2, 7 , 71,"PALETLEME BARKODU")
+
+	'PALETLEME YAZISI SAÐI DÝKEY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(CERCEVE_UST_KONUM, pe1.GetRight, BASLIK_ALT_KONUM+6.5, 0)
+	PALETLEME_SAGI_DIK_CIZGI_KONUM = pe1.GetRight
+
+	res = pe1.selectfont("Arial", 7)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+
+	'PALET NO BAÞLIK
+	res = pe1.Write(CERCEVE_UST_KONUM+1, PALETLEME_SAGI_DIK_CIZGI_KONUM+0.5, 7, 9, "PALET NO")
+
+	'LOGO ALTI YATAY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(BASLIK_ALT_KONUM, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))		
+	LOGO_ALTI_YATAY_CIZGI_KONUM = pe1.GetBottom	
+
+	'BARKOD ÇÝZGÝLERÝ
+	res = pe1.NoPen()
+	res = pe1.SetAlign("Center")
+	BARKODGEN= 78
+	res = pe1.SetBarcodeAlignment(2)
+	res = pe1.SetBarcodeParms(2,2)
+	res = pe1.SetBarcodeAutoCheckSum(0)
+	res = pe1.Barcode(LOGO_ALTI_YATAY_CIZGI_KONUM+0.5, CERCEVE_SOL_KONUM+3, 6, BARKODGEN, "CODE39", BARKODNO, "")
+	
+	'BARKOD SERÝ NUMARASI
+	res = pe1.SelectFont("Arial", 6)
+	res = pe1.SetBold(1)
+	res = pe1.SetAlign("Center")
+	
+	'res = pe1.SetTransparentMode(0)
+	res = pe1.SetTextColor(RGB(0,0,0))
+
+	res = pe1.Write(PE1.GetBottom-2.5, CERCEVE_SOL_KONUM+30, 3, 30, "(B.KOD NO: " & trim(BARKODNO) & ")")
+	res = pe1.SetTransparentMode(1)
+
+	'PALET NO DEÐERÝNÝ AL
+	PALET_NO = Doc.GetUDFValue("D7KIDSLB", D7KIDSLB.KOD, "PALETNO",0)
+
+	res = pe1.selectfont("Arial", 16)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+	res = pe1.Write(LOGO_ALTI_YATAY_CIZGI_KONUM+0.5, PALETLEME_SAGI_DIK_CIZGI_KONUM+0.5, 6.5, 9, PALET_NO)
+	
+	'BAÞLIK ALT YATAY ÇÝZGÝ
+	res = pe1.pensize(0.5)
+	res = pe1.Line(pe1.GetBottom+0.5, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))		
+	BASLIK_ALT_YATAY_CIZGI_KONUM = pe1.GetBottom	
+
+	'Tarih = doc.StrtoNordate(STOK46E.TARIH(1))
+	'SATINALMA SÝPARÝÞ FORMU ÝLK KUTU BÖLÜMÜ ALTI
+	'konum = pe1.GetBottom+2
+	'y = 2
+
+	res = pe1.nopen()
+	res = pe1.selectfont("Arial", 6)
+	res = pe1.setalign("Left")
+
+	'KALEM BAÞLIKLARI
+	Sol = CERCEVE_SOL_KONUM
+	res = pe1.setalign("CENTER")
+	cizgi_satiryuksekligi = satiryuksekligi + 0.6
+
+	For i = 1 To 7
+		SutunGenisligi = Grid(i,1)
+		Baslik = Grid(i,2)
+		res = pe1.write(BASLIK_ALT_YATAY_CIZGI_KONUM+0.5, Sol, satiryuksekligi, SutunGenisligi , Baslik)
+		BASLIK_ALTI_KONUM = pe1.GetBottom
+		res = pe1.pensize(0.1)
+		If i=>2 Then
+			'kalem baþlýklarý ve kalem deðerleri arasý dik çizgiler 
+			res = pe1.Line(BASLIK_ALT_YATAY_CIZGI_KONUM, pe1.GetLeft, cizgi_satiryuksekligi, 0)
+			KALEMBASLIKLARI_ALT_YATAY_CIZGI_KONUM = pe1.GetBottom	
+			res = pe1.Line(KALEMBASLIKLARI_ALT_YATAY_CIZGI_KONUM, pe1.GetLeft, (satiryuksekligi+1)*PALET_KAYITSATIR_SAYISI, 0)
+		End if
+		Sol = Sol + SutunGenisligi
+	Next
+
+	'KALEM BAÞLIKLARI ALTI YATAY ÇÝZGÝ
+	res = pe1.Line(BASLIK_ALTI_KONUM , CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))	
+	satirBaslangic = pe1.GetBottom + 1
+
+End Sub
+'-----------------------------------------------------------------------------
+Sub Print_form_satir(pe1,satirNo, D7SPL)
+
+	Dim satirpozr
+
+	If trim(D7SPL.KOD(satirNo)) = "" Then Exit Sub
+	ReDim xCizgi(6)
+	Degisken = ""
+	sonSatir = pe1.GetBottom()
+
+	If satirNo = 1 Then
+		satirpozr = satirBaslangic
+	Else
+		satirpozr = pe1.GetTop() + 1
+	End If
+	siraNo = siraNo + 1
+	'**********************************************************************************
+	res = pe1.selectfont("Times New Roman", 6)
+	res = pe1.setbold(0)
+
+	Sol = CERCEVE_SOL_KONUM + 1
+	res = pe1.setalign("LEFT")
+
+	'DEÐERLER
+	For j=1 To 7
+		SutunGenisligi = Grid(j,1) 
+		DegiskenAdi = Grid(j,0)
+
+		res = pe1.selectfont("Times New Roman", 6)
+
+		If left(DegiskenAdi,1) <> "_" Then
+			Degisken = D7SPL.GetFieldValue(DegiskenAdi,SatirNo)
+		Else
+			If DegiskenAdi = "_POS" Then
+				Degisken = SatirNo
+			Else
+				Degisken = ""
+			End If
+		End If	
+
+		res = pe1.SetAlign("LEFT")
+		
+		If Grid(j,2) = "MÝKTAR" Then
+			res = pe1.SetAlign("RIGHT")
+			'Ondalik = Grid(j,2)
+			Degisken = Doc.NumFormat(Degisken, 18, Ondalik)
+			Sol = Sol - 2
+
+		ElseIf Grid(j,2)= "BÝRÝM" Then
+			res = pe1.SetAlign("RIGHT")
+
+		ElseIf Grid(j,2)= "PARTÝ NO" Then
+			res = pe1.SetAlign("CENTER")
+
+		ElseIf Grid(j,2)= "BARKOD NO" Then
+			res = pe1.SetAlign("CENTER")
+		
+		ElseIf Grid(j,2)= "PARÇA KODU" Then
+			res = pe1.SetAlign("LEFT")
+			Degisken = Trim(Degisken)
+		End If
+		
+		res = pe1.write(satirpozr, sol, satiryuksekligi, SutunGenisligi, Degisken)
+		res = pe1.SetItalic(0)
+		Sol = Sol + SutunGenisligi 
+		res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+	Next	
+
+	If	sayac = PALET_KAYITSATIR_SAYISI Then
+
+		DETAY_ALT_KONUM = pe1.GetBottom
+
+		'ÖZET BAÞLIK
+		res = pe1.SelectFont("Arial", 10)
+		res = pe1.SetBold(1)
+		res = pe1.SetAlign("Center")
+		res = pe1.pensize(0.5)
+		res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		res = pe1.write(DETAY_ALT_KONUM+0.5, CERCEVE_SOL_KONUM+1, 4, 96, "PARÇA BAZINDA TOPLAM ÖZETÝ")
+		res = pe1.Line(pe1.GetBottom+0.5, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		TOPLAMOZETLERI_ALT_KONUM = pe1.GetBottom
+		res = pe1.pensize(0.2)
+		res = pe1.SelectFont("Arial", 9)
+		res = pe1.SetBold(0)
+		res = pe1.SetAlign("Left")
+
+		'TOPLAMLARI ICIN
+		Set D7KPALET= Doc.Select2("XXXSTOK63T", "D7KIDSPL", "", "", -1)
+		D7KPALET.Sort("SKOD")
+		D7KPALET.GroupBy2("SKOD")
+
+		satirBaslangic = TOPLAMOZETLERI_ALT_KONUM
+		For u = 1 To D7KPALET.GetRowCount()
+			if u=1 then 
+				satirpozr_OZET = satirBaslangic
+			else
+				satirpozr_OZET = pe1.GetTop() + 0.5
+			end if
+			siraNo = siraNo + 1
+
+			OPSKODLARI(u) = D7KPALET.SKOD(u)
+			MUSTERI_PARCA_KODLARI(u) = D7KPALET.SKOD_STOK00_AD(u)
+			KODAGORE_MIKTAR(u) = D7KPALET.SF_MIKTAR(u)
+			KODAGOREBIRIM(u) = D7KPALET.SF_SF_UNIT(u)
+
+			res = pe1.write(satirpozr_OZET, CERCEVE_SOL_KONUM+1, 4, 24, OPSKODLARI(u))
+			OPSKODLARI_SAG_KONUM = pe1.GetRight
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 53, MUSTERI_PARCA_KODLARI(u))
+			MUSTERI_PARCA_KODLARI_SAG_KONUM = pe1.GetRight
+			res = pe1.SetAlign("Right")
+			KODAGORE_MIKTAR(u) = Doc.NumFormat(KODAGORE_MIKTAR(u), 16, Ondalik)
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 10, KODAGORE_MIKTAR(u))
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 5, KODAGOREBIRIM(u))
+			res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		Next
+		TOPLAM_KALEM_ALTI_KONUM = pe1.GetBottom
+		res = pe1.Line(TOPLAMOZETLERI_ALT_KONUM, OPSKODLARI_SAG_KONUM, 4.4*D7KPALET.GetRowCount ,0)
+		res = pe1.Line(TOPLAMOZETLERI_ALT_KONUM, MUSTERI_PARCA_KODLARI_SAG_KONUM, 4.4*D7KPALET.GetRowCount ,0)
+	End if
+	sayac = sayac+1
+End Sub
+'----------------------------------------------------------------------------------------------
+Sub KTA_Yaz()
+ Dim D7KLB   
+ Set D7KLB = Doc.GetTableObject("D7KIDSLB")   
+ Dim nret    
+ nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","D7KIDSLB",D7KLB.KOD)   
+ Dim T_U1    
+ Set T_U1 = Doc.GetTableObject("T_U0001")   
+ PALET_NO_GIR = InputBox ("PALET NO: ", "PALET NUMARASI GÝR?", "")
+ K = T_U1.SetFieldValue("PALETNO", -1, PALET_NO_GIR)   
+ T_U1.Exec "SAVE"   
+End Sub
+'----------------------------------------------------------------------------------------------
+Sub D7KIDSLB_Print1()
+	dim i
+	PALET_KAYITSATIR_SAYISI=D7KIDSPL.GetRecCount()
+	
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK25", "")
+
+	NRET = Doc1.New_Voucher()
+	Set S25E = Doc1.GetTableObject("STOK25E")
+	Set S25T = Doc1.GetTableObject("STOK25T")
+	ETIKETTEKI_DEPO = GetS01Value(D7KIDSLB.SERINO(1), "AMBCODE")
+
+	S25E.AMBCODE = ETIKETTEKI_DEPO
+	S25E.TARGETAMBCODE = ETIKETTEKI_DEPO
+
+	S25T.KOD(1) = D7KIDSPL.SKOD(1)
+	S25T.LOTNUMBER(1) = D7KIDSPL.LOTNUMBER(1)
+	S25T.SERINO(1) = D7KIDSPL.SERINO(1)
+	S25T.SF_MIKTAR(1) = D7KIDSPL.SF_MIKTAR(1)
+	BIRIM = Doc.GetKartValue("STOK00","IUNIT",S25T.KOD(1),-1)
+	S25T.OSF_SF_UNIT(1) = BIRIM
+
+	S25T.NEWCODE(1) = D7KIDSPL.SKOD(1)
+	S25T.NEWLOTNUMBER(1) = S25T.LOTNUMBER(1) 
+
+	'yeni barkod no alma
+	Set Doc2 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+	Set D7LB = Doc2.GetTableObject("D7KIDSLB")
+	YeniSeriNo = Doc.Sayac0danAl("SERINO")
+
+	NRET = Doc2.Load_Voucher(YeniSeriNo)
+
+	'yeni barkod no yu kot lot seri no transferdeki yeniserino bölümüne atama
+	S25T.NEWSERINO(1) = YENISERINO
+	'yeni barkod etiketi sayfasýný kaydedip kapatma
+	Doc2.Save_Voucher
+	Doc2.LoadEmpty_Voucher()
+
+	For i = 2 To PALET_KAYITSATIR_SAYISI
+		'SATIR EKLEME
+		recno=S25T.addrow
+		'HÜCREYE TIKLAMA (setcurrentrow ile oluyor)
+		S25T.setCURRENTROW(recno)
+		S25T.KOD(recno) 				= D7KIDSPL.SKOD(i)
+		S25T.LOTNUMBER(recno) 	= D7KIDSPL.LOTNUMBER(i)
+		S25T.SERINO(recno) 			= D7KIDSPL.SERINO(i)
+
+		S25T.NEWCODE(recno)			= D7KIDSPL.SKOD(i)
+		S25T.NEWLOTNUMBER(recno)= S25T.LOTNUMBER(1) 
+		S25T.NEWSERINO(recno) 	= YENISERINO
+
+		S25T.SF_MIKTAR(recno) 	= D7KIDSPL.SF_MIKTAR(i)
+		BIRIM = Doc.GetKartValue("STOK00","IUNIT",S25T.KOD(recno),-1)
+		S25T.OSF_SF_UNIT(recno) = BIRIM
+	Next
+
+	Doc1.Save_Voucher
+	Doc1.RunMacro0 "PFRM7S.ETIKET2", "PrintLabel"
+
+	Doc1.LoadEmpty_Voucher
+	Doc1.DeleteDocumentNoUI "D7KIDSLB", ""
+End Sub
+'---------------------------------------------------------------------------------------------------------
+	'IS EMRI
+'---------------------------------------------------------------------------------------------------------
+Sub MMPS10_Print()
+
+	If MMPS10E.STATUS <> "R" Then
+		k = Doc.d7MsgBox("R Statüsünde olmayan MPS 'lerden etiket alamazsýnýz", "Hata", MB_OK+MB_ICONWARNING)
+		Exit Sub
+	End if
+	Doc.CreateTableObject "XXXSTOK20MPS=STOK20T", "TMPCOPY"
+	'-----------------------------------------------------------------------------------------
+	Set S20T = Doc.GetTableObject("XXXSTOK20MPS")
+		'OPERASYONA BARKOD ETÝKET TÜM SATIRLAR ÝÇÝN MÝ, TEK SATIR ÝÇÝN MÝ BASILSIN?
+	QSTR = "R_KAYNAKTYPE='I'"
+	
+	'SATIR_BARKOD=InputBox ("SATIR ÝÇÝN MÝ BARKOD?","E/e","H")		
+	
+	SATIR_BARKOD = "H"	
+				
+	If Trim(SATIR_BARKOD)="E" OR Trim(SATIR_BARKOD)="e" Then
+		if MMPS10TM.GetRecCount()>1 Then
+			msgbox "Çoklu ürünlerde satýr için barkod alýna
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : ETIKET
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : STOK60,STOK25,STOK2A,STOK21,D7KIDSPL,D7KIDSLB,STOK29,STOK68,STOK29I,TRACK25,STOK19,STOK26,STOK61,STOK63,TRACK63,STOK63T,STOK24,STOK36, MMPS10,STOKFR2,SAYM11,SFDC31,TRACK26,TRACK29
+Açýklama : BARKOD ETÝKETÝ - ÖNAYSAN - 12.05.2014
+Kod : 
+'--------------------------------------------------------------------------------------------------------------------
+Sub PrintForm()
+	Call PrintLabel()
+End Sub
+
+'-------------------------------------------------------------------------------------------------------------------
+Sub PrintLabel()
+	ETKETSEC=""
+	KULLANICI=Trim(Doc.Getd7UserName)
+	'----------------------------------------------------------------------------------------------------------
+	ETIKETSEC = "3"
+	SATIRYAZ=3
+	'-----------------------------------------------------------------------------------------------------------------
+	ETIKET="ETK-HM"
+	'-----------------------------------------------------------------------------------------------------------------
+	Set Doc1 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+	Set D7LB = Doc1.GetTableObject("D7KIDSLB")
+	Set MTable = Doc.GetTableObject("MAKROTABLE_SF")
+	
+	If Doc.GetDocType = "STOK20" Then
+		Call STOK20_Print()
+	Elseif Doc.GetDocType = "STOK68" Then
+		Call STOK68_Print()
+	Elseif Doc.GetDocType = "STOK60" Then
+		Call STOK60_Print()
+		
+	Elseif Doc.GetDocType = "STOK25" Or Doc.GetDocType = "STOKFR2" Or Doc.GetDocType = "TRACK25" Then
+		Call STOK25_Print()
+		
+		
+	'BÖL VE TRANSFER ET
+	Elseif Doc.GetDocType = "TRACK251" Then
+		Call STOK251_Print()
+	Elseif Doc.GetDocType = "STOK29" or Doc.GetDocType = "STOK29I" Then
+		Call STOK29_Print()
+	Elseif Doc.GetDocType = "STOK36" Then
+		Call STOK36_Print()
+	Elseif Doc.GetDocType = "D7KIDSLB" Then
+		ETK_BIRLES_PALETLEME = InputBox ("ETÝKET BÝRLEÞTÝRME (B) / PALETLEME (P)", "ETÝKET BÝRLEÞTÝRME veya PALETLEME", "B/P")
+		If ETK_BIRLES_PALETLEME = "B" or ETK_BIRLES_PALETLEME = "b" Then
+			Call D7KIDSLB_Print1()
+		ElseIf ETK_BIRLES_PALETLEME = "P" or ETK_BIRLES_PALETLEME = "p" Then 
+			Call D7KIDSLB_Print()
+		End If
+	Elseif Doc.GetDocType = "STOK19" Then
+		Call STOK19_Print()
+	Elseif Doc.GetDocType = "SAYM11" Then
+		Call SAYM11_Print()
+	Elseif Doc.GetDocType = "STOK21" Then
+		Call STOK21_Print()
+	Elseif Doc.GetDocType = "STOK2A" Then
+		Call STOK2A_Print
+	Elseif Doc.GetDocType = "STOK26" Then 
+		Call Transfer_Print(STOK26T)
+	Elseif Doc.GetDocType = "TRACK26" Then 
+
+	Elseif Doc.GetDocType = "STOK63" Then
+		Call Transfer_Print(STOK63T)
+	Elseif Doc.GetDocType = "STOK61" Then
+		Call Transfer_Print(STOK61T)
+	Elseif Doc.GetDocType = "STOK24" Then
+		Call STOK24_Print()
+	Elseif Doc.GetDocType = "MMPS10" Then
+		Call MMPS10_Print()
+	Elseif Doc.GetDocType= "TRACK01" Then
+		Call TRACK01_Print()
+	Elseif Doc.GetDocType= "SFDC31" Then
+		Call SFDC31_Print()
+	End if
+
+	Doc.DeleteDocumentNoUI "D7KIDSLB", ""
+End Sub
+'--------------------------------------------------------------------------------
+Sub D7KIDSLB_Print()
+	dim i,D7SPL,pe1
+	sayfaBoyu = 75
+	sayfaEni = 260
+	satiryuksekligi = 3
+	sayac = 1
+
+	Call KTA_Yaz()
+	
+	Set pe1 = doc.CreatePrintEngineOutput()
+	res = pe1.Open(0, "Paletleme", SayfaBoyu, SayfaEni, "")
+
+	set D7SPL = Doc.GetTableObject("D7KIDSPL")
+	BARKODNO = trim(D7SPL.KOD(1))
+
+	D7KIDSPL.SafePack()
+	D7KIDSPL.Sort("SKOD")
+	PALET_KAYITSATIR_SAYISI=D7KIDSPL.GetRecCount()
+
+	Call ALANLAR(D7SPL)
+
+	If doc.ErrorNumber Then
+		MsgBox ("Hata main : " & doc.ErrorNumber)
+		Exit Sub
+	End If
+
+	Call Print_form_sayfabasi(pe1)
+
+	For i = 1 To PALET_KAYITSATIR_SAYISI
+		Call Print_form_satir(pe1, i, D7SPL)
+	Next
+
+	'res = pe1.Show()
+	res	=	pe1.PrintDoc(0)
+	res = Doc.ActivateAfterMacro(0)
+End Sub
+'---------------------------------------------------------------------------------------------------------
+Sub ALANLAR(D7SPL)
+
+	dim i
+	ReDim Grid(8,7)
+	Grid(1,0) = "_POS"
+	Grid(2,0) = "SKOD"
+	Grid(3,0) = "SKOD_STOK00_AD"
+	Grid(4,0) = "LOTNUMBER"
+	Grid(5,0) = "SERINO"
+	Grid(6,0) = "SF_MIKTAR"
+	Grid(7,0) = "SF_SF_UNIT"
+
+	Grid(1,1) = 3.5
+	Grid(2,1) = 20.5
+	Grid(3,1) = 30
+	Grid(4,1) = 12
+	Grid(5,1) = 14
+	Grid(6,1) = 10
+	Grid(7,1) = 7
+
+		'FIELD ADI - CUSTOM
+	Grid(1,2) = "SN"
+	Grid(2,2) = "PARÇA KODU"
+	Grid(3,2) = "MÜÞTERÝ PARÇA KODU"
+	Grid(4,2) = "PARTÝ NO"
+	Grid(5,2) = "BARKOD NO"
+	Grid(6,2) = "MÝKTAR"
+	Grid(7,2) = "BÝRÝM"
+
+	Grid(1,4) = "C"
+	Grid(2,4) = "C"
+	Grid(3,4) = "C"
+	Grid(4,4) = "C"
+	Grid(5,4) = "C"
+	Grid(6,4) = "N"
+	Grid(7,4) = "C"
+	
+	For i = 1 To 7
+		DEGISKEN = Grid(i,0)
+	Next	
+
+End Sub
+'------------------------------------------------------------------------------------------------------
+Sub Print_form_sayfabasi(pe1)
+	ustmargin = 1
+	solmargin = 2
+	sagmargin = 1
+	altmargin = 4
+
+	res = pe1.pensize(0.5)
+	res = pe1.box(UstMargin, SolMargin, sayfaboyu-(ustmargin+altmargin), sayfaeni-(solmargin+sagmargin))
+	CERCEVE_ALTI_KONUM = pe1.GetBottom	
+	CERCEVE_SOL_KONUM = pe1.GetLeft
+	CERCEVE_UST_KONUM = pe1.GetTop
+
+	'LOGO
+	res = pe1.NoPen()
+	logo = Doc.Getd7Directory_DataFirm() & trim(Doc.Customp_Gets("!LOGO"))
+	msgbox logo
+	If trim(logo) <> "" Then
+		res = pe1.Picture(CERCEVE_UST_KONUM+0.5, CERCEVE_SOL_KONUM+0.5, 6, 16, logo, 114)
+	End If
+
+	'LOGO SAÐI DÝKEY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(CERCEVE_UST_KONUM, pe1.GetRight, pe1.GetBottom, 0)
+	BASLIK_ALT_KONUM = pe1.GetBottom
+	LOGO_SAGI_DIK_CIZGI_KONUM = pe1.GetLeft
+	
+	res = pe1.nopen()
+	res = pe1.selectfont("Arial", 16)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+
+	'PALETLEME BARKODU BAÞLIK
+	res = pe1.Write(CERCEVE_UST_KONUM+0.5, pe1.GetRight+2, 7 , 71,"PALETLEME BARKODU")
+
+	'PALETLEME YAZISI SAÐI DÝKEY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(CERCEVE_UST_KONUM, pe1.GetRight, BASLIK_ALT_KONUM+6.5, 0)
+	PALETLEME_SAGI_DIK_CIZGI_KONUM = pe1.GetRight
+
+	res = pe1.selectfont("Arial", 7)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+
+	'PALET NO BAÞLIK
+	res = pe1.Write(CERCEVE_UST_KONUM+1, PALETLEME_SAGI_DIK_CIZGI_KONUM+0.5, 7, 9, "PALET NO")
+
+	'LOGO ALTI YATAY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(BASLIK_ALT_KONUM, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))		
+	LOGO_ALTI_YATAY_CIZGI_KONUM = pe1.GetBottom	
+
+	'BARKOD ÇÝZGÝLERÝ
+	res = pe1.NoPen()
+	res = pe1.SetAlign("Center")
+	BARKODGEN= 78
+	res = pe1.SetBarcodeAlignment(2)
+	res = pe1.SetBarcodeParms(2,2)
+	res = pe1.SetBarcodeAutoCheckSum(0)
+	res = pe1.Barcode(LOGO_ALTI_YATAY_CIZGI_KONUM+0.5, CERCEVE_SOL_KONUM+3, 6, BARKODGEN, "CODE39", BARKODNO, "")
+	
+	'BARKOD SERÝ NUMARASI
+	res = pe1.SelectFont("Arial", 6)
+	res = pe1.SetBold(1)
+	res = pe1.SetAlign("Center")
+	
+	'res = pe1.SetTransparentMode(0)
+	res = pe1.SetTextColor(RGB(0,0,0))
+
+	res = pe1.Write(PE1.GetBottom-2.5, CERCEVE_SOL_KONUM+30, 3, 30, "(B.KOD NO: " & trim(BARKODNO) & ")")
+	res = pe1.SetTransparentMode(1)
+
+	'PALET NO DEÐERÝNÝ AL
+	PALET_NO = Doc.GetUDFValue("D7KIDSLB", D7KIDSLB.KOD, "PALETNO",0)
+
+	res = pe1.selectfont("Arial", 16)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+	res = pe1.Write(LOGO_ALTI_YATAY_CIZGI_KONUM+0.5, PALETLEME_SAGI_DIK_CIZGI_KONUM+0.5, 6.5, 9, PALET_NO)
+	
+	'BAÞLIK ALT YATAY ÇÝZGÝ
+	res = pe1.pensize(0.5)
+	res = pe1.Line(pe1.GetBottom+0.5, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))		
+	BASLIK_ALT_YATAY_CIZGI_KONUM = pe1.GetBottom	
+
+	'Tarih = doc.StrtoNordate(STOK46E.TARIH(1))
+	'SATINALMA SÝPARÝÞ FORMU ÝLK KUTU BÖLÜMÜ ALTI
+	'konum = pe1.GetBottom+2
+	'y = 2
+
+	res = pe1.nopen()
+	res = pe1.selectfont("Arial", 6)
+	res = pe1.setalign("Left")
+
+	'KALEM BAÞLIKLARI
+	Sol = CERCEVE_SOL_KONUM
+	res = pe1.setalign("CENTER")
+	cizgi_satiryuksekligi = satiryuksekligi + 0.6
+
+	For i = 1 To 7
+		SutunGenisligi = Grid(i,1)
+		Baslik = Grid(i,2)
+		res = pe1.write(BASLIK_ALT_YATAY_CIZGI_KONUM+0.5, Sol, satiryuksekligi, SutunGenisligi , Baslik)
+		BASLIK_ALTI_KONUM = pe1.GetBottom
+		res = pe1.pensize(0.1)
+		If i=>2 Then
+			'kalem baþlýklarý ve kalem deðerleri arasý dik çizgiler 
+			res = pe1.Line(BASLIK_ALT_YATAY_CIZGI_KONUM, pe1.GetLeft, cizgi_satiryuksekligi, 0)
+			KALEMBASLIKLARI_ALT_YATAY_CIZGI_KONUM = pe1.GetBottom	
+			res = pe1.Line(KALEMBASLIKLARI_ALT_YATAY_CIZGI_KONUM, pe1.GetLeft, (satiryuksekligi+1)*PALET_KAYITSATIR_SAYISI, 0)
+		End if
+		Sol = Sol + SutunGenisligi
+	Next
+
+	'KALEM BAÞLIKLARI ALTI YATAY ÇÝZGÝ
+	res = pe1.Line(BASLIK_ALTI_KONUM , CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))	
+	satirBaslangic = pe1.GetBottom + 1
+
+End Sub
+'-----------------------------------------------------------------------------
+Sub Print_form_satir(pe1,satirNo, D7SPL)
+
+	Dim satirpozr
+
+	If trim(D7SPL.KOD(satirNo)) = "" Then Exit Sub
+	ReDim xCizgi(6)
+	Degisken = ""
+	sonSatir = pe1.GetBottom()
+
+	If satirNo = 1 Then
+		satirpozr = satirBaslangic
+	Else
+		satirpozr = pe1.GetTop() + 1
+	End If
+	siraNo = siraNo + 1
+	'**********************************************************************************
+	res = pe1.selectfont("Times New Roman", 6)
+	res = pe1.setbold(0)
+
+	Sol = CERCEVE_SOL_KONUM + 1
+	res = pe1.setalign("LEFT")
+
+	'DEÐERLER
+	For j=1 To 7
+		SutunGenisligi = Grid(j,1) 
+		DegiskenAdi = Grid(j,0)
+
+		res = pe1.selectfont("Times New Roman", 6)
+
+		If left(DegiskenAdi,1) <> "_" Then
+			Degisken = D7SPL.GetFieldValue(DegiskenAdi,SatirNo)
+		Else
+			If DegiskenAdi = "_POS" Then
+				Degisken = SatirNo
+			Else
+				Degisken = ""
+			End If
+		End If	
+
+		res = pe1.SetAlign("LEFT")
+		
+		If Grid(j,2) = "MÝKTAR" Then
+			res = pe1.SetAlign("RIGHT")
+			'Ondalik = Grid(j,2)
+			Degisken = Doc.NumFormat(Degisken, 18, Ondalik)
+			Sol = Sol - 2
+
+		ElseIf Grid(j,2)= "BÝRÝM" Then
+			res = pe1.SetAlign("RIGHT")
+
+		ElseIf Grid(j,2)= "PARTÝ NO" Then
+			res = pe1.SetAlign("CENTER")
+
+		ElseIf Grid(j,2)= "BARKOD NO" Then
+			res = pe1.SetAlign("CENTER")
+		
+		ElseIf Grid(j,2)= "PARÇA KODU" Then
+			res = pe1.SetAlign("LEFT")
+			Degisken = Trim(Degisken)
+		End If
+		
+		res = pe1.write(satirpozr, sol, satiryuksekligi, SutunGenisligi, Degisken)
+		res = pe1.SetItalic(0)
+		Sol = Sol + SutunGenisligi 
+		res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+	Next	
+
+	If	sayac = PALET_KAYITSATIR_SAYISI Then
+
+		DETAY_ALT_KONUM = pe1.GetBottom
+
+		'ÖZET BAÞLIK
+		res = pe1.SelectFont("Arial", 10)
+		res = pe1.SetBold(1)
+		res = pe1.SetAlign("Center")
+		res = pe1.pensize(0.5)
+		res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		res = pe1.write(DETAY_ALT_KONUM+0.5, CERCEVE_SOL_KONUM+1, 4, 96, "PARÇA BAZINDA TOPLAM ÖZETÝ")
+		res = pe1.Line(pe1.GetBottom+0.5, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		TOPLAMOZETLERI_ALT_KONUM = pe1.GetBottom
+		res = pe1.pensize(0.2)
+		res = pe1.SelectFont("Arial", 9)
+		res = pe1.SetBold(0)
+		res = pe1.SetAlign("Left")
+
+		'TOPLAMLARI ICIN
+		Set D7KPALET= Doc.Select2("XXXSTOK63T", "D7KIDSPL", "", "", -1)
+		D7KPALET.Sort("SKOD")
+		D7KPALET.GroupBy2("SKOD")
+
+		satirBaslangic = TOPLAMOZETLERI_ALT_KONUM
+		For u = 1 To D7KPALET.GetRowCount()
+			if u=1 then 
+				satirpozr_OZET = satirBaslangic
+			else
+				satirpozr_OZET = pe1.GetTop() + 0.5
+			end if
+			siraNo = siraNo + 1
+
+			OPSKODLARI(u) = D7KPALET.SKOD(u)
+			MUSTERI_PARCA_KODLARI(u) = D7KPALET.SKOD_STOK00_AD(u)
+			KODAGORE_MIKTAR(u) = D7KPALET.SF_MIKTAR(u)
+			KODAGOREBIRIM(u) = D7KPALET.SF_SF_UNIT(u)
+
+			res = pe1.write(satirpozr_OZET, CERCEVE_SOL_KONUM+1, 4, 24, OPSKODLARI(u))
+			OPSKODLARI_SAG_KONUM = pe1.GetRight
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 53, MUSTERI_PARCA_KODLARI(u))
+			MUSTERI_PARCA_KODLARI_SAG_KONUM = pe1.GetRight
+			res = pe1.SetAlign("Right")
+			KODAGORE_MIKTAR(u) = Doc.NumFormat(KODAGORE_MIKTAR(u), 16, Ondalik)
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 10, KODAGORE_MIKTAR(u))
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 5, KODAGOREBIRIM(u))
+			res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		Next
+		TOPLAM_KALEM_ALTI_KONUM = pe1.GetBottom
+		res = pe1.Line(TOPLAMOZETLERI_ALT_KONUM, OPSKODLARI_SAG_KONUM, 4.4*D7KPALET.GetRowCount ,0)
+		res = pe1.Line(TOPLAMOZETLERI_ALT_KONUM, MUSTERI_PARCA_KODLARI_SAG_KONUM, 4.4*D7KPALET.GetRowCount ,0)
+	End if
+	sayac = sayac+1
+End Sub
+'----------------------------------------------------------------------------------------------
+Sub KTA_Yaz()
+ Dim D7KLB   
+ Set D7KLB = Doc.GetTableObject("D7KIDSLB")   
+ Dim nret    
+ nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","D7KIDSLB",D7KLB.KOD)   
+ Dim T_U1    
+ Set T_U1 = Doc.GetTableObject("T_U0001")   
+ PALET_NO_GIR = InputBox ("PALET NO: ", "PALET NUMARASI GÝR?", "")
+ K = T_U1.SetFieldValue("PALETNO", -1, PALET_NO_GIR)   
+ T_U1.Exec "SAVE"   
+End Sub
+'----------------------------------------------------------------------------------------------
+Sub D7KIDSLB_Print1()
+	dim i
+	PALET_KAYITSATIR_SAYISI=D7KIDSPL.GetRecCount()
+	
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK25", "")
+
+	NRET = Doc1.New_Voucher()
+	Set S25E = Doc1.GetTableObject("STOK25E")
+	Set S25T = Doc1.GetTableObject("STOK25T")
+	ETIKETTEKI_DEPO = GetS01Value(D7KIDSLB.SERINO(1), "AMBCODE")
+
+	S25E.AMBCODE = ETIKETTEKI_DEPO
+	S25E.TARGETAMBCODE = ETIKETTEKI_DEPO
+
+	S25T.KOD(1) = D7KIDSPL.SKOD(1)
+	S25T.LOTNUMBER(1) = D7KIDSPL.LOTNUMBER(1)
+	S25T.SERINO(1) = D7KIDSPL.SERINO(1)
+	S25T.SF_MIKTAR(1) = D7KIDSPL.SF_MIKTAR(1)
+	BIRIM = Doc.GetKartValue("STOK00","IUNIT",S25T.KOD(1),-1)
+	S25T.OSF_SF_UNIT(1) = BIRIM
+
+	S25T.NEWCODE(1) = D7KIDSPL.SKOD(1)
+	S25T.NEWLOTNUMBER(1) = S25T.LOTNUMBER(1) 
+
+	'yeni barkod no alma
+	Set Doc2 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+	Set D7LB = Doc2.GetTableObject("D7KIDSLB")
+	YeniSeriNo = Doc.Sayac0danAl("SERINO")
+
+	NRET = Doc2.Load_Voucher(YeniSeriNo)
+
+	'yeni barkod no yu kot lot seri no transferdeki yeniserino bölümüne atama
+	S25T.NEWSERINO(1) = YENISERINO
+	'yeni barkod etiketi sayfasýný kaydedip kapatma
+	Doc2.Save_Voucher
+	Doc2.LoadEmpty_Voucher()
+
+	For i = 2 To PALET_KAYITSATIR_SAYISI
+		'SATIR EKLEME
+		recno=S25T.addrow
+		'HÜCREYE TIKLAMA (setcurrentrow ile oluyor)
+		S25T.setCURRENTROW(recno)
+		S25T.KOD(recno) 				= D7KIDSPL.SKOD(i)
+		S25T.LOTNUMBER(recno) 	= D7KIDSPL.LOTNUMBER(i)
+		S25T.SERINO(recno) 			= D7KIDSPL.SERINO(i)
+
+		S25T.NEWCODE(recno)			= D7KIDSPL.SKOD(i)
+		S25T.NEWLOTNUMBER(recno)= S25T.LOTNUMBER(1) 
+		S25T.NEWSERINO(recno) 	= YENISERINO
+
+		S25T.SF_MIKTAR(recno) 	= D7KIDSPL.SF_MIKTAR(i)
+		BIRIM = Doc.GetKartValue("STOK00","IUNIT",S25T.KOD(recno),-1)
+		S25T.OSF_SF_UNIT(recno) = BIRIM
+	Next
+
+	Doc1.Save_Voucher
+	Doc1.RunMacro0 "PFRM7S.ETIKET2", "PrintLabel"
+
+	Doc1.LoadEmpty_Voucher
+	Doc1.DeleteDocumentNoUI "D7KIDSLB", ""
+End Sub
+'---------------------------------------------------------------------------------------------------------
+	'IS EMRI
+'---------------------------------------------------------------------------------------------------------
+Sub MMPS10_Print()
+
+	If MMPS10E.STATUS <> "R" Then
+		k = Doc.d7MsgBox("R Statüsünde olmayan MPS 'lerden etiket alamazsýnýz", "Hata", MB_OK+MB_ICONWARNING)
+		Exit Sub
+	End if
+	Doc.CreateTableObject "XXXSTOK20MPS=STOK20T", "TMPCOPY"
+	'-----------------------------------------------------------------------------------------
+	Set S20T = Doc.GetTableObject("XXXSTOK20MPS")
+		'OPERASYONA BARKOD ETÝKET TÜM SATIRLAR ÝÇÝN MÝ, TEK SATIR ÝÇÝN MÝ BASILSIN?
+	QSTR = "R_KAYNAKTYPE='I'"
+	
+	'SATIR_BARKOD=InputBox ("SATIR ÝÇÝN MÝ BARKOD?","E/e","H")		
+	
+	SATIR_BARKOD = "H"	
+				
+	If Trim(SATIR_BARKOD)="E" OR Trim(SATIR_BARKOD)="e" Then
+		if MMPS10TM.GetRecCount()>1 Then
+			msgbox "Çoklu ürünlerde satýr için barkod alýna
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : ETIKET2
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : STOK20
+Açýklama : SATIR ÝÇÝN BARKOD ETÝKETÝ - ÖNAYSAN - 13.05.2014
+Kod : 
+Public 	PaketBilgisi,yaz,StokKodu,YeniCHKodu,satiryaz,TOPLAMMIKTAR,EVRAK_NUMARASI,DEPOKODU,SAYIM_MIKTARI,sayfaboyu, sayfaeni
+Public ESKIEVRAKTYPE,ESKIEVRAKNO, BEKLEYENOPESKI, BEKLEYENOPKODUESKI,ETIKETTARIHI,ESKIBELGETARIHI,kx,DEPO,satirBaslangic
+Public GerceklesmeTarihi,Not1,ORJMIKTAR,ETIKET,etiketsec,IsNo,ISEMRI_STOKKODU,MUSTERIADI,MUSTERIKODU,S25TT,satiryuksekligi
+Public Sayac, EtiketBoyu_ozen2, EtiketEni_ozen2, M10T,j,Ayni,M10TX,KULLANICI,CHKODU,Miktar,FIS_TARIHI,KALANMIKTARX
+Public Doc1,d7LB,mm,FISNO,Kalan,KutuIciMiktar,SonOpMux,BITENOPESKI,pe1,ETIKET_BOLME_BIRLESTIRME_YENILEME,k,kkk
+Public BEKLEYENOP_STOKKODU, BEKLEYENOP_KODU,BEKLEYENOP_ISEMRINO,BEKLEYENOP_NO,S25T,PSTOK21T,BRUTMIKTAR,CIKAN,PALET_KAYITSATIR_SAYISI
+Public Grid(),CERCEVE_SOL_KONUM,solmargin, sagmargin, ustmargin, altmargin,BARKODNO,DETAY_ALT_KONUM
+Public 	OPSKODLARI(30),MUSTERI_PARCA_KODLARI(30),KODAGORE_MIKTAR(30),KODAGOREBIRIM(30), MTable
+'--------------------------------------------------------------------------------------------------------------------
+Sub PrintForm()
+	CALL PrintLabel()
+End Sub
+'-------------------------------------------------------------------------------------------------------------------
+Sub PrintLabel()
+	ETKETSEC=""
+	KULLANICI=Trim(Doc.Getd7UserName)
+	'----------------------------------------------------------------------------------------------------------
+	ETIKETSEC = "3"
+	SATIRYAZ=3
+	'-----------------------------------------------------------------------------------------------------------------
+	ETIKET="ETK-HM"
+	'-----------------------------------------------------------------------------------------------------------------
+	Set Doc1 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+	Set D7LB = Doc1.GetTableObject("D7KIDSLB")
+	Set MTable = Doc.GetTableObject("MAKROTABLE_SF")
+	
+	If Doc.GetDocType = "STOK20" Then
+		Call STOK20_Print()
+	Elseif Doc.GetDocType = "STOK68" Then
+		Call STOK68_Print()
+	Elseif Doc.GetDocType = "STOK60" Then
+		Call STOK60_Print()
+	Elseif Doc.GetDocType = "STOK25" Or Doc.GetDocType = "STOKFR2" Or Doc.GetDocType = "TRACK25" Then
+		Call STOK25_Print()
+	'BÖL VE TRANSFER ET
+	Elseif Doc.GetDocType = "TRACK251" Then
+		Call STOK251_Print()
+	Elseif Doc.GetDocType = "STOK29" or Doc.GetDocType = "STOK29I" Then
+		Call STOK29_Print()
+	Elseif Doc.GetDocType = "STOK36" Then
+		Call STOK36_Print()
+	Elseif Doc.GetDocType = "D7KIDSLB" Then
+		ETK_BIRLES_PALETLEME = InputBox ("ETÝKET BÝRLEÞTÝRME (B) / PALETLEME (P)", "ETÝKET BÝRLEÞTÝRME veya PALETLEME", "B/P")
+		If ETK_BIRLES_PALETLEME = "B" or ETK_BIRLES_PALETLEME = "b" Then
+			Call D7KIDSLB_Print1()
+		ElseIf ETK_BIRLES_PALETLEME = "P" or ETK_BIRLES_PALETLEME = "p" Then 
+			Call D7KIDSLB_Print()
+		End If
+	Elseif Doc.GetDocType = "STOK19" Then
+		Call STOK19_Print()
+	Elseif Doc.GetDocType = "SAYM11" Then
+		Call SAYM11_Print()
+	Elseif Doc.GetDocType = "STOK21" Then
+		Call STOK21_Print()
+	Elseif Doc.GetDocType = "STOK2A" Then
+		Call STOK2A_Print
+	Elseif Doc.GetDocType = "STOK26" Then 
+		Call Transfer_Print(STOK26T)
+	Elseif Doc.GetDocType = "TRACK26" Then 
+		'Call STOK25_Print()
+	Elseif Doc.GetDocType = "STOK63" Then
+		Call Transfer_Print(STOK63T)
+	Elseif Doc.GetDocType = "STOK61" Then
+		Call Transfer_Print(STOK61T)
+	Elseif Doc.GetDocType = "STOK24" Then
+		Call STOK24_Print()
+	Elseif Doc.GetDocType = "MMPS10" Then
+		Call MMPS10_Print()
+	Elseif Doc.GetDocType= "TRACK01" Then
+		Call TRACK01_Print()
+	Elseif Doc.GetDocType= "SFDC31" Then
+		Call SFDC31_Print()
+	End if
+
+	Doc.DeleteDocumentNoUI "D7KIDSLB", ""
+End Sub
+'--------------------------------------------------------------------------------
+Sub D7KIDSLB_Print()
+	dim i,D7SPL,pe1
+	sayfaBoyu = 75
+	sayfaEni = 260
+	satiryuksekligi = 3
+	sayac = 1
+
+	Call KTA_Yaz()
+	
+	Set pe1 = doc.CreatePrintEngineOutput()
+	res = pe1.Open(0, "Paletleme", SayfaBoyu, SayfaEni, "")
+
+	set D7SPL = Doc.GetTableObject("D7KIDSPL")
+	BARKODNO = trim(D7SPL.KOD(1))
+
+	D7KIDSPL.SafePack()
+	D7KIDSPL.Sort("SKOD")
+	PALET_KAYITSATIR_SAYISI=D7KIDSPL.GetRecCount()
+
+	Call ALANLAR(D7SPL)
+
+	If doc.ErrorNumber Then
+		MsgBox ("Hata main : " & doc.ErrorNumber)
+		Exit Sub
+	End If
+
+	Call Print_form_sayfabasi(pe1)
+
+	For i = 1 To PALET_KAYITSATIR_SAYISI
+		Call Print_form_satir(pe1, i, D7SPL)
+	Next
+
+	'res = pe1.Show()
+	res	=	pe1.PrintDoc(0)
+	res = Doc.ActivateAfterMacro(0)
+End Sub
+'---------------------------------------------------------------------------------------------------------
+Sub ALANLAR(D7SPL)
+
+	dim i
+	ReDim Grid(8,7)
+	Grid(1,0) = "_POS"
+	Grid(2,0) = "SKOD"
+	Grid(3,0) = "SKOD_STOK00_AD"
+	Grid(4,0) = "LOTNUMBER"
+	Grid(5,0) = "SERINO"
+	Grid(6,0) = "SF_MIKTAR"
+	Grid(7,0) = "SF_SF_UNIT"
+
+	Grid(1,1) = 3.5
+	Grid(2,1) = 20.5
+	Grid(3,1) = 30
+	Grid(4,1) = 12
+	Grid(5,1) = 14
+	Grid(6,1) = 10
+	Grid(7,1) = 7
+
+		'FIELD ADI - CUSTOM
+	Grid(1,2) = "SN"
+	Grid(2,2) = "PARÇA KODU"
+	Grid(3,2) = "MÜÞTERÝ PARÇA KODU"
+	Grid(4,2) = "PARTÝ NO"
+	Grid(5,2) = "BARKOD NO"
+	Grid(6,2) = "MÝKTAR"
+	Grid(7,2) = "BÝRÝM"
+
+	Grid(1,4) = "C"
+	Grid(2,4) = "C"
+	Grid(3,4) = "C"
+	Grid(4,4) = "C"
+	Grid(5,4) = "C"
+	Grid(6,4) = "N"
+	Grid(7,4) = "C"
+	
+	For i = 1 To 7
+		DEGISKEN = Grid(i,0)
+	Next	
+
+End Sub
+'------------------------------------------------------------------------------------------------------
+Sub Print_form_sayfabasi(pe1)
+	ustmargin = 1
+	solmargin = 2
+	sagmargin = 1
+	altmargin = 4
+
+	res = pe1.pensize(0.5)
+	res = pe1.box(UstMargin, SolMargin, sayfaboyu-(ustmargin+altmargin), sayfaeni-(solmargin+sagmargin))
+	CERCEVE_ALTI_KONUM = pe1.GetBottom	
+	CERCEVE_SOL_KONUM = pe1.GetLeft
+	CERCEVE_UST_KONUM = pe1.GetTop
+
+	'LOGO
+	res = pe1.NoPen()
+	logo = Doc.Getd7Directory_DataFirm() & trim(Doc.Customp_Gets("!LOGO"))
+	msgbox logo
+	If trim(logo) <> "" Then
+		res = pe1.Picture(CERCEVE_UST_KONUM+0.5, CERCEVE_SOL_KONUM+0.5, 6, 16, logo, 114)
+	End If
+
+	'LOGO SAÐI DÝKEY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(CERCEVE_UST_KONUM, pe1.GetRight, pe1.GetBottom, 0)
+	BASLIK_ALT_KONUM = pe1.GetBottom
+	LOGO_SAGI_DIK_CIZGI_KONUM = pe1.GetLeft
+	
+	res = pe1.nopen()
+	res = pe1.selectfont("Arial", 16)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+
+	'PALETLEME BARKODU BAÞLIK
+	res = pe1.Write(CERCEVE_UST_KONUM+0.5, pe1.GetRight+2, 7 , 71,"PALETLEME BARKODU")
+
+	'PALETLEME YAZISI SAÐI DÝKEY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(CERCEVE_UST_KONUM, pe1.GetRight, BASLIK_ALT_KONUM+6.5, 0)
+	PALETLEME_SAGI_DIK_CIZGI_KONUM = pe1.GetRight
+
+	res = pe1.selectfont("Arial", 7)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+
+	'PALET NO BAÞLIK
+	res = pe1.Write(CERCEVE_UST_KONUM+1, PALETLEME_SAGI_DIK_CIZGI_KONUM+0.5, 7, 9, "PALET NO")
+
+	'LOGO ALTI YATAY ÇÝZGÝ
+	res = pe1.pensize(0.2)
+	res = pe1.Line(BASLIK_ALT_KONUM, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))		
+	LOGO_ALTI_YATAY_CIZGI_KONUM = pe1.GetBottom	
+
+	'BARKOD ÇÝZGÝLERÝ
+	res = pe1.NoPen()
+	res = pe1.SetAlign("Center")
+	BARKODGEN= 78
+	res = pe1.SetBarcodeAlignment(2)
+	res = pe1.SetBarcodeParms(2,2)
+	res = pe1.SetBarcodeAutoCheckSum(0)
+	res = pe1.Barcode(LOGO_ALTI_YATAY_CIZGI_KONUM+0.5, CERCEVE_SOL_KONUM+3, 6, BARKODGEN, "CODE39", BARKODNO, "")
+	
+	'BARKOD SERÝ NUMARASI
+	res = pe1.SelectFont("Arial", 6)
+	res = pe1.SetBold(1)
+	res = pe1.SetAlign("Center")
+	
+	'res = pe1.SetTransparentMode(0)
+	res = pe1.SetTextColor(RGB(0,0,0))
+
+	res = pe1.Write(PE1.GetBottom-2.5, CERCEVE_SOL_KONUM+30, 3, 30, "(B.KOD NO: " & trim(BARKODNO) & ")")
+	res = pe1.SetTransparentMode(1)
+
+	'PALET NO DEÐERÝNÝ AL
+	PALET_NO = Doc.GetUDFValue("D7KIDSLB", D7KIDSLB.KOD, "PALETNO",0)
+
+	res = pe1.selectfont("Arial", 16)
+	res = pe1.setalign("CENTER")
+	res = pe1.SetBold(1)
+	res = pe1.Write(LOGO_ALTI_YATAY_CIZGI_KONUM+0.5, PALETLEME_SAGI_DIK_CIZGI_KONUM+0.5, 6.5, 9, PALET_NO)
+	
+	'BAÞLIK ALT YATAY ÇÝZGÝ
+	res = pe1.pensize(0.5)
+	res = pe1.Line(pe1.GetBottom+0.5, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))		
+	BASLIK_ALT_YATAY_CIZGI_KONUM = pe1.GetBottom	
+
+	'Tarih = doc.StrtoNordate(STOK46E.TARIH(1))
+	'SATINALMA SÝPARÝÞ FORMU ÝLK KUTU BÖLÜMÜ ALTI
+	'konum = pe1.GetBottom+2
+	'y = 2
+
+	res = pe1.nopen()
+	res = pe1.selectfont("Arial", 6)
+	res = pe1.setalign("Left")
+
+	'KALEM BAÞLIKLARI
+	Sol = CERCEVE_SOL_KONUM
+	res = pe1.setalign("CENTER")
+	cizgi_satiryuksekligi = satiryuksekligi + 0.6
+
+	For i = 1 To 7
+		SutunGenisligi = Grid(i,1)
+		Baslik = Grid(i,2)
+		res = pe1.write(BASLIK_ALT_YATAY_CIZGI_KONUM+0.5, Sol, satiryuksekligi, SutunGenisligi , Baslik)
+		BASLIK_ALTI_KONUM = pe1.GetBottom
+		res = pe1.pensize(0.1)
+		If i=>2 Then
+			'kalem baþlýklarý ve kalem deðerleri arasý dik çizgiler 
+			res = pe1.Line(BASLIK_ALT_YATAY_CIZGI_KONUM, pe1.GetLeft, cizgi_satiryuksekligi, 0)
+			KALEMBASLIKLARI_ALT_YATAY_CIZGI_KONUM = pe1.GetBottom	
+			res = pe1.Line(KALEMBASLIKLARI_ALT_YATAY_CIZGI_KONUM, pe1.GetLeft, (satiryuksekligi+1)*PALET_KAYITSATIR_SAYISI, 0)
+		End if
+		Sol = Sol + SutunGenisligi
+	Next
+
+	'KALEM BAÞLIKLARI ALTI YATAY ÇÝZGÝ
+	res = pe1.Line(BASLIK_ALTI_KONUM , CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))	
+	satirBaslangic = pe1.GetBottom + 1
+
+End Sub
+'-----------------------------------------------------------------------------
+Sub Print_form_satir(pe1,satirNo, D7SPL)
+
+	Dim satirpozr
+
+	If trim(D7SPL.KOD(satirNo)) = "" Then Exit Sub
+	ReDim xCizgi(6)
+	Degisken = ""
+	sonSatir = pe1.GetBottom()
+
+	If satirNo = 1 Then
+		satirpozr = satirBaslangic
+	Else
+		satirpozr = pe1.GetTop() + 1
+	End If
+	siraNo = siraNo + 1
+	'**********************************************************************************
+	res = pe1.selectfont("Times New Roman", 6)
+	res = pe1.setbold(0)
+
+	Sol = CERCEVE_SOL_KONUM + 1
+	res = pe1.setalign("LEFT")
+
+	'DEÐERLER
+	For j=1 To 7
+		SutunGenisligi = Grid(j,1) 
+		DegiskenAdi = Grid(j,0)
+
+		res = pe1.selectfont("Times New Roman", 6)
+
+		If left(DegiskenAdi,1) <> "_" Then
+			Degisken = D7SPL.GetFieldValue(DegiskenAdi,SatirNo)
+		Else
+			If DegiskenAdi = "_POS" Then
+				Degisken = SatirNo
+			Else
+				Degisken = ""
+			End If
+		End If	
+
+		res = pe1.SetAlign("LEFT")
+		
+		If Grid(j,2) = "MÝKTAR" Then
+			res = pe1.SetAlign("RIGHT")
+			'Ondalik = Grid(j,2)
+			Degisken = Doc.NumFormat(Degisken, 18, Ondalik)
+			Sol = Sol - 2
+
+		ElseIf Grid(j,2)= "BÝRÝM" Then
+			res = pe1.SetAlign("RIGHT")
+
+		ElseIf Grid(j,2)= "PARTÝ NO" Then
+			res = pe1.SetAlign("CENTER")
+
+		ElseIf Grid(j,2)= "BARKOD NO" Then
+			res = pe1.SetAlign("CENTER")
+		
+		ElseIf Grid(j,2)= "PARÇA KODU" Then
+			res = pe1.SetAlign("LEFT")
+			Degisken = Trim(Degisken)
+		End If
+		
+		res = pe1.write(satirpozr, sol, satiryuksekligi, SutunGenisligi, Degisken)
+		res = pe1.SetItalic(0)
+		Sol = Sol + SutunGenisligi 
+		res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+	Next	
+
+	If	sayac = PALET_KAYITSATIR_SAYISI Then
+
+		DETAY_ALT_KONUM = pe1.GetBottom
+
+		'ÖZET BAÞLIK
+		res = pe1.SelectFont("Arial", 10)
+		res = pe1.SetBold(1)
+		res = pe1.SetAlign("Center")
+		res = pe1.pensize(0.5)
+		res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		res = pe1.write(DETAY_ALT_KONUM+0.5, CERCEVE_SOL_KONUM+1, 4, 96, "PARÇA BAZINDA TOPLAM ÖZETÝ")
+		res = pe1.Line(pe1.GetBottom+0.5, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		TOPLAMOZETLERI_ALT_KONUM = pe1.GetBottom
+		res = pe1.pensize(0.2)
+		res = pe1.SelectFont("Arial", 9)
+		res = pe1.SetBold(0)
+		res = pe1.SetAlign("Left")
+
+		'TOPLAMLARI ICIN
+		Set D7KPALET= Doc.Select2("XXXSTOK63T", "D7KIDSPL", "", "", -1)
+		D7KPALET.Sort("SKOD")
+		D7KPALET.GroupBy2("SKOD")
+
+		satirBaslangic = TOPLAMOZETLERI_ALT_KONUM
+		For u = 1 To D7KPALET.GetRowCount()
+			if u=1 then 
+				satirpozr_OZET = satirBaslangic
+			else
+				satirpozr_OZET = pe1.GetTop() + 0.5
+			end if
+			siraNo = siraNo + 1
+
+			OPSKODLARI(u) = D7KPALET.SKOD(u)
+			MUSTERI_PARCA_KODLARI(u) = D7KPALET.SKOD_STOK00_AD(u)
+			KODAGORE_MIKTAR(u) = D7KPALET.SF_MIKTAR(u)
+			KODAGOREBIRIM(u) = D7KPALET.SF_SF_UNIT(u)
+
+			res = pe1.write(satirpozr_OZET, CERCEVE_SOL_KONUM+1, 4, 24, OPSKODLARI(u))
+			OPSKODLARI_SAG_KONUM = pe1.GetRight
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 53, MUSTERI_PARCA_KODLARI(u))
+			MUSTERI_PARCA_KODLARI_SAG_KONUM = pe1.GetRight
+			res = pe1.SetAlign("Right")
+			KODAGORE_MIKTAR(u) = Doc.NumFormat(KODAGORE_MIKTAR(u), 16, Ondalik)
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 10, KODAGORE_MIKTAR(u))
+			res = pe1.write(satirpozr_OZET, pe1.GetRight+1, 4, 5, KODAGOREBIRIM(u))
+			res = pe1.Line(pe1.GetBottom, CERCEVE_SOL_KONUM, 0, sayfaeni-(solmargin+sagmargin))
+		Next
+		TOPLAM_KALEM_ALTI_KONUM = pe1.GetBottom
+		res = pe1.Line(TOPLAMOZETLERI_ALT_KONUM, OPSKODLARI_SAG_KONUM, 4.4*D7KPALET.GetRowCount ,0)
+		res = pe1.Line(TOPLAMOZETLERI_ALT_KONUM, MUSTERI_PARCA_KODLARI_SAG_KONUM, 4.4*D7KPALET.GetRowCount ,0)
+	End if
+	sayac = sayac+1
+End Sub
+'----------------------------------------------------------------------------------------------
+Sub KTA_Yaz()
+ Dim D7KLB   
+ Set D7KLB = Doc.GetTableObject("D7KIDSLB")   
+ Dim nret    
+ nret = Doc.UFLD00_CREATEEDITTABLE("T_U0001","D7KIDSLB",D7KLB.KOD)   
+ Dim T_U1    
+ Set T_U1 = Doc.GetTableObject("T_U0001")   
+ PALET_NO_GIR = InputBox ("PALET NO: ", "PALET NUMARASI GÝR?", "")
+ K = T_U1.SetFieldValue("PALETNO", -1, PALET_NO_GIR)   
+ T_U1.Exec "SAVE"   
+End Sub
+'----------------------------------------------------------------------------------------------
+Sub D7KIDSLB_Print1()
+	dim i
+	PALET_KAYITSATIR_SAYISI=D7KIDSPL.GetRecCount()
+	
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK25", "")
+
+	NRET = Doc1.New_Voucher()
+	Set S25E = Doc1.GetTableObject("STOK25E")
+	Set S25T = Doc1.GetTableObject("STOK25T")
+	ETIKETTEKI_DEPO = GetS01Value(D7KIDSLB.SERINO(1), "AMBCODE")
+
+	S25E.AMBCODE = ETIKETTEKI_DEPO
+	S25E.TARGETAMBCODE = ETIKETTEKI_DEPO
+
+	S25T.KOD(1) = D7KIDSPL.SKOD(1)
+	S25T.LOTNUMBER(1) = D7KIDSPL.LOTNUMBER(1)
+	S25T.SERINO(1) = D7KIDSPL.SERINO(1)
+	S25T.SF_MIKTAR(1) = D7KIDSPL.SF_MIKTAR(1)
+	BIRIM = Doc.GetKartValue("STOK00","IUNIT",S25T.KOD(1),-1)
+	S25T.OSF_SF_UNIT(1) = BIRIM
+
+	S25T.NEWCODE(1) = D7KIDSPL.SKOD(1)
+	S25T.NEWLOTNUMBER(1) = S25T.LOTNUMBER(1) 
+
+	'yeni barkod no alma
+	Set Doc2 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+	Set D7LB = Doc2.GetTableObject("D7KIDSLB")
+	YeniSeriNo = Doc.Sayac0danAl("SERINO")
+
+	NRET = Doc2.Load_Voucher(YeniSeriNo)
+
+	'yeni barkod no yu kot lot seri no transferdeki yeniserino bölümüne atama
+	S25T.NEWSERINO(1) = YENISERINO
+	'yeni barkod etiketi sayfasýný kaydedip kapatma
+	Doc2.Save_Voucher
+	Doc2.LoadEmpty_Voucher()
+
+	For i = 2 To PALET_KAYITSATIR_SAYISI
+		'SATIR EKLEME
+		recno=S25T.addrow
+		'HÜCREYE TIKLAMA (setcurrentrow ile oluyor)
+		S25T.setCURRENTROW(recno)
+		S25T.KOD(recno) 				= D7KIDSPL.SKOD(i)
+		S25T.LOTNUMBER(recno) 	= D7KIDSPL.LOTNUMBER(i)
+		S25T.SERINO(recno) 			= D7KIDSPL.SERINO(i)
+
+		S25T.NEWCODE(recno)			= D7KIDSPL.SKOD(i)
+		S25T.NEWLOTNUMBER(recno)= S25T.LOTNUMBER(1) 
+		S25T.NEWSERINO(recno) 	= YENISERINO
+
+		S25T.SF_MIKTAR(recno) 	= D7KIDSPL.SF_MIKTAR(i)
+		BIRIM = Doc.GetKartValue("STOK00","IUNIT",S25T.KOD(recno),-1)
+		S25T.OSF_SF_UNIT(recno) = BIRIM
+	Next
+
+	Doc1.Save_Voucher
+	Doc1.RunMacro0 "PFRM7S.ETIKET2", "PrintLabel"
+
+	Doc1.LoadEmpty_Voucher
+	Doc1.DeleteDocumentNoUI "D7KIDSLB", ""
+End Sub
+'---------------------------------------------------------------------------------------------------------
+	'IS EMRI
+'---------------------------------------------------------------------------------------------------------
+Sub MMPS10_Print()
+
+	If MMPS10E.STATUS <> "R" Then
+		k = Doc.d7MsgBox("R Statüsünde olmayan MPS 'lerden etiket alamazsýnýz", "Hata", MB_OK+MB_ICONWARNING)
+		Exit Sub
+	End if
+	Doc.CreateTableObject "XXXSTOK20MPS=STOK20T", "TMPCOPY"
+	'-----------------------------------------------------------------------------------------
+	Set S20T = Doc.GetTableObject("XXXSTOK20MPS")
+		'OPERASYONA BARKOD ETÝKET TÜM SATIRLAR ÝÇÝN MÝ, TEK SATIR ÝÇÝN MÝ BASILSIN?
+	QSTR = "R_KAYNAKTYPE='I'"
+	
+	'SATIR_BARKOD=InputBox ("SATIR ÝÇÝN MÝ BARKOD?","E/e","H")		
+	
+	SATIR_BARKOD = "H"	
+				
+	If Trim(SATIR_BARKOD)="E" OR Trim(SATIR_BARKOD)="e" Then
+		if MMPS10TM.GetRecCount()>1 Then
+			msgbox "Çoklu ürünlerde satýr için barkod alýnamaz"
+			exit sub
+		End if
+			'TEK SATIR
+		QSTR = QSTR & "&SRNUM='" & MMPS10T.SRNUM & "'"
+	End If
+	'-----------------------------------------------------------------------------------------
+	Set M10TM = Doc.GetTableObject("MMPS10TM")
+	'MMPS10T TABLOSUNDAKÝ SATIRLARDA R_KAYNAKTYPE'I SADECE "I" YANÝ OPERASYON OLACAK ÞEKÝLDE YENÝ TABLO OLUÞTURDU 
+	Set M10T = Doc.Select2("ddrrg5","MMPS10T", QSTR, "", -1)
+	Set M10E = Doc.GetTableObject("MMPS10E")
+	EVRAK_NUMARASI=MMPS10E.EVRAKNO
+	if M10TM.GetRecCount()>1 Then
+		'IKINCI_URUN_BEKLEYEN_ISEMRI_NO GÝRÝLMÝÞ MÝ KONTROLÜ
+		if Trim(MMPS10TM.NOTLAR_1(2))= "" Then
+			Msgbox "2.ÜRÜN ÝÇÝN NOT1 KISMINA ÝÞEMRÝ NO GÝRÝLMELÝ!"
+			Exit Sub
+		End if
+	End if	
+	'------------------------------------------------------------------------------------------
+	'ELDE EDÝLEN URUN SAYISI
+	For kkk=1 to M10TM.GetRecCount()
+		ISEMRI_MIKTARI = MMPS10TM.SF_PAKETICERIGI(kkk)
+	'------------------------------------------------------------------------------------------
+		For j = 1 To M10T.GetRowCount()
+			'----------------------------------------------------------------------
+			ISNO=M10T.JOBNO(j)
+			ISEMRI_STOKKODU=Trim(M10E.MAMULSTOKKODU)
+
+			Call PRINTLABEL_OP(ISNO)
+			'----------------------------------------------------------------------
+			Set M10T = Doc.Select2("ddrrg43", "MMPS10T", QSTR, "", -1)
+			BITENOP_YMAMULKODU = 	M10T.R_YMAMULKODU(j)
+			BITENOP_KODU 			= 	M10T.R_OPERASYON(j)
+			BITENOP_NO				=	M10T.R_SIRANO(j)
+			'--------------------------------------------------------------------------
+			If BEKLEYENOP_NO="" Then BEKLEYENOP_NO=BITENOP_NO+10
+			'----------------------------------------------------------------------------
+			'if j = 	1 then
+				ELDEEDILENURUN_STOKKODU	=	BITENOP_YMAMULKODU
+			'else
+			'	ELDEEDILENURUN_STOKKODU	=	BEKLEYENOP_STOKKODU
+			'end if
+			'-------------------------------------------------------------------------------------------------------
+				'AMBALAJ BÝLGÝSÝ
+			PAKETBILGISI = GETKASAKODU(ELDEEDILENURUN_STOKKODU,CHKODU,SEVKADRESKODU)
+			 	'AMBALAJ ÝÇÝ MÝKTAR
+			DEFKUTUICIMIKTAR = GETSTDKOLIADET(ELDEEDILENURUN_STOKKODU,CHKODU,SEVKADRESKODU)
+			'---------------------------------------------------------------------------------------------------------
+			MAMULPAKETSAYISI = M10T.R_YMK_MPAKET(J)
+			YARIMAMULPAKETSAYISI = M10T.R_YMK_YMPAKET(J)
+			YARIMAMULPAKETICERIGI = M10T.R_YMK_YMPAKETICERIGI(J)
+			YARIMAMULPAKETICERIGI = Doc.Round(YARIMAMULPAKETICERIGI , 0)
+				'YARIMAMULPAKETICERIGI = Trim(Doc.NumFormat(YARIMAMULPAKETICERIGI ,20, 0))
+			TOPLAMYARIMAMULMIKTARI=M10T.R_YMAMULMIKTAR(J)
+			TOPLAMYARIMAMULMIKTARI= Doc.Round(TOPLAMYARIMAMULMIKTARI, 0)
+			'-------------------------------------------------------------------------------------------------------------		
+				'KTA GÝRÝÞÝ VARMI KONTROLÜ
+			'----------------------------------------------------------------------------------------------------------
+				'KTA DA KUTUÝÇÝMÝKTAR GÝRÝLMÝÞ ÝSE MÝKTAR KTA DAKÝ MÝKTAR
+			KUTUICIMIKTAR = Doc.GetUDFValue("MMPS10E", MMPS10E.EVRAKNO, "KOLI_MIK",0)
+			KUTUICIMIKTAR = Doc.Round(KUTUICIMIKTAR,0)
+			If KUTUICIMIKTAR > 0 Then KTA_KUTUICIMIKTAR=1 
+			'-----------------------------------------------------------------------------------------------------------
+				'KTA DA ETÝKETADEDÝ GÝRÝLMÝÞ ÝSE ETÝKET ADEDÝ KTA DAKÝ MÝKTAR
+			ETIKETADEDI = Doc.GetUDFValue("MMPS10E", MMPS10E.EVRAKNO, "ETIK_ADT",0)	
+			ETIKETADEDI = doc.Round(ETIKETADEDI,0)
+			If ETIKETADEDI > 0 Then KTA_ETIKETADET=1
+			'-----------------------------------------------------------------------------------------------------------
+				'EÐER KTA'DA KUTUÝÇÝMÝKTAR ve ETÝKET MÝKTARI GÝRÝLMEMÝÞ ÝSE  
+			If KUTUICIMIKTAR = 0 And ETIKETADEDI = 0 Then KUTUICIMIKTAR = DEFKUTUICIMIKTAR 
+				'EÐER KTA'DA SADECE ETÝKET MÝKTARI GÝRÝLMÝÞ ÝSE KUTUÝÇÝMÝKTAR AMBALAJ MIKTARI VARSA AMB.MÝKTARI YOKSA ÝÞEMRÝ Y.M.MÝKTARI  
+			If KUTUICIMIKTAR = 0 And ETIKETADEDI <> 0 Then 
+				If DEFKUTUICIMIKTAR=0 Then 
+					KUTUICIMIKTAR=YARIMAMULPAKETICERIGI
+				Else	
+					KUTUICIMIKTAR = DEFKUTUICIMIKTAR
+				End If
+			End If
+ 				'EÐER KTA'DA SADECE ETÝKET MÝKTARI GÝRÝLMÝÞ ve AMBALAJ MÝKTARI YOKSA KUTUÝÇÝMÝKTARI ÝÞEMRÝ MÝKTARIDIR  
+			If KUTUICIMIKTAR = 0 Then KUTUICIMIKTAR = YARIMAMULPAKETICERIGI
+			'-----------------------------------------------------------------------------------------------------------
+				'EÐER ETÝKET ADEDÝ GÝRÝLMEMÝÞ ÝSE ETÝKET ADETÝ
+			If ETIKETADEDI = 0 Then ETIKETADEDI = Doc.Ceil(Doc.Div(TOPLAMYARIMAMULMIKTARI, KUTUICIMIKTAR))
+			'--------------------------------------------------------------------------------------------------------------
+			If MMPS10E.EVRAKNO = BEKLEYENOP_ISEMRINO Then
+				SONOP = "H"
+			Else
+				SONOP = "E"
+			End if
+			'--------------------------------------------------------------------------------------------------------------
+				For i = 1 To ETIKETADEDI 
+					Redim IDArray(1,0)
+						If KTA_ETIKETADET=1 Then 
+							KALAN=KUTUICIMIKTAR
+						Else
+							KALAN = TOPLAMYARIMAMULMIKTARI-((i-1) * KUTUICIMIKTAR)
+						End If
+						'----------------------------------------------------------------------------------
+						If KALAN => 0 Then KUTUICIMIKTAR = KUTUICIMIKTAR 
+						If KALAN < KUTUICIMIKTAR Then KUTUICIMIKTAR = KALAN 
+						'------------------------------------------------------------------------------------
+					SERINO = Doc.Sayac0danAl("SERINO")
+					'nret = Doc1.New_Voucher()
+					NRET = Doc1.Load_Voucher(SERINO)
+					SERINO = D7LB.KOD
+
+					Redim IDArray(1,0)
+					S20T.AddRow()
+					SATIRNO = S20T.GetRowCount()
+
+					If SONOP = "E" Then
+						STOKKODU = MMPS10TM.MAMULSTOKKODU(kkk)
+						MUSTERIKODU = MMPS10TM.MUSTERIKODU(kkk)
+					Else
+						STOKKODU = M10E.MAMULSTOKKODU
+						MUSTERIKODU = M10E.MUSTERIKODU
+					End if
+
+					'GK_10= "OP" YAZILIRSA ETÝKET BAÞLIÐI ARA OPERASYON OLARAK DEÐÝÞÝR
+					If SONOP="H" Then
+						Call IDArrayAdd(IDArray, "GK_10", "OP")
+						ORJ_STOKKODU = STOKKODU 
+						STOKKODU = ELDEEDILENURUN_STOKKODU
+					End if
+
+					If KTA_KUTUICIMIKTAR=1 Then Call IDArrayAdd(IDArray, "GK_2", "KTA-1")
+					If KTA_ETIKETADET=1 Then Call IDArrayAdd(IDArray, "GK_2", "KTA-2")
+					If KTA_KUTUICIMIKTAR=1 And KTA_ETIKETADET=1 Then Call IDArrayAdd(IDArray, "GK_2", "KTA-3")
+					S20T.KOD(SATIRNO) = STOKKODU
+					NOT1=Trim(MMPS10E.NOTLAR_1(1))
+					If NOT1 <> "" Then 
+						S20T.LOTNUMBER(SATIRNO) = NOT1
+					Else 
+						S20T.LOTNUMBER(SATIRNO) = Right(Replace(Doc.BuGun, "/", ""),6)
+					End if
+					S20T.SERINO(SATIRNO) 			= SERINO
+					S20T.SF_SF_UNIT(SATIRNO) 	= M10E.SF_SF_UNIT
+					S20T.MPSNO(SATIRNO) 			= MMPS10E.EVRAKNO
+					S20T.MPSTM_TRNUM(SATIRNO) 	= MMPS10TM.TRNUM
+					S20T.TARIH(SATIRNO) 			= DOC.BUGUN
+					'----------------------------------------------------------------------------------
+					URUNAGACIFOYNO = Doc.GetDBFieldValue("BOMU01E", "EVRAKNO", STOKKODU & "*", "MAMULCODE+AKTIF_PASIF")
+					'------------------------------------------------------------------------------
+					'MÜÞTERÝ KODU VE ADI YAZDIRMA
+					CHKODU = M10E.MUSTERIKODU
+
+					'CHKodu = MusteriKodu
+					MUSTERIADI = Doc.GetDBFieldValue("CARI00", "AD", MUSTERIKODU, "")
+					UCHKODU	= MUSTERIADI
+
+					If Left(Trim(STOKKODU),1)="H" Then
+						Call IDArrayAdd(IDArray, "CH_TEDARIKCI", CHKodu)
+					Else
+						Call IDArrayAdd(IDArray, "CH_MUSTERI", CHKodu)
+					End If
+					'-------------------------------------------------------------------------------
+					S20T.SF_VRI_NUM1(SATIRNO) = Doc.RightJustify(ETIKET,10)
+					Call IDArrayAdd(IDArray, "FORMKODU", 		ETIKET)
+					Call IDArrayAdd(IDArray, "REFNUM10", 		SATIRYAZ)
+					Call IDArrayAdd(IDArray, "AMBALAJKODU", 	PAKETBILGISI)
+					Call IDArrayAdd(IDArray, "MPSNO", 			MMPS10E.EVRAKNO)
+					Call IDArrayAdd(IDArray, "MPSTM_TRNUM", 	MMPS10TM.TRNUM(kkk))
+
+					'ÝÞ EMRÝ MÝKTARI
+					Call IDArrayAdd(IDArray, "REFNUM08", 		ISEMRI_MIKTARI)
+
+					'OPERASONUN OLDUÐU SATIR NUMARASI
+					Call IDArrayAdd(IDArray, "REFNUM01", 		j)
+
+					'OP. SONU ÜRETÝLECEK TOPLAM MÝKTAR
+					Call IDArrayAdd(IDArray, "REFNUM09", 		TOPLAMYARIMAMULMIKTARI)
+
+					'ÜRÜN AÐACI FÖY NO
+					Call IDArrayAdd(IDArray, "REFNUM05", 		URUNAGACIFOYNO)
+					
+					'PARTÝ MÝKTARI
+					Call IDArrayAdd(IDArray, "SF_MIKTAR", 		KUTUICIMIKTAR)
+					Call IDArrayAdd(IDArray, "SF_UNIT", 		M10E.SF_SF_UNIT)
+					Call IDArrayAdd(IDArray, "STATU", 			"")
+					Call IDArrayAdd(IDArray, "APPKODU", 		"MMPS10")
+					Call IDArrayAdd(IDArray, "EVRAKNO", 		MMPS10E.EVRAKNO)
+					Call IDArrayAdd(IDArray, "REFTARIH1", 		Doc.BuGun)	
+
+					'BÝTEN OPERASYON KODU YAZDIR
+					Call IDArrayAdd(IDArray, "REFTEXT07", 		BITENOP_KODU)
+
+					'TEK SATIRA BARKOD ÝÞARETÝ
+					Call IDArrayAdd(IDArray, "REFTEXT05", 		SATIR_BARKOD)
+
+					'BEKLEYEN OPERASYON KODU YAZDIR	
+					Call IDArrayAdd(IDArray, "REFTEXT08", 		BEKLEYENOP_KODU)
+
+					'BÝTEN OPERASYON NO YAZDIR
+					Call IDArrayAdd(IDArray, "REFNUM06", 		BITENOP_NO)
+
+					'BEKLEYEN OPERASYON NO YAZDIR
+					Call IDArrayAdd(IDArray, "REFNUM07", 		BEKLEYENOP_NO)
+
+					'BEKLEYEN OPERASYON ÝÞEMRÝ NO
+					Call IDArrayAdd(IDArray, "REFTEXT09", 		BEKLEYENOP_ISEMRINO)
+					'------------------------------------------------------------------------------------------------------------				
+					'SOLDAN ÝLK 24 KARAKTER BEKLEYEN OPERASYON STOK KODU YAZ 
+					'DEVAM EDEN DÝÐER 26 KARAKTERE YAZ. 
+					Call IDArrayAdd(IDArray,"REFTEXT501",Doc.LeftJustify(BEKLEYENOP_STOKKODU,24) & Doc.LeftJustify(ISEMRI_STOKKODU,26))
+					'--------------------------------------------------------------------------------------------------------------
+					GERCEKLESMETARIHI=MMPS10E.REBTARIH_OFO
+					GERCEKLESMETARIHI=Doc.StrToNorDate(GERCEKLESMETARIHI)
+					Call IDArrayAdd(IDArray, "REFTARIH2", GERCEKLESMETARIHI)
+					Call ETIKETBILGILERINIYAZ(S20T.KOD(SATIRNO), S20T.SERINO(SATIRNO), S20T.LOTNUMBER(SATIRNO),  IDArray)
+				Next
+		Next
+	Next
+
+	Doc.CreateTableObject "YYYSTOK20MPS=STOK20T", "TMPCOPY"
+	Set S20T1 = Doc.GetTableObject("YYYSTOK20MPS")
+	S20T1.CopyTable(S20T)
+	S20T.GroupBy("SF_VRI_NUM1+SF_VRI_NUM2")
+	'-------------------------------------------------------------------------------------------------------------------
+	For i = 1 To S20T.GetRowCount()
+		'QSTR = "SF_VRI_NUM1='"+S20T.SF_VRI_NUM1(i)+"'&SF_VRI_NUM2='"+S20T.SF_VRI_NUM2(i)+"'"   '  +"'&SF_VRI_VR_C<>'E'"
+			'TEKRAR YAZDIRMAYI ENGELLEMEYÝ KALDIRIR
+		QSTR = "SF_VRI_NUM1='"+S20T.SF_VRI_NUM1(i)+"'&SF_VRI_NUM2='"+S20T.SF_VRI_NUM2(i)+"'"
+		Set PSTOK20T = Doc.Select2("PSTOK20T", "YYYSTOK20MPS", QSTR, "", -1)
+		If ETIKET <> "" And PSTOK20T.GetRowCount > 0 Then
+			PSTOK20T.GroupBy2("SERINO")
+			PAR1="PSTOK20T"
+			Call ETIKETLERIGUNCELLE_STOK20(PSTOK20T)
+			Doc.RunMacro1 "PFRM7S." & ETIKET,"PrintLabel1", PAR1
+		End If
+	Next
+	'-------------------------------------------------------------------------------------------------------------------
+	Doc.DeleteTableObject "XXXSTOK20MPS"
+	Doc.DeleteTableObject "YYYSTOK20MPS"
+	Doc.DeleteTableObject "PSTOK20T"
+
+End Sub
+'------------------------------------------------------------------------------------------------------------------
+Sub PrintLabel_OP(ISNO)
+	SONRAKIOPERASYON 	= GETSONRAKIOPERASYON(ISNO,MMPS10T) 
+	BEKLEYENOP_ISEMRINO	= SONRAKIOPERASYON(0)
+	BEKLEYENOP_KODU		= SONRAKIOPERASYON(1)
+	BEKLEYENOP_STOKKODU	= SONRAKIOPERASYON(2)
+	BEKLEYENOP_NO			= SONRAKIOPERASYON(3)	
+End Sub
+'------------------------------------------------------------------------------------------------------
+Function GETSONRAKIOPERASYON(ISNO,MPS10T)
+	Dim OPARR(3)
+	OPARR(0) = MMPS10E.EVRAKNO
+	OPARR(1) = "DEPO"
+	OPSATIRNO = 9999
+	'------------------------------------------------------------------------------------------------------------
+	'SON OPERASYONDAN ÖNCEKÝ OPERASYONLAR ÝÇÝN BEKLEYEN OP ALMA
+	For i = 1 To MPS10T.GetRowCount()
+		If MPS10T.JOBNO(i) = ISNO Then OPSATIRNO = i
+		If i > OPSATIRNO And Trim(MPS10T.R_KAYNAKTYPE(i)) = "I" Then
+			OPARR(1) = MPS10
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : ETK-HM
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : HAMMADDE BARKOD ETÝKETÝ - ÖNAYSAN (SÝLÝNMEMELÝ!!!!!) - 12.05.2014
+Kod : 
+'barkod yazýcý ayarý : genislik=96 x yukseklik=163, açýk kaðýt boþluðu : sol=2 mm, sag=2 mm
+'barkod yazýcý ayarý : genislik=96 x yukseklik=163, açýk kaðýt boþluðu : sol=2 mm, sag=2 mm
+Public EtiketTablosu, KutuUsttenMesafe, KutuSoldanMesafe, KutuYuksekligi, KutuGenisligi, BarkodNo, satiryuksekligi, 	cizgipayi
+Public SayfaBoyu, SayfaEni, UygulamaKodu
+'---------------------------------------------------------------------------------------------------
+Sub PrintLabel1(Tablo)
+	Set EtiketTablosu = Tablo
+	Call PrintLabel()
+End Sub
+'-------------------------------------------------------------------------------------------------------------------
+Sub PrintLabel()
+	Set pe1 = Doc.CreatePrintEngineOutput()
+	Kullanici=Trim(Doc.Getd7UserName)
+	
+	SayfaBoyu = 152
+	SayfaEni = 102
+	res = pe1.Open(0, "ETIKET", SayfaBoyu, SayfaEni, "Portrait")
+	
+	res = pe1.PenSize(0.3)
+	KutuUsttenMesafe=3
+	KutuSoldanMesafe=4 
+	cizgipayi = 0.5
+	satiryuksekligi = 6
+	
+	KutuGenisligi	= 95
+	KutuYuksekligi =	145
+	
+	'res=pe1.SetDevice("SATO_URETIM")
+	'sayfa yüksekliðini ayarlar
+	'res=pe1.SetDevPaperHeight(SAYFABOYU)
+	'sayfa geniþliðini ayarlar
+	'res=pe1.SetDevPaperWidth(SAYFAENI)
+	'res=pe1.SetDevice("\\fevzi\hp LaserJet 1010 Series Driver") 
+	'A5 KAÐIT SEÇÝMÝ
+	'res = pe1.SetDevPaperFormat(-14)		
+
+	'res=pe1.SetDevice("SATO_URETIM")
+	'res=pe1.SetDevice("SATO MAMUL")
+
+	For i = 1 To EtiketTablosu.GetRecCount()
+		BarkodNo = Trim(EtiketTablosu.SERINO(i))
+		If i <> 1 Then res = pe1.PageBreak
+		Call Etiket(pe1, BarkodNo)
+	Next
+	
+	res=pe1.SetDevice("Argox OS-214 plus series PPLA")
+	'res = pe1.PrintDoc(0)
+	'Doc.ActivateAfterMacro(0)
+	
+	res = pe1.Show
+	Doc.ActivateAfterMacro(0)
+End Sub
+'-------------------------------------------------------------------------------
+Sub Etiket(pe1, BarkodNo)
+	Qstr = "SELECT * FROM D7KIDSLB"
+	Qstr = Qstr &	" WHERE  Trim(KOD) ='"&BarkodNo&"' "
+	Set D7LB = Doc.RunSQLQuery("AABBCCDD", Qstr) 
+	'If D7LB.GetRowCount = 0 Then 
+	'	Msgbox "SeriNo Yok. Kontrol Et."
+	'	Exit Sub
+	'End If
+
+	res = pe1.SetTransparentMode(1)
+	res = pe1.PenSize(0.6)
+	res = pe1.Box(KutuUsttenMesafe, KutuSoldanMesafe, KutuYuksekligi, KutuGenisligi)
+	res = pe1.SetTransparentMode(0)
+	'--------------------------------------------------------------------------------------------------------
+	KutuUstu	=	KutuUsttenMesafe
+	KutuSolu	= KutuSoldanMesafe
+	'-----------------------------------------------------------------------------------------------------------------
+	StokKodu = Trim(D7LB.SKOD)
+	StokAdi = Trim(Doc.GetDBFieldValue("STOK00","AD", StokKodu, ""))
+	LotNo = Trim(D7LB.LOTNUMBER)
+	Depo = Trim(D7LB.AMBCODE1)
+
+	'Miktar = D7LB.SF_MIKTAR
+	Miktar = D7LB.SF_BAKIYE
+	Miktar = Doc.NumFormat0(Miktar, 20,2 )
+	Birim = Trim(D7LB.SF_UNIT)	
+	
+	EvrakTarihi = Doc.StrToNorDate(D7LB.REFTARIH2)
+	IrsaliyeTarihi = Doc.StrToNorDate(D7LB.REFTARIH1)
+	IrsaliyeNo = Trim(D7LB.VRI_NUM1)
+	RafOmruTarihi = Doc.StrToNorDate(D7LB.REFTARIH3)
+	EvrakNo = Trim(D7LB.EVRAKNO)
+	EvratTipi = Trim(D7LB.EVRAKTYPE)
+	KaliteSonucFoyNo = Trim(D7LB.REFNUM05)
+	If KaliteSonucFoyNo = 0 Then KaliteSonucFoyNo = ""
+	KontrolEden = Trim(D7LB.REFTEXT501)
+	KontrolSonucu = Trim(D7LB.GK_2)
+		
+	'StokBirimi = Doc.GetKartValue("STOK00","IUNIT",StokKodu,-1)
+	'StokGrupKodu1 = Trim(Doc.GetKartValue("STOK00","GK_1",StokKodu, -1))
+	'StokGrupAdi1 = Trim(Doc.GetGecoValue("STKGK1", "AD", StokGrupKodu1, -1))
+	'StokGrupKodu2 = Trim(Doc.GetKartValue("STOK00","GK_2",StokKodu,-1))
+	'StokGrupAdi2 = Trim(Doc.GetGecoValue("STKGK2", "AD", StokGrupKodu2, -1))
+	'StokGrupKodu3 = Trim(Doc.GetKartValue("STOK00","GK_3",StokKodu,-1))
+	'StokGrupAdi3 = Trim(Doc.GetGecoValue("STKGK3", "AD", StokGrupKodu3, -1))
+		
+	'MusteriKodu = Trim(D7LB.CH_MUSTERI)
+	'MusteriAdi = Trim(Doc.GetDBFieldValue("CARI00", "AD", MusteriKodu, ""))
+	
+	TedarikciKodu = Trim(D7LB.CH_TEDARIKCI)
+	TedarikciAdi = Trim(Doc.GetDBFieldValue("CARI00", "AD", TedarikciKodu, ""))
+	
+	OperatorKodu = Trim(Doc.GetDBFieldValue("SFDC31E", "IS_OPERATOR_1", EvrakNo, "EVRAKNO"))
+	OperatorAdi = Trim(Doc.GetDbFieldValue("PERS00", "AD", OperatorKodu, ""))	
+	TezgahKodu = Trim(Doc.GetDBFieldValue("SFDC31E", "X_T_ISMERKEZI", EvrakNo, "EVRAKNO"))
+	TezgahAdi = Trim(Doc.GetDbFieldValue("IMLT00", "AD", TezgahKodu, ""))		
+
+	UygulamaKodu = Trim(D7LB.APPKODU)  
+	'****************** IS EMRI BOLUMU (UP) **************************************
+	If UygulamaKodu = "MMPS10" Then
+
+	ElseIf UygulamaKodu = "STOK25" Or UygulamaKodu = "STOKFR2" Or UygulamaKodu = "TRACK25" Then
+	'****************************** SATINALMA GÝRÝÞÝ / SATINALMA ÝRSALÝYESÝ ÝLE DEPOYA GÝRÝÞ (SI) ************
+	ElseIf UygulamaKodu = "STOK29" Or UygulamaKodu = "STOK29I" Then
+		BASLIK = "HAMMADDE BARKOD ETÝKETÝ"
+		AlanBaslik2 = "Ýrsaliye No - Tarih"
+		AlanVeri2 = IrsaliyeNo & " - " & IrsaliyeTarihi
+		AlanBaslik5 = "Son Kullanma Tarihi"
+		AlanVeri5 = RafOmruTarihi
+		KontrolTipi = "GKK"
+	'************************* ÜRETÝM FÝÞÝ - MG ******************************************		
+	ElseIf UygulamaKodu = "STOK20" Then
+		BASLIK = "MAMÜL BARKOD ETÝKETÝ"
+		KontrolTipi = "Final Kontrol"
+		IsEmriNo = Trim(D7LB.MPSNO)
+		
+		AlanBaslik2 = "MPS No"
+		AlanVeri2 = IsEmriNo
+		AlanBaslik5 = "Üretim Fiþ - Satýr No"
+		UretimFisNo = Trim(D7LB.EVRAKNO)
+		UretimFisSatirNo = Trim(D7LB.TRNUM)
+		AlanVeri5 = UretimFisNo & " - " & UretimFisSatirNo
+	ElseIf UygulamaKodu = "STOK60" Then
+	ElseIf UygulamaKodu = "STOK36" Then
+	ElseIf UygulamaKodu = "STOK19" Then
+	ElseIf UygulamaKodu = "STOK63" Then
+	ElseIf UygulamaKodu = "STOK61" Then
+	ElseIf UygulamaKodu = "STOK24" Then
+	End If
+
+	'-------------------------------------------------------------------------------------
+	res = pe1.NoPen()
+	'LOGO = Doc.Getd7DirectOry_DataFirm() & Doc.Customp_Gets("!LOGO")
+	LOGO = Doc.Getd7DirectOry_DataFirm & "IMAGES\ONAYSAN_barkod_logo.jpg"
+	
+	res = pe1.Picture(KUTUUSTU+0.5, KutuSolu+0.5, 15, 40, LOGO, 0)
+
+	'------------------------------------------------------------------------------------------
+	'BASLIK
+	'res = pe1.SetTransparentMode(0)
+	'res = pe1.SetBkgColor(RGB(255,0,0))
+
+	res = pe1.SelectFont("Arial", 18)
+	res = pe1.SetAlign("Center")
+	'----------------------------------------------------------------------------------------------------
+	'BAÞLIK ALTI YATAY ÇÝZGÝ
+	res = pe1.PenSize(0.6)
+	res = pe1.Line(pe1.GetBottom+3*cizgipayi, KutuSolu, 0, KutuGenisligi)
+	'----------------------------------------------------------------------------------
+	res = pe1.SetBold(1)
+	res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, 1.5*satiryuksekligi, KutuGenisligi-2*cizgipayi, StokAdi)
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, 1.5*satiryuksekligi, KutuGenisligi-2*cizgipayi, StokKodu)
+	res = pe1.SelectFont("Arial", 12)
+	res = pe1.Line(pe1.GetBottom+3*cizgipayi, KutuSolu, 0, KutuGenisligi)
+	'----------------------------------------------------------------------------------
+	'res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, KutuGenisligi-2*cizgipayi, "ÜRETÝM / STOK BÝLGÝLERÝ")
+	res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, KutuGenisligi-2*cizgipayi, BASLIK)
+	
+	res = pe1.SetBold(0)
+	
+	res = pe1.SetAlign("Left")
+	SolKutuBilgilerGenislik = 40
+	res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Miktar")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & Miktar & " " & Birim)
+
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, AlanBaslik2)
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & AlanVeri2)
+	
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Lot No")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & LotNo)
+	
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Ambar No")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & Depo)
+	
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, AlanBaslik5)
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & AlanVeri5)
+
+	res = pe1.Line(pe1.GetBottom+3*cizgipayi, KutuSolu, 0, KutuGenisligi)
+	'----------------------------------------------------------------------------------
+	res = pe1.SetBold(1)
+	res = pe1.SetAlign("CENTER")
+	res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, KutuGenisligi-2*cizgipayi, "KALÝTE VERÝLERÝ")
+	res = pe1.SetBold(0)
+	
+	res = pe1.SetAlign("Left")
+	SolKutuBilgilerGenislik = 30
+	res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Kontrol Tipi")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & KontrolTipi)
+	
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Kontrol Fiþ No")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & KaliteSonucFoyNo)
+		
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Kontrol Eden")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & KontrolEden)
+	
+	res = pe1.Write(pe1.GetBottom+cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, SolKutuBilgilerGenislik, "Kontrol Sonucu")
+	res = pe1.Write(pe1.GetTop, pe1.GetRight+cizgipayi, satiryuksekligi, KutuGenisligi-SolKutuBilgilerGenislik-1-cizgipayi, ": " & KontrolSonucu)
+	
+	res = pe1.Line(pe1.GetBottom+3*cizgipayi, KutuSolu, 0, KutuGenisligi)
+	'----------------------------------------------------------------------------------
+	res = pe1.SetBold(1)
+	res = pe1.SetAlign("Center")
+		
+	Set ddd=Doc.CreateSObject("d7Date")
+	'HaftaReferansTarih = Doc.StrToNorDate(Doc.Bugun)
+	HaftaReferansTarih = EvrakTarihi	
+	ddd.SetDate(HaftaReferansTarih)
+	KacinciHafta = ddd.GetWOY()
+	HaftaReferansTarih = Replace(HaftaReferansTarih, "/",".")
+	
+	res = pe1.Write(pe1.GetBottom+3*cizgipayi, KutuSolu+cizgipayi, satiryuksekligi, KutuGenisligi-2*cizgipayi, KacinciHafta & ".HAFTA / " & HaftaReferansTarih)
+	res = pe1.SetBold(0)
+	'----------------------------------------------------------------------------------
+	'BARKOD ÇÝZGÝLERÝ
+	res = pe1.NoPen()
+	res = pe1.SetAlign("Center")
+
+	BARKODGEN= KutuGenisligi-6
+	
+	res = pe1.SetBarcodeAlignment(2)
+	res = pe1.SetBarcodeParms(0,0)
+	'res = pe1.SetBarcodeAutoCheckSum(0)
+
+	'BARKOD SERÝ NUMARASI
+	res = pe1.SelectFont("Arial", 8)
+	res = pe1.SetBold(1)
+	res = pe1.SetAlign("Center")
+	
+	res = pe1.Barcode(pe1.GetBottom+3*cizgipayi, KutuSolu+3, 15, BARKODGEN, "CODE128", Trim(BarkodNo), "")
+End Sub
+'-----------------------------------------------------------------------------------------------
+Function BARKODGENISLIGI(KOD)
+	BARKODGENISLIGI = (Len(Trim(Cstr(KOD))) + 3) * 4.6
+End Function
+'------------------------------------------------------------------------------------------------
+Function GETPRINTER()
+	GETPRINTER= ""
+	KULLANICI = Doc.Getd7Username()
+	Set UTY = Doc.Select1("dsf", "UDEFTY", "KOD='"+KULLANICI+"'&VARSAYILAN10='1'", "", -1)
+	If UTY.GetRowCount() > 0 Then GetPrinter = Trim(UTY.YAZICIADI)
+End Function                                                                                                                                                                 
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : KLT-GKK
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : 
+Açýklama : GÝRDÝ KONTROL FORMU YENÝ - 15.05.2014
+Kod : 
+'bymozan
+Public SatirYuksekligi, SolMargin, SagMargin, UstMargin, AltMargin, DikeyBilgiAlani, YatayBilgiAlani,satirpozr, Baslik01sagcizgialtkonum
+Public Grid(), ToplamEn,pe1, ToplamGrid, SayfaSonuBaslangicSatiri, SatirBaslangic, cizgipayi, Sol,SonSatir, SonucGirisSatiri
+Public Baslik(3), SayfaBoyu, SayfaEni,SayfaSonuSatirSayisi,KolonBaslangicKonumu, StokKodu,LotNo,StokAdi,MalzemeCinsi,GelenMiktar
+Public BobinNo, TRAPORNO, TESTTARIHI, KaliteSonucFoyNo, TeknikResim, AciklamaBaslangicSatiri, FoyOlusmaTarihi, KaliteSablonFoyNolari
+Public ResimNo, SpesifikasyonNo, MalzemeTanitimFisNo, KontrolYontemi, KontrolAdedi, ACIKLAMA
+Sub PrintForm()
+
+	'Sayfa Ayarlarý
+	ReDim ToplamGrid(1)
+	SolMargin = 8
+	SagMargin = 8
+	UstMargin = 8
+	AltMargin = 8
+	SatirYuksekligi = 5
+	cizgipayi = 1
+
+	Tip1 = "LANDSCAPE"
+	Tip2 = "PORTRAIT"
+
+	Tip = Tip2
+	Set pe1 = doc.CreatePrintEngineOutput()
+	
+	If Tip = Tip1 Then      '//  yatay sayfa
+		SayfaBoyu = 210
+		SayfaEni = 297
+		DikeyBilgiAlani = SayfaBoyu - (UstMargin + AltMargin)
+		YatayBilgiAlani = SayfaEni - (SolMargin + SagMargin)	
+		SayfaSonuSatirSayisi = 2
+		SayfaSonuBaslangicSatiri = (SayfaBoyu-AltMargin) - (SayfaSonuSatirSayisi*(SatirYuksekligi+2*cizgipayi))
+		res = pe1.Open(0, VPEAdi, SayfaEni, SayfaBoyu, Tip)
+	ElseIf Tip = Tip2 Then     '// dikey sayfa
+		SayfaBoyu = 297
+		SayfaEni = 210
+		DikeyBilgiAlani = SayfaBoyu - (UstMargin + AltMargin)
+		YatayBilgiAlani = SayfaEni - (SolMargin + SagMargin)	
+		SayfaSonuSatirSayisi = 2
+		SayfaSonuBaslangicSatiri = (SayfaBoyu-AltMargin) - (SayfaSonuSatirSayisi*(SatirYuksekligi+2*cizgipayi))
+		res = pe1.Open(0, VPEAdi, SayfaBoyu, SayfaEni, Tip)
+	End If
+	
+	Set ST29T = Doc.Select2G("xxxxcccx", "STOK29T", "", "", "LOTNUMBER", -1)
+	ST29T.SafePack
+	
+	KayitSayisi = ST29T.GetRecCount()
+	For j = 1 To KayitSayisi
+		StokKodu = Trim(ST29T.KOD(j))
+		StokAdi = Trim(ST29T.KOD_STOK00_AD(j))
+		LotNo = Trim(ST29T.LOTNUMBER(j))
+		GK3Kodu = Doc.GetDBFieldValue("STOK00","GK_3",StokKodu,"")
+		MalzemeCinsi = Trim(Doc.GetGecoValue("STKGK3", "AD", GK3Kodu, -1))
+		GelenMiktar = ST29T.SF_MIKTAR(j) & " " & ST29T.SF_SF_UNIT(j)
+		
+		KontrolYontemi = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_KYONT",0))
+		KontrolAdedi = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_KADETI",0))
+		Aciklama1 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT1",0))
+		Aciklama2 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT2",0))
+		Aciklama3 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT3",0))
+		Aciklama4 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT4",0))	
+		
+		ACIKLAMA = Aciklama1 & " " & Aciklama2 & " " & Aciklama3 & " " & Aciklama4
+		
+		rows = Doc.SelectEQ("QVAL02E", "KOD+LOTNUMBER", ST29T.KOD(j)+ST29T.LOTNUMBER(j))
+
+		If rows > 0 Then
+			Set QVAL01 = Doc.GetTableObject("AU_QVAL02E_SELECT")
+			KaliteSonucFoyNo = Trim(QVAL01.EVRAKNO(1))
+			FoyOlusmaTarihi = Doc.StrToNorDate(QVAL01.ELOG_LOGTARIH(1))
+		End If
+		
+		If j>1 Then res = pe1.PageBreak()
+		Call Print_Form_SayfaBasi()
+		Call Alanlar()
+		Call Print_Form_Satir(j)
+		Call Print_Form_SayfaSonu()
+		Set QVAL01 = Nothing
+		KaliteSonucFoyNo = ""
+		SatirYuksekligi=5
+	Next	
+	'Call SayfaSayisi()
+	res = pe1.Show()
+	res = Doc.ActivateAfterMac
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : KLT-GKK-S
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : 
+Açýklama : SATIR BAZINDA GÝRDÝ KONTROL FORMU YENÝ - 15.05.2014
+Kod : 
+'bymozan
+Public SatirYuksekligi, SolMargin, SagMargin, UstMargin, AltMargin, DikeyBilgiAlani, YatayBilgiAlani,satirpozr, Baslik01sagcizgialtkonum
+Public Grid(), ToplamEn,pe1, ToplamGrid, SayfaSonuBaslangicSatiri, SatirBaslangic, cizgipayi, Sol,SonSatir, SonucGirisSatiri
+Public Baslik(3), SayfaBoyu, SayfaEni,SayfaSonuSatirSayisi,KolonBaslangicKonumu, StokKodu,LotNo,StokAdi,MalzemeCinsi,GelenMiktar
+Public BobinNo, TRAPORNO, TESTTARIHI, KaliteSonucFoyNo, TeknikResim, AciklamaBaslangicSatiri, FoyOlusmaTarihi, KaliteSablonFoyNolari
+Public ResimNo, SpesifikasyonNo, MalzemeTanitimFisNo, KontrolYontemi, KontrolAdedi, ACIKLAMA
+Sub PrintForm()
+
+	'Sayfa Ayarlarý
+	ReDim ToplamGrid(1)
+	SolMargin = 8
+	SagMargin = 8
+	UstMargin = 8
+	AltMargin = 8
+	SatirYuksekligi = 5
+	cizgipayi = 1
+
+	Tip1 = "LANDSCAPE"
+	Tip2 = "PORTRAIT"
+
+	Tip = Tip2
+	Set pe1 = doc.CreatePrintEngineOutput()
+	
+	If Tip = Tip1 Then      '//  yatay sayfa
+		SayfaBoyu = 210
+		SayfaEni = 297
+		DikeyBilgiAlani = SayfaBoyu - (UstMargin + AltMargin)
+		YatayBilgiAlani = SayfaEni - (SolMargin + SagMargin)	
+		SayfaSonuSatirSayisi = 2
+		SayfaSonuBaslangicSatiri = (SayfaBoyu-AltMargin) - (SayfaSonuSatirSayisi*(SatirYuksekligi+2*cizgipayi))
+		res = pe1.Open(0, VPEAdi, SayfaEni, SayfaBoyu, Tip)
+	ElseIf Tip = Tip2 Then     '// dikey sayfa
+		SayfaBoyu = 297
+		SayfaEni = 210
+		DikeyBilgiAlani = SayfaBoyu - (UstMargin + AltMargin)
+		YatayBilgiAlani = SayfaEni - (SolMargin + SagMargin)	
+		SayfaSonuSatirSayisi = 2
+		SayfaSonuBaslangicSatiri = (SayfaBoyu-AltMargin) - (SayfaSonuSatirSayisi*(SatirYuksekligi+2*cizgipayi))
+		res = pe1.Open(0, VPEAdi, SayfaBoyu, SayfaEni, Tip)
+	End If
+	
+	Set S29TTT = Doc.GetTableObject("STOK29T")
+	Satir_TRNUM = Trim(S29TTT.TRNUM)
+
+	Set ST29T = Doc.Select2G("xxxxcccx", "STOK29T", "TRNUM='"&Satir_TRNUM&"'", "", "LOTNUMBER", -1)
+	ST29T.SafePack
+	
+	KayitSayisi = ST29T.GetRecCount()
+	For j = 1 To KayitSayisi
+		StokKodu = Trim(ST29T.KOD(j))
+		StokAdi = Trim(ST29T.KOD_STOK00_AD(j))
+		LotNo = Trim(ST29T.LOTNUMBER(j))
+		GK3Kodu = Doc.GetDBFieldValue("STOK00","GK_3",StokKodu,"")
+		MalzemeCinsi = Trim(Doc.GetGecoValue("STKGK3", "AD", GK3Kodu, -1))
+		GelenMiktar = ST29T.SF_MIKTAR(j) & " " & ST29T.SF_SF_UNIT(j)
+		
+		KontrolYontemi = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_KYONT",0))
+		KontrolAdedi = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_KADETI",0))
+		Aciklama1 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT1",0))
+		Aciklama2 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT2",0))
+		Aciklama3 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT3",0))
+		Aciklama4 = Trim(Doc.GetQValue(StokKodu,LotNo,"","","X_NOT4",0))	
+		
+		ACIKLAMA = Aciklama1 & " " & Aciklama2 & " " & Aciklama3 & " " & Aciklama4
+		
+		rows = Doc.SelectEQ("QVAL02E", "KOD+LOTNUMBER", ST29T.KOD(j)+ST29T.LOTNUMBER(j))
+
+		If rows > 0 Then
+			Set QVAL01 = Doc.GetTableObject("AU_QVAL02E_SELECT")
+			KaliteSonucFoyNo = Trim(QVAL01.EVRAKNO(1))
+			FoyOlusmaTarihi = Doc.StrToNorDate(QVAL01.ELOG_LOGTARIH(1))
+		End If
+		
+		If j>1 Then res = pe1.PageBreak()
+		Call Print_Form_SayfaBasi()
+		Call Alanlar()
+		Call Print_Form_Satir(j)
+		Call Print_Form_SayfaSonu()
+		Set QVAL01 = Nothing
+		KaliteSonucFoyN
+
+
+----------------------------------------------------------------
+Form Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : PFRM7S
+Makro Kodu : F-FORM
+Hangi Tablo için : PFRM7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Public strfind(8)
+Sub PrintForm()
+	
+	Dim objDoc, objWord, Selection
+	Set objWord = CreateObject( "Word.Application" )
+	objWord.visible = True
+	Set objDoc = objWord.Documents.Add()
+	Set Selection = objWord.Selection
+	'objWord.Selection.EndKey 6,0
+	FirmKodu = Trim(Doc.Getd7FirmCode())
+	Uygulama = Trim(Doc.GetDocType)
+
+	Set PFR7SE = Doc.Select1("dd333d", "PFRM7SE", "", "EVRAKNO", -1)
+	'Set MKR7SE = Doc.Select1("dd333d", "MAKR7SE", "EVRAKNO = '_GNPRG1'", "", -1)
+	
+	KayitSayisi = PFR7SE.GetRecCount()
+	'-------------------------------------------------
+	'Satýr boþluk ayarýný yapar.
+	Selection.ParagraphFormat.LineSpacing = 10
+	objWord.ActiveDocument.ShowSpellingErrors = False
+	'----------------------------------------------
+	'Tab ayarýný yapar.
+	objWord.ActiveDocument.DefaultTabStop = 15
+	'---------------------------------------------
+	For i = 1 To KayitSayisi
+		EVRAKKODU_ORJ = Trim(PFR7SE.EVRAKNO(i))
+		If Left(EVRAKKODU_ORJ, 2) <> "++" Then
+			EVRAKKODU = Trim(PFR7SE.EVRAKNO(i))
+
+			Kodlar = ""
+			EKodlar = ""
+			Selection.Paragraphs.Alignment = 1   '1:wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			Selection.TypeText "Form Kaynak Kodu"
+			Selection.Typeparagraph
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.TypeText "Firma Kodu : " & FirmKodu  & " / " & "Uygulama : " &  Uygulama
+			Selection.Typeparagraph
+			Selection.TypeText "Makro Kodu : " & EVRAKKODU 
+			'------------------------
+		
+			'Selection.Paragraphs.Alignment = 1 wdAlignParagraphCenter yani üst satýrdakini ortalar.
+			'2: wdAlignParagraphRight yani üst satýrdakini saga yaslar.
+			'3: wdAlignParagraphRight yani üst satýrdakini sola yaslar.
+		
+			Selection.Paragraphs.Alignment = 3
+			Selection.Typeparagraph
+			Selection.TypeText "Hangi Tablo için : " & Trim(PFR7SE.DOCTYPE(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Ýlave Hangi Uygulamalar için : " & Trim(PFR7SE.ADDDOCTYPES(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Açýklama : " & Trim(PFR7SE.ACIKLAMA(i))
+			Selection.Typeparagraph
+			Selection.TypeText "Kod : "
+			Selection.Typeparagraph
+
+			Set PFR7ST = Doc.Select1("dd333d", "PFRM7ST", "EVRAKNO='"&EVRAKKODU&"'",">SRNUM", -1)
+
+			For k = 1 To PFR7ST.GetRecCount()
+				Selection.Font.Color = vbBlue
+				Kodlar = Kodlar & PFR7ST.SCRIPTTEXT_RO(k)
+			Next
+
+			Selection.TypeText Kodlar
+			Selection.Typeparagraph
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Typeparagraph
+			'-----------------------------------
+			Selection.Font.Color = vbBlack
+			Set PFR7SE= Doc.Select1("dd333d", "PFRM7SE", "", "", -1)
+		
+			Selection.TypeText "----------------------------------------------------------------"
+			Selection.Typeparagraph
+		End If
+	Next
+	'--------------------------------------------------------------------------
+	'Font lara makyaj
+	For j = 1  To 8
+		strfind(1) = "Makro Kaynak Kodu"
+		strfind(2) = "Makro Kodu : "
+		strfind(3) = "Hangi Tablo için : "
+		strfind(4) = "Ýlave Hangi Uygulamalar için : "
+		strfind(5) = "Açýklama : "
+		strfind(6) = "Kod : "
+		strfind(7) = "Firma Kodu : "
+		strfind(8) = "Uygulama : "
+
+		Set objRange = objWord.ActiveDocument.Content
+		
+		With objRange.Find
+		.Text = strfind(j)
+		Do
+			.Execute
+			If .Found Then
+				objRange.Font.Color = vbRed
+				objRange.Font.Bold = True
+				'If j = 1 Then objWord.ParagraphFormat.Alignment = wdAlignParagraphCenter
+			End If
+			Loop While .Found
+			End With
+		Next
+		Selection.WholeStory
+		'----------------------------------------------------
+		'Satýr sonlarýndaki boþluðu alma
+		Selection.ParagraphFormat.SpaceAfter = 0.5
+		'---------------------------------------------------
+		'Sayfanýn kenarlarýný daralt
+		With objWord.ActiveDocument.PageSetup
+			.Orientation = wdOrientLandscape
+			bosluk = 15
+			.TopMargin = bosluk
+			.BottomMargin = bosluk
+			.LeftMargin = 43
+			.RightMargin = bosluk
+		End With
+		'--------------------------------------------------------------------------
+		'Satýr numaralarý ekler
+    With Selection.PageSetup
+        With .LineNumbering
+            .Active = True
+            .StartingNumber = 1
+            .CountBy = 1
+            .RestartMode = 1
+            .DistanceFromText = 0
+        End With
+		End With
+		'--------------------------------------------------------------------------
+		objWord.visible = True
+		desktoppath = CreateObject("WScript.Shell").SpecialFolders("Desktop")
+		objDoc.SaveAs(desktoppath & "\" & FirmKodu & "_" & Uygulama)
+		Msgbox "Masaüstüne kaydedildi..."
+		Set objDoc = Nothing
+		Set oWords = Nothing
+		Set objWord = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                    
+
+
+----------------------------------------------------------------
+

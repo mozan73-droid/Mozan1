@@ -1,0 +1,3482 @@
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : *STOK00
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ STOK KODLARINI TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : *STOK01
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ad 2 yaz
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		gk1=LISTET.GK_1(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+				STOK00.NAME2=trim(gk1)&" "&trim(evrakno)
+				Doc.Save_Voucher()
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : *STOK02
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ STOK KODLARINI TOPLU OLARAK kaydetme
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			doc.save_voucher
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : 0STOK21
+Hangi Tablo için : 0STOK2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : STOK AÇILIÞ FÝÞÝNE BELÝRTÝLEN FÝYAT LÝSTESÝNDEN FÝYAT GETÝRÝR
+Kod : 
+SUB MAKRO1()
+	Dim Tbl_STOK2AT
+	Set Tbl_STOK2AT = Doc.GetTableObject("0stok2T")
+	FOR I=1 TO Tbl_STOK2AT.GETRECCOUNT()
+			fiyatlisteno="99999"
+			Set STOK48 = Doc.Select1("ABC","STOK48T","EVRAKNO='"+fiyatlisteno+"'&KOD='"+Tbl_STOK2AT.KOD(i)+"'","",-1)
+			for z=1 to STOK48.getreccount
+				Tbl_STOK2AT.OR_FIYAT(i)=doc.div(STOK48.PRICE(z), 1.1649)
+				Tbl_STOK2AT.PUNIT_ORG(i)="USD"
+				Tbl_STOK2AT.TL_FIYAT(i)= STOK48.PRICE(z)
+				Tbl_STOK2AT.TL_TUTAR(i)= STOK48.PRICE(z) * Tbl_STOK2AT.SF_MIKTAR(i)
+
+
+
+
+		next
+	NEXT
+
+
+
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : DEMIRBAS
+Hangi Tablo için : DMRB60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Excel 'den Demirbas Kartlarini Toplu Açma
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set WB = Excel.Workbooks.Open("K:\demirbas3.xls")
+	Set Sh1 = Wb.Sheets("2007 Amortisman")
+
+	colKartNo = 1
+	colDemirbasAdi = 2
+	colSatinalmaTarihi = 3
+	colSatinalmaTutaridvz = 4
+	colSatinalmaTutaripb = 5
+	colSatinalmaTutariytl = 4
+	colAmortismanOrani = 9	
+	
+
+	rowBaslangic = 22
+	rowBitis = 295
+
+	Set Doc1 = Doc.CreateDocumentNoUI("DMRB60","")
+	Set DB60E = Doc1.GetTableObject("DMRB60E")
+
+	satirSayisi = rowBitis - rowBaslangic - 1
+	For i = rowBaslangic to rowBitis
+		Doc.StatusbarMessage (i  - rowBaslangic + 1) & " / " & satirSayisi
+		DemirbasKartNo = Sh1.Cells(i,colKartNo).Value
+		k = Doc1.Load_Voucher(DemirbasKartNo)
+		if k <> 0 then
+			y = doc.d7MsgBox(DemirbasKartNo & " no.lu demirbas kaydedilemedi" & vbcrlf & "Islem Kesilmistir",MB_OK)
+			Doc1.LoadEmpty_Voucher
+			Set Doc1 = Nothing
+			Excel.Quit
+			Set Excel = Nothing
+			exit Sub
+		End if
+		DB60E.AD = Sh1.Cells(i,colDemirbasAdi).Value
+		DB60E.AMT_AYIRMA_YONTEMI = "N"
+		DB60E.AMT_ORANI = Sh1.Cells(i,colAmortismanOrani).Value
+		DB60E.SATINALMA_TUTAR = Sh1.Cells(i,colSatinalmaTutariytl).Value
+		DB60E.SATINALMA_OR_TUTAR = Sh1.Cells(i,colSatinalmaTutariDVZ).Value
+		DB60E.SATINALMA_OR_KUR = "YTL"
+		DB60E.AMTA_TABI_BEDEL = "A"
+		DB60E.DVR_YIL = "2008"
+		DB60E.DVR_DO_SKB = Sh1.Cells(i,5).Value
+		DB60E.DVR_DO_AMT_AY = Sh1.Cells(i,6).Value
+		DB60E.SATINALMA_TARIH = Sh1.Cells(i,colSatinalmaTarihi).Value
+		k = Doc1.Save_Voucher()
+		if k <> 0 then
+			y = doc.d7MsgBox(DemirbasKartNo & " no.lu demirbas kaydedilemedi" & vbcrlf & "Islem Kesilmistir",MB_OK)
+			Doc1.LoadEmpty_Voucher
+			Set Doc1 = Nothing
+			Excel.Quit
+			Set Excel = Nothing
+			exit Sub
+		End if
+	Next
+	Doc1.LoadEmpty_Voucher
+	Set Doc1 = Nothing
+	Excel.Quit
+	Set Excel = Nothing
+End Sub                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : EBYNM1
+Hangi Tablo için : EBEYNM2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÝHRAÇ KAYITLI SATIÞ FATURASI LÝSTESÝ
+Kod : 
+Option Explicit
+
+Dim FileName
+Dim SheetName
+Dim FileName2
+Dim SheetName2
+
+const xlAutomatic=-4105
+const xlCenter=-4108
+const xlLeft=-4131
+const xlRight=-4152
+const xlContext=-5002
+const xlContinuous=1
+const xlThin=2
+
+const xlEdgeBottom=9
+const xlEdgeLeft=7
+const xlEdgeRight=10
+const xlEdgeTop=8
+
+FileName="C:\Listeler\Ihrac Kayitli Satis Faturalari\Ihrac Kayitli Satis Fatura Listesi.xls"
+SheetName="Ihrac Kayitli Satis Faturalari"
+
+Sub Makro1()
+	
+	Dim i
+	Dim Excel
+	Dim Wb
+	Dim Sh
+	
+	Dim cpt
+	cpt=Doc.Customp_Gets("EBYNDOSD")
+	cpt=Trim(cpt)
+	if cpt<>"" then
+		FileName=RePlace(FileName,"C:\Listeler\",cpt)
+		if CreateIfNotExistDir(cpt+"Ihrac Kayitli Satis Faturalari") then
+			Exit Sub
+		end if
+	else
+		if CreateIfNotExistDir("C:\Listeler") then
+			Exit Sub
+		end if
+		if CreateIfNotExistDir("C:\Listeler\Ihrac Kayitli Satis Faturalari") then
+			Exit Sub
+		end if
+	end if
+	
+	Doc.StatusbarMessage "Excel Açiliyor"
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Add
+	Set Sh = Wb.Sheets(1)
+	Sh.Name = SheetName
+	
+	Dim DeleteSheets()
+	ReDim DeleteSheets(Wb.Sheets.Count)
+	
+	For i = 1 To Wb.Sheets.Count
+		If Trim(Wb.Sheets(i).Name) <> SheetName Then
+			DeleteSheets(i) = Wb.Sheets(i).Name
+		End If
+	Next
+	
+	For i = 1 To UBound(DeleteSheets)
+		If Trim(DeleteSheets(i)) <> "" Then
+			Wb.Sheets(DeleteSheets(i)).Delete
+		End If
+	Next
+	
+	Call SetHeader(Sh)
+	Call SetData(Sh)
+	
+	Call DeleteFile(FileName)
+	
+	Excel.ActiveWorkbook.SaveAs FileName
+	
+	Excel.Quit
+	Set Excel=nothing
+	
+	Doc.d7MsgBox "Oluþturulan Dosya-> "+FileName,"Freedom",MB_OK
+	
+	Dim tbl_EBEYNM2E
+	Set tbl_EBEYNM2E=Doc.GetTableObject("EBEYNM2E")
+	tbl_EBEYNM2E.XLSFILENAME1=FileName
+	
+End Sub
+Sub SetHeader(Sh)
+	
+	Call WriteCel(Sh,2, 8, 18, 3.71,  "Arial", 14, True,False,xlCenter,"","ÝHRAÇ KAYITLI SATIÞ FATURASI LiSTESÝ")
+	
+	Call WriteCel(Sh,4, 2, 76.75, 3.71,  "Arial", 10, True, True, xlCenter,"","Sýra No")
+	Call WriteCel(Sh,4, 3, 76.75, 11.86, "Arial", 10, True, True, xlCenter,"","Ýhraç Kayýtlý Satýþ Faturasýnýn Tarihi")
+	Call WriteCel(Sh,4, 4, 76.75, 7.86,  "Arial", 10, True, True, xlCenter,"","Ýhraç Kayýtlý Satýþ Faturasýnýn Serisi")
+	Call WriteCel(Sh,4, 5, 76.75, 10.29, "Arial", 10, True, True, xlCenter,"","Ýhraç Kayýtlý Satýþ Faturasýnýn Sira No'su")
+	Call WriteCel(Sh,4, 6, 76.75, 20, "Arial", 10, True, True, xlCenter,"","Alýcýnýn Adý-Soyadý / Ünvaný")
+	Call WriteCel(Sh,4, 7, 76.75, 14,  "Arial", 10, True, True, xlCenter,"","Alýcýnýn Vergi Kimlik Numarasý / TC Kimlik Numarasý")
+	Call WriteCel(Sh,4, 8, 76.75, 16.29, "Arial", 10, True, True, xlCenter,"","Malýn Cinsi")
+	Call WriteCel(Sh,4, 9, 76.75, 11.14, "Arial", 10, True, True, xlCenter,"","Malýn Miktarý")
+	Call WriteCel(Sh,4,10, 76.75, 12,  "Arial", 10, True, True, xlCenter,"","Malýn KDV Hariç Tutarý")
+	Call WriteCel(Sh,4,11, 76.75, 8.43,  "Arial", 10, True, True, xlCenter,"","Malýn KDV'si")
+	Call WriteCel(Sh,4,12, 76.75, 15,  "Arial", 10, True, True, xlCenter,"","Ýhracatçý Tarafýndan Yurt Dýþýna Düzenlenen Satýþ Faturasýnýn Tarihi(GÇB Üzerindeki Bilgiler)")
+	Call WriteCel(Sh,4,13, 76.75, 13.57, "Arial", 10, True, True, xlCenter,"","GÇB Tescil No")
+End Sub
+
+Sub SetData(Sh)
+	Dim i
+	Dim tbl_EBEYNM21
+	Dim FT_IVD_KH_TOPLAM
+	Dim FT_KDV_TUTARI
+	Dim Qstr,S70T
+	Dim Donembasi,donemsonu
+	' Set tbl_EBEYNM21=Doc.GetTableObject("EBEYNM21")
+	
+	Donembasi = "01"& "/"& EBEYNM2E.IDB_AY &"/"& EBEYNM2E.IDB_YIL
+	Donembasi = Doc.AyinilkGunu(Donembasi)
+	Donemsonu = Doc.AyinSonGunu(Donembasi)
+	
+	Set tbl_EBEYNM21 = Doc.Select1G("ds1224","STOK70T","NITELIK='XK' & TARIH >= '"& Donembasi  &"' & TARIH <= '"& Donemsonu &"'","","EVRAKNO",-1)
+	
+	'    QStr = "SELECT STOK70T.* FROM STOK70T"
+	'    QStr = QStr & " LEFT JOIN STOK70E ON STOK70T.EVRAKNO=STOK70E.EVRAKNO"
+	'    QStr = QStr & " WHERE STOK70E.NITELIK='XK'"
+	'    QStr = QStr & " GROUP BY EVRAKNO"
+	
+	'    Set S70T = Doc.RunSQLQuery("vedrg35h35hgtfhg", QStr)
+	
+	Dim tbl_EBEYNM2A,tbl_EBYNM222
+	Set tbl_EBEYNM2A=Doc.GetTableObject("EBEYNM2A")
+	Dim ftserino,ftsirano,chkodu, chkoduadi,vergino,KDVharic,KDV,gcbtarih,gcbno,KDVharic_TOPLAM, KDV_TUTARI
+	Dim miktar,zz,sira_no,tanim,gcb1,gcb2,zzz,faturagosterimsayisi
+	
+	sira_no = 0
+	
+	for i=1 to tbl_EBEYNM21.GetRecCount()
+		tbl_EBEYNM21.SetCurrentRow i
+		
+		faturagosterimsayisi = 1
+		gcb1 = Doc.GetUDFValue("STOK70E",tbl_EBEYNM21.EVRAKNO(i),"GCBN",0)
+		gcb2 = Doc.GetUDFValue("STOK70E",tbl_EBEYNM21.EVRAKNO(i),"GCBNA",0)
+		
+		if trim(gcb1) = "" then
+			faturagosterimsayisi = 1
+		Elseif trim(gcb1) <> "" and trim(gcb2) = "" then
+			faturagosterimsayisi = 2
+		Elseif trim(gcb2) <> "" then
+			faturagosterimsayisi = 3
+		End if
+		
+		for zzz=1 to faturagosterimsayisi
+			
+			'  sira_no = i
+			sira_no = sira_no + 1
+			
+			ftserino = Doc.GetDBFieldValue("STOK70E","OR_FATURASERINO",tbl_EBEYNM21.EVRAKNO(i),"")
+			ftsirano = Doc.GetDBFieldValue("STOK70E","OR_FATURASIRANO",tbl_EBEYNM21.EVRAKNO(i),"")
+			chkodu = Doc.GetDBFieldValue("STOK70E","CH_KODU",tbl_EBEYNM21.EVRAKNO(i),"")
+			chkoduadi = Doc.GetDBFieldValue("CARI00","AD",chkodu,"")
+			vergino = Doc.GetDBFieldValue("CARI00","VERGINO",chkodu,"")
+			miktar=""
+			KDVharic = Doc.GetDBFieldValue("STOK70E","TL_IVD_KH_TOPLAM",tbl_EBEYNM21.EVRAKNO(i),"")
+			KDV = Doc.GetDBFieldValue("STOK70E","TL_KDVLERTOPLAM",tbl_EBEYNM21.EVRAKNO(i),"")
+
+			if zzz=1 then
+				gcbtarih = Doc.GetDBFieldValue("STOK70E","GCBTARIHI",tbl_EBEYNM21.EVRAKNO(i),"")
+				gcbtarih = Doc.StrToNorDate(gcbtarih)
+				gcbno = Doc.GetDBFieldValue("STOK70E","GCBNO",tbl_EBEYNM21.EVRAKNO(i),"")
+			elseif zzz=2 then
+				gcbno = gcb1
+				gcbtarih = Doc.GetUDFValue("STOK70E",tbl_EBEYNM21.EVRAKNO(i),"GCBT",0)
+			elseif zzz=3 then
+				gcbno = gcb2
+				gcbtarih = Doc.GetUDFValue("STOK70E",tbl_EBEYNM21.EVRAKNO(i),"GCBTA",0)
+			End if
+
+			tanim = Doc.GetUDFValue("STOK70E",tbl_EBEYNM21.EVRAKNO(i),"URUN",0)
+			
+			Doc.StatusbarMessage sira_no & ". Satir Formatlanip Yaziliyor"
+			
+			
+			Set tbl_EBYNM222 = Doc.Select1G("d20014","STOK70T","NITELIK='XK' & EVRAKNO = '"& tbl_EBEYNM21.EVRAKNO(i) &"'& TARIH >= '"& Donembasi  &"' & TARIH <= '"& Donemsonu &"'","","EVRAKNO+SF_SF_UNIT",-1)
+			For zz = 1 to tbl_EBYNM222.GetRecCount()
+				miktar = miktar &" "& tbl_EBYNM222.SF_MIKTAR(zz) &" "& tbl_EBYNM222.SF_SF_UNIT(zz)
+			Next
+			Call WriteCel(Sh,sira_no +4, 2, 12, 3.71, "Arial", 9, True, True, xlCenter,"",  AlanUzunluklari(sira_no, tbl_EBEYNM21,i,tbl_EBEYNM2A,"SIRANO",       "CFLAG2","L"))
+			Call WriteCel(Sh,sira_no +4, 3, 12, 11.86, "Arial", 9, True, True, xlLeft,"dd.mm.yyyy",      tbl_EBEYNM21.TARIH)
+			Call WriteCel(Sh,sira_no +4, 4, 12, 7.86, "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(ftserino, tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SERINO",       "CFLAG3","L"))
+			Call WriteCel(Sh,sira_no +4, 5, 12, 10.29, "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(ftsirano, tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SIRANO",        "CFLAG4","L"))
+			Call WriteCel(Sh,sira_no +4, 6, 12, 20,  "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(chkoduadi, tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SATICI_UNVAN",  "CFLAG5","L"))
+			Call WriteCel(Sh,sira_no +4, 7, 12, 14,  "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(vergino , tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_ARACI_FRM_VDNTCNO", "CFLAG6","L"))
+			Call WriteCel(Sh,sira_no +4, 8, 12, 16.29, "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(tanim,  tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_MAL_V_HIZMETCINSI", "CFLAG7","L"))
+			Call WriteCel(Sh,sira_no +4, 9, 12, 11.14, "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(miktar , tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_MAL_V_HIZMETMIKTR", "CFLAG8","L"))
+			Call WriteCel(Sh,sira_no +4,10, 12, 15,  "Arial", 9, True, True, xlRight,"#,##0.00", AlanUzunluklari(KDVharic , tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_IVD_KH_TOPLAM",  "CFLAG9","R"))
+			Call WriteCel(Sh,sira_no +4,11, 12, 15,  "Arial", 9, True, True, xlRight,"#,##0.00", AlanUzunluklari(KDV,  tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_KDV_TUTARI",  "CFLAG10","R"))
+			Call WriteCel(Sh,sira_no +4,12, 12, 15,  "Arial", 9, True, True, xlCenter,"@",  AlanUzunluklari(gcbtarih , tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_TARIHI",   "CFLAG11","L"))
+			Call WriteCel(Sh,sira_no +4,13, 12, 13.57, "Arial", 9, True, True, xlLeft,"@",   AlanUzunluklari(gcbno ,  tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_GCBNO",   "CFLAG12","L"))
+		Next
+		KDVharic_TOPLAM = KDVharic_TOPLAM + KDVharic
+		KDV_TUTARI = KDV_TUTARI + KDV
+		
+	next
+	
+	tbl_EBEYNM21.SetCurrentRow 1
+	
+	FT_IVD_KH_TOPLAM=Doc.dRound(KDVharic_TOPLAM)
+	FT_KDV_TUTARI=Doc.dRound(KDV_TUTARI)
+	
+	Dim Sum1
+	Dim Sum2
+	
+	Sum1="=SUM(J5:J@)"
+	Sum2="=SUM(K5:K@)"
+	
+'	Sum1=RePlace(Sum1,"J@","J"&i+4-1)
+'	Sum2=RePlace(Sum2,"K@","K"&i+4-1)
+
+	Sum1 = FT_IVD_KH_TOPLAM
+	Sum2 = FT_KDV_TUTARI
+	
+	Call WriteCel(Sh,sira_no+5,  9, 12, 11.14,"Arial", 9, True, True, xlLeft,"","TOPLAM")
+	Call WriteCel(Sh,sira_no+5, 10, 12, 15, "Arial", 9, True, True, xlRight,"#,##0.00",Sum1)
+	Call WriteCel(Sh,sira_no+5, 11, 12, 15, "Arial", 9, True, True, xlRight,"#,##0.00",Sum2)
+	
+End Sub
+
+
+Function CreateIfNotExistDir(vDr)
+	Dim fs
+	Dim newfolder
+	CreateIfNotExistDir=False
+	Set fs=CreateObject("Scripting.FileSystemObject")
+	if Not fs.FolderExists(vDr) then
+		Set newfolder=fs.CreateFolder(vDr)
+		if Not IsObject(newfolder) then
+			CreateIfNotExistDir=TRUE
+			Doc.d7MsgBox vDr + " Dizin Oluþturulamiyor.","Freedom",MB_OK
+			Exit Function
+		end if
+	end if
+	set fs=nothing
+End Function
+
+Sub WriteCel(ObjSheet,RowNum, ColNum, pRowHeight, pColumnWidth, FontName, FontSize, FontBold, pWrapText,pHorizontalAlignment,pNumberFormat,pAciklama)
+	With ObjSheet.Cells(RowNum, ColNum)
+	if Trim(pNumberFormat)<>"" then
+		.NumberFormat = pNumberFormat
+	end if
+	'        .FormulaR1C1 = pAciklama
+	.Formula = pAciklama
+	'        .RowHeight = pRowHeight '76.75
+	.HorizontalAlignment = pHorizontalAlignment 'xlCenter
+	.VerticalAlignment = xlCenter
+	.WrapText = pWrapText 'True
+	.Orientation = 0
+	.AddIndent = False
+	.IndentLevel = 0
+	.ShrinkToFit = False
+	.ReadingOrder = xlContext
+	.MergeCells = False
+	.Font.Name = FontName '"Arial"
+	.Font.Size = FontSize '9
+	.Font.Bold = FontBold 'True
+	.ColumnWidth = pColumnWidth '3.71
+	End With
+	With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeLeft)
+	.LineStyle = xlContinuous
+	.Weight = xlThin
+	.ColorIndex = xlAutomatic
+	End With
+	With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeTop)
+	.LineStyle = xlContinuous
+	.Weight = xlThin
+	.ColorIndex = xlAutomatic
+	End With
+	With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeBottom)
+	.LineStyle = xlContinuous
+	.Weight = xlThin
+	.ColorIndex = xlAutomatic
+	End With
+	With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeRight)
+	.LineStyle = xlContinuous
+	.Weight = xlThin
+	.ColorIndex = xlAutomatic
+	End With
+	
+End Sub
+
+
+Function AlanUzunluklari(XmlValue,tbl_T,i,tbl_L,LenFieldName,FlagFieldName,JusTify)
+	Dim FieldLen
+	Dim Fieldflag
+	AlanUzunluklari="" & XmlValue
+	AlanUzunluklari=Trim(AlanUzunluklari)
+	AlanUzunluklari=RePlace(AlanUzunluklari,Space(2),Space(1))
+	AlanUzunluklari=RePlace(AlanUzunluklari,Space(2),Space(1))
+	
+	if Len(AlanUzunluklari)<=0 then Exit Function
+	
+	FieldLen=tbl_L.GetFieldValue(LenFieldName,-1)
+	Fieldflag=tbl_L.GetFieldValue(FlagFieldName,-1)
+	
+	if FieldLen=0 then Exit Function
+	if Trim(Fieldflag)="1" then
+		if JusTify="R" then
+			AlanUzunluklari=Right(AlanUzunluklari,FieldLen)
+		elseif JusTify="L" then
+			AlanUzunluklari=Left(AlanUzunluklari,FieldLen)
+		end if
+		Exit Function
+	end if
+	
+	if Len(AlanUzunluklari)>FieldLen then
+		Doc.d7MsgBox i & ". Satir. Belirtilen Alan("+LenFieldName+") Uzunluðu=" & FieldLen & " Yazilmaya Çaliþilan Bilginin Uzunluðu=" & Len(AlanUzunluklari),"Freedom",MB_OK
+		AlanUzunluklari=" "
+	end if
+End Function
+
+
+Sub DeleteFile(FileName)
+	dim fs
+	Set fs=CreateObject("Scripting.FileSystemObject")
+	if fs.FileExists(FileName) then
+		fs.DeleteFile(FileName)
+	end if
+	set fs=nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : EBYNM2
+Hangi Tablo için : EBEYNM2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : TEVKÝFATLI SATIÞLARA ÝLÝÞKÝN SATIÞ FATURASI LÝSTESÝ
+Kod : 
+Option Explicit
+
+Dim FileName
+Dim SheetName
+Dim FileName2
+Dim SheetName2
+
+const xlAutomatic=-4105
+const xlCenter=-4108
+const xlLeft=-4131
+const xlRight=-4152
+const xlContext=-5002
+const xlContinuous=1
+const xlThin=2
+
+const xlEdgeBottom=9
+const xlEdgeLeft=7
+const xlEdgeRight=10
+const xlEdgeTop=8
+
+FileName="C:\Listeler\Tevkifatli Satis Faturalari\Tevkifatli Satis Fatura Listesi.xls"
+SheetName="Tevkifatli Satis Faturalari"
+
+Sub Makro1()
+
+	Dim i
+	Dim Excel
+	Dim Wb
+	Dim Sh
+
+	Dim cpt
+	cpt=Doc.Customp_Gets("EBYNDOSD")
+	cpt=Trim(cpt) 
+	if cpt<>"" then
+		FileName=RePlace(FileName,"C:\Listeler\",cpt)
+		if CreateIfNotExistDir(cpt+"Tevkifatli Satis Faturalari") then
+			Exit Sub
+		end if
+	else
+		if CreateIfNotExistDir("C:\Listeler") then
+			Exit Sub
+		end if
+		if CreateIfNotExistDir("C:\Listeler\Tevkifatli Satis Faturalari") then
+			Exit Sub
+		end if
+	end if
+
+	Doc.StatusbarMessage "Excel Açiliyor"
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Add
+	Set Sh = Wb.Sheets(1)
+	Sh.Name = SheetName	
+
+	Dim DeleteSheets()
+	ReDim DeleteSheets(Wb.Sheets.Count)
+
+	For i = 1 To Wb.Sheets.Count
+	  If Trim(Wb.Sheets(i).Name) <> SheetName Then
+			DeleteSheets(i) = Wb.Sheets(i).Name
+	  End If
+	Next
+
+	For i = 1 To UBound(DeleteSheets)
+	  If Trim(DeleteSheets(i)) <> "" Then
+			Wb.Sheets(DeleteSheets(i)).Delete
+	  End If
+	Next	
+
+	Call SetHeader(Sh)
+	Call SetData(Sh)
+
+	Call DeleteFile(FileName) 
+
+	Excel.ActiveWorkbook.SaveAs FileName
+
+	Excel.Quit
+	Set Excel=nothing
+
+	Doc.d7MsgBox "Oluþturulan Dosya-> "+FileName,"Freedom",MB_OK
+
+	Dim tbl_EBEYNM2E
+	Set tbl_EBEYNM2E=Doc.GetTableObject("EBEYNM2E")
+	tbl_EBEYNM2E.XLSFILENAME1=FileName
+
+End Sub
+Sub SetHeader(Sh)
+
+	Call WriteCel(Sh,2, 8, 18, 3.71,		"Arial", 14, True,False,xlCenter,"","TEVKÝFATLI SATIÞLARA ÝLÝÞKÝN SATIÞ FATURASI LÝSTESÝ")
+
+	Call WriteCel(Sh,4, 2, 76.75, 3.71,		"Arial", 10, True, True, xlCenter,"","Sýra No")
+	Call WriteCel(Sh,4, 3, 76.75, 11.86,	"Arial", 10, True, True, xlCenter,"","Satýþ Faturasýnýn Tarihi")
+	Call WriteCel(Sh,4, 4, 76.75, 7.86,		"Arial", 10, True, True, xlCenter,"","Satýþ Faturasýnýn Serisi")
+	Call WriteCel(Sh,4, 5, 76.75, 10.29,	"Arial", 10, True, True, xlCenter,"","Satýþ Faturasýnýn Sira No'su")
+	Call WriteCel(Sh,4, 6, 76.75, 20,	"Arial", 10, True, True, xlCenter,"","Alýcýnýn Adý-Soyadý / Ünvaný")	
+	Call WriteCel(Sh,4, 7, 76.75, 14,		"Arial", 10, True, True, xlCenter,"","Alýcýnýn Vergi Kimlik Numarasý / TC Kimlik Numarasý")	
+	Call WriteCel(Sh,4, 8, 76.75, 16.29,	"Arial", 10, True, True, xlCenter,"","Satýlan Mal ve/veya Hizmetin Cinsi")	
+	Call WriteCel(Sh,4, 9, 76.75, 11.14,	"Arial", 10, True, True, xlCenter,"","Satýlan Mal ve/veya Hizmetin Miktarý")
+	Call WriteCel(Sh,4,10, 76.75, 12,		"Arial", 10, True, True, xlCenter,"","Satýlan Mal ve/veya Hizmetin KDV Hariç Tutarý")
+	Call WriteCel(Sh,4,11, 76.75, 8.43,		"Arial", 10, True, True, xlCenter,"","KDV'si")
+	Call WriteCel(Sh,4,12, 76.75, 15,		"Arial", 10, True, True, xlCenter,"","Yapýlan Tevkifat Tutarý")
+End Sub
+
+Sub SetData(Sh)
+	Dim i
+	Dim tbl_EBEYNM21
+	Dim FT_IVD_KH_TOPLAM
+	Dim FT_KDV_TUTARI
+	Dim Qstr,S70T
+	Dim Donembasi,donemsonu
+'	Set tbl_EBEYNM21=Doc.GetTableObject("EBEYNM21")
+
+	Donembasi = "01"& "/"& EBEYNM2E.IDB_AY &"/"& EBEYNM2E.IDB_YIL
+	Donemsonu = Doc.AyinSonGunu(Donembasi)
+
+	Set tbl_EBEYNM21 = Doc.Select1G("ds1224","STOK70T","NITELIK='Z3' & TARIH >= '"& Donembasi  &"' & TARIH <= '"& Donemsonu &"'","","EVRAKNO",-1)
+
+'    QStr = "SELECT STOK70T.* FROM STOK70T"
+'    QStr = QStr & " LEFT JOIN STOK70E ON STOK70T.EVRAKNO=STOK70E.EVRAKNO"
+'    QStr = QStr & " WHERE STOK70E.NITELIK='Z3'"
+'    QStr = QStr & " GROUP BY EVRAKNO"
+
+'    Set S70T = Doc.RunSQLQuery("vedrg35h35hgtfhg", QStr) 
+
+	
+	Dim tbl_EBEYNM2A,tbl_EBYNM222
+	Set tbl_EBEYNM2A=Doc.GetTableObject("EBEYNM2A")
+	Dim ftserino,ftsirano,chkodu, chkoduadi,vergino,KDVharic,KDV,tevkifat,gcbno,KDVharic_TOPLAM,Tevkifat_TOPLAM, KDV_TUTARI,miktar,zz,sira_no
+
+	for i=1 to tbl_EBEYNM21.GetRecCount()
+		tbl_EBEYNM21.SetCurrentRow i
+
+		sira_no = i
+		ftserino = Doc.GetDBFieldValue("STOK70E","OR_FATURASERINO",tbl_EBEYNM21.EVRAKNO(i),"")
+		ftsirano = Doc.GetDBFieldValue("STOK70E","OR_FATURASIRANO",tbl_EBEYNM21.EVRAKNO(i),"")
+		chkodu = Doc.GetDBFieldValue("STOK70E","CH_KODU",tbl_EBEYNM21.EVRAKNO(i),"")
+		chkoduadi = Doc.GetDBFieldValue("CARI00","AD",chkodu,"")
+		vergino = Doc.GetDBFieldValue("CARI00","VERGINO",chkodu,"")
+		miktar=""
+		KDVharic = Doc.GetDBFieldValue("STOK70E","TL_IVD_KH_TOPLAM",tbl_EBEYNM21.EVRAKNO(i),"")
+		KDV = Doc.GetDBFieldValue("STOK70E","TL_KDVLERTOPLAM",tbl_EBEYNM21.EVRAKNO(i),"")
+		tevkifat = Doc.GetDBFieldValue("STOK70E","TL_KESINTI1",tbl_EBEYNM21.EVRAKNO(i),"")
+
+
+		Doc.StatusbarMessage i & ". Satir Formatlanip Yaziliyor"
+
+'		AlanDegeri = AlanUzunluklari(ftserino,				tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SERINO","CFLAG3","L")
+'		Call WriteCel(Sh,i+4, 4, 12, 7.86,	"Arial", 9, True, True, xlLeft,"@",	AlanDegeri)
+
+		Set tbl_EBYNM222 = Doc.Select1G("d20014","STOK70T","NITELIK='Z3' & EVRAKNO = '"& tbl_EBEYNM21.EVRAKNO(i) &"'& TARIH >= '"& Donembasi  &"' & TARIH <= '"& Donemsonu &"'","","EVRAKNO+SF_SF_UNIT",-1)
+		For zz = 1 to tbl_EBYNM222.GetRecCount()
+			miktar = miktar &" "& tbl_EBYNM222.SF_MIKTAR(zz) &" "& tbl_EBYNM222.SF_SF_UNIT(zz)
+		Next
+		Call WriteCel(Sh,i+4, 2, 12, 3.71,	"Arial", 9, True, True, xlCenter,"",		AlanUzunluklari(sira_no,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"SIRANO",	    		"CFLAG2","L"))
+		Call WriteCel(Sh,i+4, 3, 12, 11.86,	"Arial", 9, True, True, xlLeft,"dd.mm.yyyy",					tbl_EBEYNM21.TARIH)
+		Call WriteCel(Sh,i+4, 4, 12, 7.86,	"Arial", 9, True, True, xlLeft,"@",			AlanUzunluklari(ftserino,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SERINO",	    		"CFLAG3","L"))
+		Call WriteCel(Sh,i+4, 5, 12, 10.29,	"Arial", 9, True, True, xlLeft,"@",			AlanUzunluklari(ftsirano,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SIRANO",      		"CFLAG4","L"))
+		Call WriteCel(Sh,i+4, 6, 12, 20,		"Arial", 9, True, True, xlLeft,"@",			AlanUzunluklari(chkoduadi,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_SATICI_UNVAN",		"CFLAG5","L"))
+		Call WriteCel(Sh,i+4, 7, 12, 14,		"Arial", 9, True, True, xlLeft,"@",			AlanUzunluklari(vergino ,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_ARACI_FRM_VDNTCNO",	"CFLAG6","L"))
+		Call WriteCel(Sh,i+4, 8, 12, 16.29,	"Arial", 9, True, True, xlLeft,"@",			AlanUzunluklari("",		tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_MAL_V_HIZMETCINSI",	"CFLAG7","L"))
+		Call WriteCel(Sh,i+4, 9, 12, 11.14,	"Arial", 9, True, True, xlLeft,"@",			AlanUzunluklari(miktar ,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_MAL_V_HIZMETMIKTR",	"CFLAG8","L"))
+		Call WriteCel(Sh,i+4,10, 12, 15,		"Arial", 9, True, True, xlRight,"#,##0.00",	AlanUzunluklari(KDVharic ,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_IVD_KH_TOPLAM",		"CFLAG9","R"))
+		Call WriteCel(Sh,i+4,11, 12, 15,		"Arial", 9, True, True, xlRight,"#,##0.00",	AlanUzunluklari(KDV,		tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_KDV_TUTARI",		"CFLAG10","R"))
+		Call WriteCel(Sh,i+4,12, 12, 15,		"Arial", 9, True, True, xlRight,"#,##0.00",	AlanUzunluklari(tevkifat ,	tbl_EBEYNM21,i,tbl_EBEYNM2A,"FT_TARIHI",			"CFLAG11","R"))
+
+		KDVharic_TOPLAM=KDVharic_TOPLAM+KDVharic 
+		KDV_TUTARI=KDV_TUTARI+KDVharic
+		Tevkifat_TOPLAM=Tevkifat_TOPLAM+tevkifat
+	next
+
+	tbl_EBEYNM21.SetCurrentRow 1
+
+	FT_IVD_KH_TOPLAM=Doc.dRound(KDVharic_TOPLAM)
+	FT_KDV_TUTARI=Doc.dRound(KDV_TUTARI)
+
+	Dim Sum1
+	Dim Sum2
+	Dim Sum3
+
+	Sum1="=SUM(J5:J@)"
+	Sum2="=SUM(K5:K@)"
+	Sum3="=SUM(L5:L@)"
+
+	Sum1=RePlace(Sum1,"J@","J"&i+4-1)
+	Sum2=RePlace(Sum2,"K@","K"&i+4-1)
+	Sum3=RePlace(Sum3,"L@","L"&i+4-1)
+
+'	Call WriteCel(Sh,i+4,14, 12, 16.14,	"Arial", 9, True, True, xlLeft,"=SUM()")
+	Call WriteCel(Sh,i+4,  9, 12, 11.14,"Arial", 9, True, True, xlLeft,"","TOPLAM")
+'	Call WriteCel(Sh,i+4, 10, 12, 15,	"Arial", 9, True, True, xlRight,"#,##0.00",FT_IVD_KH_TOPLAM)
+'	Call WriteCel(Sh,i+4, 11, 12, 15,	"Arial", 9, True, True, xlRight,"#,##0.00",FT_KDV_TUTARI)
+	Call WriteCel(Sh,i+4, 10, 12, 15,	"Arial", 9, True, True, xlRight,"#,##0.00",Sum1)
+	Call WriteCel(Sh,i+4, 11, 12, 15,	"Arial", 9, True, True, xlRight,"#,##0.00",Sum2)
+	Call WriteCel(Sh,i+4, 12, 12, 15,	"Arial", 9, True, True, xlRight,"#,##0.00",Sum3)
+
+End Sub
+
+
+Function CreateIfNotExistDir(vDr)
+	Dim fs
+	Dim newfolder
+	CreateIfNotExistDir=False
+	Set fs=CreateObject("Scripting.FileSystemObject")
+	if Not fs.FolderExists(vDr) then
+		Set newfolder=fs.CreateFolder(vDr) 
+		if Not IsObject(newfolder) then
+			CreateIfNotExistDir=TRUE
+			Doc.d7MsgBox vDr + " Dizin Oluþturulamiyor.","Freedom",MB_OK
+			Exit Function
+		end if
+	end if
+	set fs=nothing	
+End Function
+
+Sub WriteCel(ObjSheet,RowNum, ColNum, pRowHeight, pColumnWidth, FontName, FontSize, FontBold, pWrapText,pHorizontalAlignment,pNumberFormat,pAciklama)
+    With ObjSheet.Cells(RowNum, ColNum)
+		  if Trim(pNumberFormat)<>"" then
+			  .NumberFormat = pNumberFormat
+		  end if
+'        .FormulaR1C1 = pAciklama
+			.Formula = pAciklama
+'        .RowHeight = pRowHeight '76.75
+        .HorizontalAlignment = pHorizontalAlignment 'xlCenter
+        .VerticalAlignment = xlCenter
+        .WrapText = pWrapText 'True
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+        .Font.Name = FontName '"Arial"
+        .Font.Size = FontSize '9
+        .Font.Bold = FontBold 'True
+        .ColumnWidth = pColumnWidth '3.71
+    End With
+    With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = xlAutomatic
+    End With
+    With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = xlAutomatic
+    End With
+    With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        .ColorIndex = xlAutomatic
+    End With
+		With ObjSheet.Cells(RowNum, ColNum).Borders(xlEdgeRight)
+			.LineStyle = xlContinuous
+			.Weight = xlThin
+			.ColorIndex = xlAutomatic
+    End With
+
+End Sub
+
+
+Function AlanUzunluklari(XmlValue,tbl_T,i,tbl_L,LenFieldName,FlagFieldName,JusTify)
+	Dim FieldLen
+	Dim Fieldflag
+	AlanUzunluklari="" & XmlValue
+	AlanUzunluklari=Trim(AlanUzunluklari)
+	AlanUzunluklari=RePlace(AlanUzunluklari,Space(2),Space(1))
+	AlanUzunluklari=RePlace(AlanUzunluklari,Space(2),Space(1))
+
+	if Len(AlanUzunluklari)<=0 then Exit Function
+
+	FieldLen=tbl_L.GetFieldValue(LenFieldName,-1)
+	Fieldflag=tbl_L.GetFieldValue(FlagFieldName,-1)
+
+	if FieldLen=0 then Exit Function
+	if Trim(Fieldflag)="1" then
+		if JusTify="R" then
+			AlanUzunluklari=Right(AlanUzunluklari,FieldLen)
+		elseif JusTify="L" then
+			AlanUzunluklari=Left(AlanUzunluklari,FieldLen)
+		end if
+		Exit Function
+	end if
+
+	if Len(AlanUzunluklari)>FieldLen then
+		Doc.d7MsgBox i & ". Satir. Belirtilen Alan("+LenFieldName+") Uzunluðu=" & FieldLen & " Yazilmaya Çaliþilan Bilginin Uzunluðu=" & Len(AlanUzunluklari),"Freedom",MB_OK
+		AlanUzunluklari=" "
+	end if
+End Function
+
+
+Sub DeleteFile(FileName)
+	dim fs
+	Set fs=CreateObject("Scripting.FileSystemObject")
+	if fs.FileExists(FileName) then
+	  fs.DeleteFile(FileName)
+	end if
+	set fs=nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : FIYAT
+Hangi Tablo için : STOK48
+Ýlave Hangi Uygulamalar için : 
+Açýklama : TOPLU FIYAT GUNCELLEME OPERASYONU
+Kod : 
+Sub Makro1()
+
+Call FiyatGuncelle
+
+End Sub
+
+
+Sub FiyatGuncelle()
+	Set S48E =Doc.GetTableObject("STOK48E")
+	Set S48T=Doc.GetTableObject("STOK48T")
+	dosya="C:\Documents and Settings\Berna_cigizoglu\Desktop\1 ARALIK 2008\DINAMO FL\WATERS 2009.xls"
+  Doc.StatusbarMessage "Excel Açýlýyor"
+  Set Excel = CreateObject("Excel.Application")
+  Set Wb = Excel.Workbooks.Open(dosya,,True)
+  Set Sh = Wb.Sheets("Sayfa1")
+	if trim(dosya)="" then exit sub
+  Doc.StatusbarMessage "Fiyat Listesi güncelleniyor.Lütfen Bekleyiniz..!"
+  Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(dosya,,True)
+  Set Sh = Wb.Sheets("Sayfa1")
+dim bulundu
+for i = 3 to 1000
+bulundu=false
+	StokKodu=trim(Sh.Cells(i,3).value)
+	YeniPrice=sh.Cells(i,7).value
+	YeniPUNIT=trim(sh.Cells(i,8).Value)
+	for j=1 to s48T.GetRecCount
+		Kod=trim(S48T.KOD(j))
+		EskiPrice=trim(S48T.PRICE(j))
+		Katsayi=trim(Doc.GetKartValue("STOK00","B_B_TECH_1",Kod,-1))
+		EskiPrice=trim(S48T.PRICE(j))
+		if (StokKodu=Kod) and (Yeniprice<>Eskiprice) and (Katsayi>0) then
+		 	S48T.SetCurrentRow(j)
+        S48T.PRICE = YeniPrice/Katsayi
+        S48T.PRICEUNIT=trim(sh.Cells(i,8).Value)
+		elseif (StokKodu=Kod) and (Yeniprice<>Eskiprice) then
+				S48T.SetCurrentRow(j)
+        	S48T.PRICE = YeniPrice
+        	S48T.PRICEUNIT=trim(sh.Cells(i,8).Value)
+		end if	
+		if StokKodu=Kod then
+			bulundu=true
+			exit for
+		end if
+  next
+	if bulundu=false  then
+			Ykod=Stokkodu
+			satir=S48T.AddRow()
+			S48T.SetCurrentRow(satir)
+			S48T.KOD(satir)=Ykod
+			S48T.PRICE(satir) = trim(sh.Cells(i,7).value)
+       S48T.PRICEUNIT(satir)=trim(sh.Cells(i,8).Value)
+	end if
+	'	if trim(Sh.Cells(i,3).value)="" then exit for
+Next
+'	Kaydet=Doc.Save_Voucher
+	Wb.Close 
+	Excel.Quit
+	Set Sh = Nothing
+	Set Wb = Nothing
+	Set Excel = Nothing
+End Sub                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : FIYAT1
+Hangi Tablo için : STOK48
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LIKROM FIYAT LÝSTESÝ GÜNCELLEME
+Kod : 
+Public Kod,Katsayi,StokKodu
+
+Sub Makro1()
+
+dosya=trim(inputbox("Lütfen Excel dosyasýnýn tam yolunu girin",""))
+	if dosya="" then
+		MsgBox("Belirtilen yolda excel dosyasý bulunamýyor.Ýþlem iptal edilmiþtir.")
+		exit sub
+	elseif dosya<>"" then
+		if right(dosya,4)=".xls" then
+			Call FiyatGuncelle(dosya)
+		else
+			Msgbox("Belirtilen dosya excel dosyasý deðil.")
+			exit sub
+		end if
+	end if
+End Sub
+
+
+Sub FiyatGuncelle(dosya)
+	Set S48E =Doc.GetTableObject("STOK48E")
+	Set S48T=Doc.GetTableObject("STOK48T")
+  Doc.StatusbarMessage "Excel Açýlýyor"
+  Set Excel = CreateObject("Excel.Application")
+  Set Wb = Excel.Workbooks.Open(dosya,,True)
+  Set Sh = Wb.Sheets("Sayfa1")
+	if trim(dosya)="" then exit sub
+  Doc.StatusbarMessage "Fiyat Listesi güncelleniyor.Lütfen Bekleyiniz..!"
+  Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(dosya,,True)
+  Set Sh = Wb.Sheets("Sayfa1")
+dim bulundu
+for i = 3 to 65565
+bulundu=false
+	StokKodu=trim(Sh.Cells(i,3).value)
+	YeniPrice=sh.Cells(i,7).value
+	YeniPUNIT=trim(sh.Cells(i,8).Value)
+	for j=1 to s48T.GetRecCount
+		Kod=trim(S48T.KOD(j))
+		EskiPrice=trim(S48T.PRICE(j))
+		Katsayi=trim(Doc.GetKartValue("STOK00","B_B_TECH_1",Kod,-1))
+		EskiPrice=trim(S48T.PRICE(j))
+		if (StokKodu=Kod) and (Yeniprice<>Eskiprice) and (KatSayi>0) then
+		 	S48T.SetCurrentRow(j)
+        S48T.PRICE = Doc.NumFormat_NLZ(YeniPrice/Katsayi,5,0)
+        S48T.PRICEUNIT=trim(sh.Cells(i,8).Value)
+		elseif (StokKodu=Kod) and (Yeniprice<>Eskiprice) and (katsayi=0) then
+				S48T.SetCurrentRow(j)
+        	S48T.PRICE = YeniPrice
+        	S48T.PRICEUNIT=trim(sh.Cells(i,8).Value)
+		end if	
+		if StokKodu=Kod then
+			bulundu=true
+			exit for
+		end if
+  next
+	if bulundu=false  then
+			Ykod=Stokkodu
+			satir=S48T.AddRow()
+			S48T.SetCurrentRow(satir)
+			S48T.KOD(satir)=Ykod
+			if (Yeniprice<>Eskiprice) and (KatSayi>0) then
+				S48T.PRICE(satir) =Doc.NumFormat_NLZ(YeniPrice/Katsayi,5,0)
+				'S48T.PRICE(satir) = trim(sh.Cells(i,7).value)
+  		     S48T.PRICEUNIT(satir)=trim(sh.Cells(i,8).Value)
+			end if
+	end if
+		if trim(Sh.Cells(i,3).value)="" then exit for
+Next
+	Kaydet=Doc.Save_Voucher
+	Wb.Close 
+	Excel.Quit
+	Set Sh = Nothing
+	Set Wb = Nothing
+	Set Excel = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : FIYAT2
+Hangi Tablo için : STOK48
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LIKROM FIYAT LÝSTESÝ GÜNCELLEME
+Kod : 
+Public Kod,Katsayi,StokKodu
+
+Sub Makro1()
+
+	Set filesys = CreateObject("Scripting.FileSystemObject") 
+	dosya=trim(inputbox("Lütfen Excel dosyasýnýn tam yolunu girin","DÝNAMO"))
+	if dosya="" then
+		MsgBox("Belirtilen dizinde excel dosyasý bulunamýyor.Ýþlem iptal edilmiþtir.")
+		exit sub
+	elseif dosya<>"" then
+		if right(dosya,3)<>"xls" then
+		 dosya1=Len(dosya)
+			For i= 1 to dosya1-1
+				if left(dosya1,i)<>1 then
+						dosya2=dosya+".xls"
+				end if
+			Next
+			IF not filesys.fileexists(dosya2) then
+				MsgBox "Belirtilen dizinde excel dosyasý bulunamýyor."
+				exit sub
+			else	
+				Call FiyatGuncelle(dosya2)
+		   END IF	
+	elseif right(dosya,3)="xls" then
+		if not filesys.fileexists(dosya) then
+			MsgBox "Belirtilen dizinde excel dosyasý bulunamýyor."
+			exit sub
+		else	
+			Call FiyatGuncelle(dosya)
+		end if
+	else
+			Msgbox("Belirtilen dosya excel dosyasý deðil.")
+			exit sub
+	end if
+	end if
+End Sub
+
+
+Sub FiyatGuncelle(dosya)
+
+	Set S48E =Doc.GetTableObject("STOK48E")
+	Set S48T=Doc.GetTableObject("STOK48T")
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(dosya,,True)
+	Set Sh1=Wb.Sheets(1)
+	Sname=Sh1.name
+	Set Sh = Wb.Sheets(Sname)
+	if trim(dosya)="" then exit sub
+	Doc.StatusbarMessage "Fiyat Listesi yükleniyor.Lütfen Bekleyiniz..!"
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(dosya,,True)
+
+dim bulundu
+
+For i = 3 to 65565
+	bulundu=false
+	StokKodu=trim(Sh.Cells(i,3).value)
+	YeniPrice=sh.Cells(i,7).value
+	YeniPUNIT=trim(sh.Cells(i,8).Value)
+		For j=1 to s48T.GetRecCount
+			Kod=trim(S48T.KOD(j))
+			EskiPrice=trim(S48T.PRICE(j))
+			Katsayi=trim(Doc.GetKartValue("STOK00","B_B_TECH_1",Kod,-1))
+			EskiPrice=trim(S48T.PRICE(j))
+				if (StokKodu=Kod) and (Yeniprice<>Eskiprice) and (KatSayi>0) then
+					Doc.StatusbarMessage j &". satýrdaki fiyat güncelleniyor.Lütfen bekleyiniz."
+		 			S48T.SetCurrentRow(j)
+        		S48T.PRICE = Doc.NumFormat_NLZ(YeniPrice/Katsayi,5,0)
+					S48T.PRICEUNIT=trim(sh.Cells(i,8).Value)
+				elseif (StokKodu=Kod) and (Yeniprice<>Eskiprice) and (katsayi=0) then
+					S48T.SetCurrentRow(j)
+       		 	S48T.PRICE = YeniPrice
+        		S48T.PRICEUNIT=trim(sh.Cells(i,8).Value)
+				end if	
+				if StokKodu=Kod then
+					bulundu=true
+					exit for
+				end if
+	  Next
+			if bulundu=false  then
+				Ykod=Stokkodu
+				satir=S48T.AddRow()
+				S48T.SetCurrentRow(satir)
+				S48T.KOD(satir)=Ykod
+					if (Yeniprice<>Eskiprice) and (KatSayi>0) then
+						S48T.PRICE(satir) =Doc.NumFormat_NLZ(YeniPrice/Katsayi,5,0)
+						S48T.PRICEUNIT(satir)=trim(sh.Cells(i,8).Value)
+					end if
+			end if
+	if trim(Sh.Cells(i,3).value)="" then exit for
+Next
+	Kaydet=Doc.Save_Voucher
+	Wb.Close 
+	Excel.Quit
+	Set Sh = Nothing
+	Set Wb = Nothing
+	Set Excel = Nothing
+End Sub                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : GONDER1
+Hangi Tablo için : SRVM00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Gönder 1
+Kod : 
+Sub Makro1()	
+	Doc.RunMacro0 "PFRM7S.SERVIS-1","PrintForm_MailPDF"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : GONDER2
+Hangi Tablo için : SRVM00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Gönder 2
+Kod : 
+Sub Makro1()	
+	Doc.RunMacro0 "PFRM7S.LIKROM_5","PrintForm_MailPDF2"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : ITHALAT
+Hangi Tablo için : IMPORT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Ýthalat Dosyasýný Kapat (Satýnalma Ýrsaliyelerini Entegre Et)
+Kod : 
+Sub Makro1()
+	Doc.RunCommand "CMD_STOK_GIRISLERI"
+	if IMPORT0T.GetRowCount = 0 Then Exit Sub
+
+	Set Doc1 = Doc.CreateDocumentNoUI("ENTE00","")
+	Set E00 = Doc1.GetTableObject("ENTE00_STOK")
+
+	Set I0T = Doc.Select2("SDASDAS", "IMPORT0T", "", "", -1)
+	I0T.GroupBy("GIRIS_EVRAKTYPE+GIRIS_EVRAKNO")
+
+	For i = 1 to I0T.GetRowCount()
+		E00.EVRAKTYPE = I0T.GIRIS_EVRAKTYPE(i)
+		FisNo = I0T.GIRIS_EVRAKNO(i)
+		E00.FISB = FisNo
+		E00.FISE = FisNo
+	
+		Doc1.RunCommand "ENTEGRASYON_STOK"
+	Next
+	Doc.DeleteDocumentNoUI "ENTE00",""
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : ITHALAT1
+Hangi Tablo için : IMPORT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kapalý satýnalma sipariþlerinin miktarlarýný getir
+Kod : 
+Sub makro1
+		
+	For i=1 to IMPORT0H.GETRECCOUNT
+		SiparisArtNo = IMPORT0H.SIPARTNO(i)
+		Miktar = doc.getdbfieldvalue("STOK46T","SF_MIKTAR",SiparisArtNo,"ARTNO")
+		IMPORT0H.SF_MIKTAR(i) = Miktar
+	next
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : KIDEM-KZ
+Hangi Tablo için : BORDRO1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : KIDEM TAZMÝNATI HESAPLA 11 06 12
+Kod : 
+Sub Makro1()
+
+brut_ihbar = 0
+gelir_vergisi_orani = 0
+net_ihbar = 0
+brut_kidem_ = 0
+ihbar_suresi = 0
+gunluk_ihbar = 0
+ihbar_damga_vergisi = 0
+brut_kidem = 0
+
+
+	for kk = 1 to BRDR1PBGIRIS.GetRecCount()
+		personelkodu = BRDR1PBGIRIS.C_KOD(kk)
+		gkkod=	Doc.GetDBFieldValue("PERSM0","GK_10",personelkodu,"")	
+		
+		Set PERS = Doc.Select1("dc2s5","PERSM0BT2","KOD = '"& personelkodu &"'",">SRNUM",-1)
+		if trim(gkkod) = "KIDEM" then
+			satirno = PERS.GetRecCount()
+			ucret_net_mi = PERS.N_KAZANC_NTBRT(satirno)
+			sablon_turu = PERS.HESAPSABLONU(satirno)
+			
+		if trim(ucret_net_mi) = "B" then BRDR1PBGIRIS.B_S_U_K04(kk)=BRDR1PBGIRIS.P_N_UCRET(kk)
+
+			Set BRDHT = Doc.Select1("dsad01s5","BORDROHT","KOD = '"& sablon_turu &"'",">SRNUM",-1)
+			if BRDHT.GetRecCount() > 0 then
+				brut_kidem = 0
+				for ii = 1 to BRDHT.GetRecCount()
+					sablon = BRDHT.KAZANCKESINTIKODU(ii)
+					adet = Doc.GetDBFieldValue("BORDROK","S_ADEDI",sablon,"")
+					kidem_ihbar = Doc.GetDBFieldValue("BORDROK","BILGIGIRISIONCELIK_U",sablon,"")
+					
+					if adet < 1 and kidem_ihbar <> 58 and kidem_ihbar <> 59 and kidem_ihbar <> 60 and kidem_ihbar <> 61 and kidem_ihbar <> 62 and kidem_ihbar <> 63 and kidem_ihbar <> 64and kidem_ihbar <> 65and kidem_ihbar <> 66 then
+						odenek = BRDR1PBGIRIS.GetFieldValue("B_S_U_" & trim(sablon),kk)
+						brut_kidem =(brut_kidem + odenek)
+					
+						Set BORDRR = Doc.Select1("0sa141","BORDROR","AP10 = '1'","",-1)
+						yasal_tavan = BORDRR.KID_TAZ_TAVAN(1)
+						if brut_kidem > yasal_tavan then
+							brut_kidem = yasal_tavan
+						End if
+					End if
+				Next
+												
+		
+				giris_tarihi = Doc.GetDBFieldValue("PERSM0","ISEGIRISTARIHI",personelkodu,"")
+				cikis_tarihi = BRDR1PBGIRIS.C_TARIH2(kk)
+				kidemgun = Doc.CDateToInt(cikis_tarihi) - Doc.CDateToInt(giris_tarihi)
+				
+				
+				if kidemgun >= 0 and kidemgun <= 180 then
+					ihbar_suresi = 14
+				Elseif kidemgun > 180 and kidemgun <= 540 then
+					ihbar_suresi = 28
+				Elseif kidemgun > 540 and kidemgun <= 1080 then
+					ihbar_suresi = 42
+				Elseif kidemgun > 1080 then
+					ihbar_suresi = 56
+				End if
+
+				gunluk_ihbar = Doc.Div(brut_kidem,30)
+				gunluk_kidem = Doc.Div(brut_kidem,365)
+				brut_ihbar = gunluk_ihbar * ihbar_suresi
+				brut_kidem_Toplam = gunluk_kidem * kidemgun
+				kidem_damga_vergisi = brut_kidem_Toplam * 0.0066
+				net_kidem = brut_kidem_Toplam - kidem_damga_vergisi
+				ihbar_damga_vergisi = brut_ihbar * 0.0066
+
+				Set BRDTP = Doc.Select2("s101ad5","BRDR1TP","KOD = '"& personelkodu &"'","",-1)
+
+				gelir_vergisi_orani = BRDTP.ULASILANGVDILIMORANI(1)
+				gelir_vergisi = Doc.Div(brut_ihbar * gelir_vergisi_orani,100)
+				net_ihbar = brut_ihbar - ihbar_damga_vergisi - gelir_vergisi
+				
+				for il = 1 to BRDHT.GetRecCount()
+					sablon2 = BRDHT.KAZANCKESINTIKODU(il)
+					kidem_ihbar = Doc.GetDBFieldValue("BORDROK","BILGIGIRISIONCELIK_U",sablon2,"")
+					alan = "B_S_U_" & trim(sablon2)
+					
+					if kidem_ihbar = 58 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,brut_kidem_Toplam
+					Elseif kidem_ihbar = 59 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,net_kidem
+					Elseif kidem_ihbar = 60 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,kidemgun
+					Elseif kidem_ihbar = 61 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,ihbar_suresi
+					Elseif kidem_ihbar = 62 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,brut_ihbar
+					Elseif kidem_ihbar = 63 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,net_ihbar
+					Elseif kidem_ihbar = 64 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,kidem_damga_vergisi
+					Elseif kidem_ihbar = 65 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,gelir_vergisi
+					Elseif kidem_ihbar = 66 then
+						BRDR1PBGIRIS.SetFieldValue alan ,kk,ihbar_damga_vergisi
+					End if
+				Next
+			End if
+		End if
+	Next
+End Sub                                                                                                                                        
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : KONTA
+Hangi Tablo için : KONTAKT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ KONTAKT KODLARINI TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : KONTAK
+Hangi Tablo için : KONTAKT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : EV TELEFONUNU ÝÞ TELEFONUNA KOPYALA
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				if trim(KONTAKT0.EV_TELEFONU)<>"" then
+					KONTAKT0.IS_TELEFONU=KONTAKT0.EV_TELEFONU
+					KONTAKT0.EV_TELEFONU=""
+				end if
+					k = Doc.Save_Voucher()
+
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : KONTAK1
+Hangi Tablo için : KONTAKT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÝÞ ADRESÝNÝ TÜRKÇE KARAKTERLERÝ TEMÝZLE VE EV ADRESÝNE KOPYALA
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				isadr1=KONTAKT0.IS_ADR_1
+				isadr2=KONTAKT0.IS_ADR_2
+				isadr3=KONTAKT0.IS_ADR_3
+
+				if trim(isadr1)<>"" then
+					isadr1=replace(isadr1,"Ç","C") 
+					isadr1=replace(isadr1,"Ý","I") 
+					isadr1=replace(isadr1,"Þ","S") 
+					isadr1=replace(isadr1,"Ð","G") 
+					isadr1=replace(isadr1,"Ö","O") 
+					isadr1=replace(isadr1,"Ü","U") 
+					KONTAKT0.ADR_1=isadr1
+				end if
+				if trim(isadr2)<>"" then
+					isadr2=replace(isadr2,"Ç","C") 
+					isadr2=replace(isadr2,"Ý","I") 
+					isadr2=replace(isadr2,"Þ","S") 
+					isadr2=replace(isadr2,"Ð","G") 
+					isadr2=replace(isadr2,"Ö","O") 
+					isadr2=replace(isadr2,"Ü","U") 
+					KONTAKT0.ADR_2=isadr2
+				end if
+			if trim(isadr3)<>"" then
+					isadr3=replace(isadr3,"Ç","C") 
+					isadr3=replace(isadr3,"Ý","I") 
+					isadr3=replace(isadr3,"Þ","S") 
+					isadr3=replace(isadr3,"Ð","G") 
+					isadr3=replace(isadr3,"Ö","O") 
+					isadr3=replace(isadr3,"Ü","U") 
+					KONTAKT0.ADR_3=isadr3
+				end if
+
+					k = Doc.Save_Voucher()
+
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : MAHSUP
+Hangi Tablo için : LIMIT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : MAHSUP FÝÞ YARATMA
+Kod : 
+Sub Makro1()
+	Set Doc1 = Doc.CreateDocumentNoUI("MUHA10","")
+	Set MH20E = Doc1.GetTableObject("MUHA20E")
+	Set MH20T = Doc1.GetTableObject("MUHA20T")
+	Set K = Doc1.CreateSObject("BATCHUPDATEMODE")
+		sorgu=0
+		Set S84=Doc.Select1("___tABLE84","MUHA20E","","",-1)
+		for y=1 to S84.getreccount
+			aciklama=trim(mid(S84.ACIKLAMA(y), 1, 3))
+			if trim(evrakno) = trim(aciklama) then
+					sorgu=1
+			end if
+		Next
+
+	FOR t=1 to LISTET.getreccount
+			nret = Doc1.New_Voucher()
+			MH20E.TARIH = DOC.BUGUN
+			uz=TRIM(LISTET.EVRAKNO(t))
+			MH20E.ACIKLAMA = "TM.NO: "&TRIM(LISTET.EVRAKNO(t))&TRIM(LISTET.ACIKLAMA(t))
+			MH20T.Empty
+	For i=1 to 2
+		MH20T.AddRow
+		satirNo = MH20T.GetRecCount()
+		MH20T.SetCurrentRow(satirNo)
+		if TRIM(LISTET.GERCEKLS_IADE_TARIHI(t))="" THEN
+			if i=1 then
+				MH20T.KOD(satirNo) = LISTET.GK_1(t)
+				MH20T.BORCFIYAT(satirNo) = LISTET.TUTAR(t)
+			else
+				MH20T.KOD(satirNo) = LISTET.GK_2(t)
+				MH20T.ALACAKFIYAT(satirNo) = LISTET.TUTAR(t)
+			end if
+		else
+			if i=1 then
+				MH20T.KOD(satirNo) = LISTET.GK_2(t)
+				MH20T.BORCFIYAT(satirNo) = LISTET.TUTAR(t)
+			else
+				MH20T.KOD(satirNo) = LISTET.GK_1(t)
+				MH20T.ALACAKFIYAT(satirNo) = LISTET.TUTAR(t)
+			end if
+		end if
+	Next
+				nret = Doc1.Save_Voucher()
+	next
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : MESLEK
+Hangi Tablo için : PERSM22
+Ýlave Hangi Uygulamalar için : 
+Açýklama : MESLEK KODLARININ AÇILMAS.
+Kod : 
+Sub Makro1()
+
+	Dim May_container
+	Set May_container = Doc.CreateTransactionalTableObject("MAKROTABLE2=STACK","IO")
+
+	May_container.Addfield2 "DOSYA","CHAR",255,0,"L","F2=DO_SYSBRW_FILENAME()",""
+	satirNo = May_container.AddRow()
+	May_container.SetCurrentRow(satirNo)
+
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "MAKROFORMU1",SC_SCRIPTMODULEFILENAME,Par
+	
+End Sub
+
+Dim mesaj_array
+Redim mesaj_array(20)
+
+SUB Getir()
+
+	Set TABLO_1 = Doc.GetTableObject("MAKROTABLE2")
+
+	if trim(TABLO_1.DOSYA(1)) <> "" then
+
+		Set Excel = CreateObject("Excel.Application")
+
+		Set Wb1 = Excel.Workbooks.Open(TABLO_1.DOSYA(1), False, True)
+
+		Set Sh1 = Wb1.Sheets(1)
+	else 
+	
+		Doc.RUN_APP_CANCEL
+
+		exit sub
+
+	end if
+	
+	Dim k
+	
+	k = 1
+
+	Set Doc1 = Doc.CreateDocumentNoUI("PERSM22", "")
+	Set P_PERSM22 = Doc1.GetTableObject("PERSM22")
+	Set P_PERSM22_B = Doc1.GetTableObject("PERSM22_B")
+
+	for j = 2 to Sh1.UsedRange.Rows.Count
+		if	 trim(Sh1.Cells(j ,1)) <> "" then
+			nret = Doc1.Load_Voucher(UCase(trim(Sh1.Cells(j ,1))))
+			P_PERSM22.MESLEKADI = 	trim(Sh1.Cells(j ,2))
+			P_PERSM22.MESLEKTANIMI = trim(Sh1.Cells(j ,3))
+			P_PERSM22_B.GOREVISLEMLER = trim(Sh1.Cells(j ,4))
+
+			nret = Doc1.Save_Voucher()
+			nret = Doc1.LoadEmpty_Voucher()
+		end if
+	Next
+
+	Wb1.Close
+
+	Excel.Quit
+
+	Doc.RUN_APP_CANCEL
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=200P WIDTH=450P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Freedom - Excel Dosyasý Seç"
+
+MENUDEF
+	POPUP TEXT="Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý&kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=1
+LTEXT    LEFT=20P TOP=+5P W=250P T="Excel Dosyasýný seçiniz..."
+
+LTEXT    LEFT=20P TOP=+35P W=85P T="Dosya"
+EDITTEXT LEFT=E+3P TOP=+0 W=250P D=MAKROTABLE2.DOSYA BROWSEBUTTON=1
+BUTTON LEFT=175P TOP=+55P WIDTH=100P HEIGHT=40p CAPTION="OK" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','Getir')"
+
+ENDFORM                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : MUHA00
+Hangi Tablo için : MUHA00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LÝSTE TABINDAKÝ MUHASEBE KODLARINI TOPLU OLARAK SÝLME
+Kod : 
+Sub Makro1()
+	for i=1 to LISTET.GetReccount()
+		evrakno=LISTET.KOD(i)
+		if Trim(evrakno)<>"" then
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				retcode=Doc.Delete_Voucher()			
+			end if
+		end if
+	next
+	Doc.LoadEmpty_Voucher()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : MUHA01
+Hangi Tablo için : MUHA01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ALTERNATÝF HESAP PLANI AKTARMA
+Kod : 
+Sub Makro1()
+
+	Set Excel = CreateObject("Excel.Application")
+	SayfaT = Inputbox("Dosyanýn yolunu giriniz","Dinamo", "c:\file1.XLS")
+	
+
+	Set Wb = Excel.Workbooks.Open(sayfat)
+	ColKod = 1
+	Colad = 2
+	Coltip = 3
+	SheetAdi = "Sheet11"
+	Baslangic = cdbl(Inputbox("Baslangýc satýr noyu giriniz","Dinamo", "2"))
+	Bitis = cdbl(Inputbox("Bitis satýr noyu giriniz.","Dinamo"))
+
+	Set STOK2T = Doc.GetTableObject("MUHA01")
+Set Doc1 = Doc.CreateDocumentNoUI("MUHA01","")
+		Set S00 = Doc1.GetTableObject("MUHA01")
+
+	For i = Baslangic To Bitis
+		stokkodu=Wb.Sheets(SheetAdi).Cells(i,Colkod).value
+		stokadi=Wb.Sheets(SheetAdi).Cells(i,Colad).value
+		tip=Wb.Sheets(SheetAdi).Cells(i,Coltip).value
+
+		
+		S00.AD=Stokadi
+		S00.CODETYPE=tip
+
+		Doc1.SAVE_Voucher 
+		Doc1.LoadEmpty_Voucher()
+	
+	Next
+	Wb.Close
+	Excel.Quit
+End Sub
+Set STOK10 = Doc.Select1("ABC","STOK10A","KOD='"+RAPOR.KOD+"'","",-1)                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : MUHA02
+Hangi Tablo için : 0STOK2
+Ýlave Hangi Uygulamalar için : 
+Açýklama : STOK AÇILIÞ FÝÞÝ
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open("c:\ENV2.XLS")
+	ColstokKodu = 1
+	Colmiktar = 2
+	Colfiyat = 3
+	colparabirimi=4
+	SheetAdi = "Sheet1"
+	Baslangic = 4
+	Bitis = 148
+		
+	Set STOK2T = Doc.GetTableObject("STOK2AT")
+
+	For i = Baslangic To Bitis
+		
+		if trim(Wb.Sheets(SheetAdi).Cells(i,Colmiktar))<>"" then
+		stokkodu=Wb.Sheets(SheetAdi).Cells(i,Colstokkodu).value
+		
+		Set STK0 = Doc.Select1("ABC","STOK00","SUPPLIERCODE='"+Stokkodu+"'","",-1)
+		for t=1 to STK0.getreccount
+			stokkodu1=STK0.KOD(t)
+		next
+		If trim(stokkodu1)<>"" then
+		If STOK2T.GetRecCount = 1 And trim(STOK2T.KOD) = "" Then
+	
+		Else
+			STOK2T.AddRow()
+		End If
+		SatirNo = STOK2T.GetRecCount
+		STOK2T.SetCurrentRow(satirNo)
+		STOK2T.KOD(satirNo) = stokkodu1
+		STOK2T.SF_MIKTAR(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,Colmiktar).value)
+		STOK2T.OR_FIYAT(satirNo) = cdbl(Wb.Sheets(SheetAdi).Cells(i,Colfiyat).value)
+'		STOK2T.PUNIT_ORG(satirNo) = Wb.Sheets(SheetAdi).Cells(i,Colparabirimi).value
+end if
+
+	end if
+	Next
+	Wb.Close
+	Excel.Quit
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : PERSOSONEL
+Hangi Tablo için : PERSM0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : TOPLU PERSONEL AKTARMA
+Kod : 
+Sub IseGirisBilgileriDoldur(ByVal ExcelSheet,ByVal Satir,ByVal PersonelNo)
+	Dim Tbl_PERSMBT2
+	Doc.RunCommand "CMD_CALISMA_UCRET_YENI_GIRIS_BASLA"
+	Set Tbl_PERSMBT2=Doc.GetTableObject("PERSM0BT2")
+
+	Dim AlanIsmi
+	Dim AlanDegeri
+	Dim Sutun
+	For Sutun=2 To 100
+		AlanIsmi=Trim(ExcelSheet.Cells(3, Sutun))
+		AlanDegeri=ExcelSheet.Cells(Satir, Sutun)
+		If AlanIsmi<>"" Then
+			Tbl_PERSMBT2.SetFieldValue AlanIsmi,0,AlanDegeri
+		End If
+	Next
+
+	Doc.RunCommand "CMD_CALISMA_UCRET_YENI_GIRIS_OK"
+End Sub
+
+
+Sub Makro1()
+	Dim myExcel
+	Dim mySheet
+	Set myExcel = CreateObject("Excel.Application")
+
+	myExcel.Workbooks.Open ("C:\CALISMA.XLS")
+	Set mySheet = myExcel.Workbooks("CALISMA.XLS").Worksheets("CALISMA")
+
+	Dim PersonelNo
+
+	Dim I		
+	For I=4 To 1000
+		PersonelNo=Trim(mySheet.Cells(I, 1))
+		If PersonelNo<>"" Then
+			PersonelNo=Doc.LeftJustify(PersonelNo,16)
+			Doc.Load_Voucher PersonelNo
+			If Trim(Doc.GetLoadedVoucher())=Trim(PersonelNo) Then
+				Call IseGirisBilgileriDoldur(mySheet,I,PersonelNo)
+				Doc.Save_Voucher
+			Else
+				MsgBox(Trim(PersonelNo) & " Nolu Personel Bulunamadý")
+			End If
+		End If
+	Next
+
+	myExcel.Quit
+
+	Doc.LoadEmpty_Voucher
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : SEVK
+Hangi Tablo için : SHPT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : GRUP KODU ING OLANLARI AKTIF YAP
+Kod : 
+sub makro1()
+	dim s00e
+	Set S00E = Doc.Select1("ABC","SHPT00J","GK_1='"+"ING"+"'","",-1)
+	for i=1 to s00e.getreccount
+			retcode=Doc.Load_Voucher(s00e.evrakno(i))
+			shpt00j.AKTIF_PASIF="*"
+			doc.save_voucher()
+	next
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : SEVKADRES
+Hangi Tablo için : SHPT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Excel 'den Sevk Adreslerini Toplu Açma
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set WB = Excel.Workbooks.Open("K:\CARI1.xls")
+	Set Sh1 = Wb.Sheets("Sheet1")
+
+	colkartno = 1
+	colch = 2
+	colunvan = 3
+	coladres1 = 4
+	coladres2 = 5
+	coladres3 = 6
+	colgk1 = 7	
+	
+	rowBaslangic = 1
+	rowBitis = 359
+
+	Set Doc1 = Doc.CreateDocumentNoUI("SHPT00","")
+	Set SHPT = Doc1.GetTableObject("SHPT00J")
+
+	satirSayisi = rowBitis - rowBaslangic - 1
+	For i = rowBaslangic to rowBitis
+		Doc.StatusbarMessage (i  - rowBaslangic + 1) & " / " & satirSayisi
+		Kartno = Sh1.Cells(i,colKartNo).Value
+		k = Doc1.Load_Voucher(KartNo)
+		if k <> 0 then
+			y = doc.d7MsgBox(DemirbasKartNo & " no.lu demirbaþ kaydedilemedi" & vbcrlf & "Ýþlem Kesilmiþtir",MB_OK)
+			Doc1.LoadEmpty_Voucher
+			Set Doc1 = Nothing
+			Excel.Quit
+			Set Excel = Nothing
+			exit Sub
+		End if
+
+		SHPT.AD = Sh1.Cells(i,colunvan).Value
+		SHPT.CHCODE = Sh1.Cells(i,colch).Value
+		SHPT.ADRES_1 = Sh1.Cells(i,coladres1).Value
+		SHPT.ADRES_2 = Sh1.Cells(i,coladres2).Value
+		SHPT.ADRES_3 = Sh1.Cells(i,coladres3).Value
+		SHPT.GK_1 = Sh1.Cells(i,colgk1).Value
+
+		k = Doc1.Save_Voucher()
+		if k <> 0 then
+			y = doc.d7MsgBox(KartNo & " no.lu kart kaydedilemedi" & vbcrlf & "Ýþlem Kesilmiþtir",MB_OK)
+			Doc1.LoadEmpty_Voucher
+			Set Doc1 = Nothing
+			Excel.Quit
+			Set Excel = Nothing
+			exit Sub
+		End if
+	Next
+	Doc1.LoadEmpty_Voucher
+	Set Doc1 = Nothing
+	Excel.Quit
+	Set Excel = Nothing
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : SF
+Hangi Tablo için : STOK74
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÝRSALÝYEYE ÝTHALAT DOSYA NO YAZ
+Kod : 
+Sub makro1
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK29","")
+	Set MH29E = Doc1.GetTableObject("STOK29E")
+		
+	For i=1 to STOK74T1.GETRECCOUNT
+		irsno=STOK74T1.IRSALIYENO(i)
+		retcode=Doc1.Load_Voucher(irsno)
+		MH29E.ITHALAT_DOSYA_NO=STOK74E.ITHALAT_DOSYA_NO
+		Doc1.Save_Voucher()
+
+	
+	next
+END SUB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : SI
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : 
+Açýklama : FATURADAN ÝTHALAT DOSYA NO OKU
+Kod : 
+Sub Makro1()
+	evrakno=STOK29E.EVRAKNO
+	Set S74 = Doc.Select1("ABC","STOK74T1","IRSALIYENO='"+evrakno+"'","",-1)
+	FOR i=1 to S74.getreccount
+		faturano=S74.EVRAKNO(i)
+		Set S741 = Doc.Select1("ABCxxx","STOK74E","EVRAKNO='"+faturano+"'","",-1)
+		for k=1 to S741.getreccount
+			STOK29E.ITHALAT_DOSYA_NO=S741.ITHALAT_DOSYA_NO(k)
+		next
+	
+	
+	NEXT
+	
+
+
+
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : SI-1
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Liste Tabýndaki Ýrsaliyeleri faturadan fiyatlandýr.
+Kod : 
+Sub Makro1
+	Set T_STOK29E = Doc.CreateRowSetObject("XXX=STOK29E", "REPORT") 
+	Set Kriterler = Doc.CreateSObject("Query")
+	Kriterler.UseTable "STOK29E"
+	k = T_STOK29E.RunQuery(Kriterler)
+	set Doc1 = Doc.CreateDocumentNoUI("STOK29","")
+	
+	satirSayisi = LISTET.GetRecCount()
+	For i = 1 to satirSayisi
+		Doc.StatusBarMessage i & " / " & satirSayisi
+		FisNo = LISTET.EVRAKNO(i)
+		res = Doc1.Load_Voucher(FisNo)
+		Doc1.RunCommand "CMD_SATINALMA_FATURASINDAN_FIYATLANDIR"
+		res = Doc1.Save_Voucher()
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : STD
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Toplu Kart Açma ve Güncelleme (Detay Açýklamalarda)
+Kod : 
+Dim DokumanAdi
+Dim TabloAdi
+
+Sub AlanlariDoldur(ByVal Doc1,ByVal ExcelSheet,ByVal Satir,ByVal KOD)
+	Dim Tbl
+	Set Tbl=Doc1.GetTableObject(TabloAdi)
+
+	Dim AlanIsmi
+	Dim AlanDegeri
+	Dim Sutun
+	For Sutun=2 To 100
+		AlanIsmi=Trim(ExcelSheet.Cells(2, Sutun))
+		AlanDegeri=ExcelSheet.Cells(Satir, Sutun)
+		If AlanIsmi<>"" And AlanIsmi<>"KOD" Then
+			Tbl.SetFieldValue AlanIsmi,0,AlanDegeri
+		End If
+	Next
+End Sub
+
+
+Sub Makro1()
+	Dim myExcel
+	Dim mySheet
+	Set myExcel = CreateObject("Excel.Application")
+
+	myExcel.Workbooks.Open ("C:\KARTLAR.XLS")
+	Set mySheet = myExcel.Workbooks("KARTLAR.XLS").Worksheets("KARTLAR")
+
+	DokumanAdi=Trim(mySheet.Cells(1, 1))
+	TabloAdi=Trim(mySheet.Cells(1, 2))
+	If DokumanAdi="" Then
+		MsgBox("Döküman Türü Belirtilmemiþ")
+		Exit Sub
+	End If
+	If TabloAdi="" Then
+		MsgBox("Tablo Adý Belirtilmemiþ")
+		Exit Sub
+	End If
+
+	Set Doc1 = Doc.CreateDocumentNoUI(DokumanAdi,"")
+	Dim KOD
+	Dim I		
+	I=3
+	Do While(I<50000)
+		Doc.StatusBarMessage "Satýr :" & CStr(I) 
+		KOD=Trim(mySheet.Cells(I, 1))
+		If KOD<>"" Then
+			KOD=Doc.LeftJustify(KOD,50)
+			Doc1.Load_Voucher KOD
+			If Trim(Doc1.GetLoadedVoucher())=Trim(KOD) Then
+				Call AlanlariDoldur(Doc1,mySheet,I,KOD)
+				Doc1.Save_Voucher
+			Else
+				MsgBox(Trim(KOD) & " Nolu Kart Yüklenemedi/Yaratýlamadý")
+			End If
+		Else
+			Exit Do
+		End If
+		I=I+1
+	Loop
+
+	myExcel.Quit
+
+	Doc1.LoadEmpty_Voucher
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : STOK
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÜRETÝCÝ KOD YAZDIR
+Kod : 
+Sub Makro1()
+
+	Set Doc2 = Doc.CreateDocumentNoUI("STOK00","")
+	Set S00E = Doc2.GetTableObject("STOK00")
+	Set S00U = Doc2.GetTableObject("STOK0U")
+	FOR t=1 to LISTET.getreccount
+		
+		Doc2.Load_Voucher LISTET.KOD(t)
+			S00U.UCODE(1)="YY"
+			Doc2.SAVE_Voucher 
+
+
+	next
+end sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : STOK00
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Stok Kartlarini Toplu olarak aktif pasif yapma
+Kod : 
+public rowNum,ACount,PCount
+
+Sub Makro1()
+
+istype=inputbox("Islem tipini girin(Aktif:A; Pasid:P, Silme:D).","Islem Seçimi")
+if (istype="D" or istype="d") then
+	sor=doc.d7msgbox("Seçili stok kartlari silinsin mi?","Uyari",MB_YESNO)
+	if sor=6 then
+		for i= 1 to LISTET.GETRecCount()
+			call DeleteSub
+		next
+end if
+elseif (istype="A" or istype="a")then
+for i= 1 to LISTET.GETRecCount()
+		call ActivatedSub
+next
+elseif (istype="p" or istype="P") then
+for i= 1 to LISTET.GETRecCount()
+		call PassiveSub
+next
+end if
+End Sub
+
+Sub ActivatedSub()
+ACount=0
+for i= 1 to LISTET.GetRecCount()
+	RowNum=LISTET.KOD(i)
+	if LISTET.AP10=0 then
+   active=Doc.Load_Voucher(RowNum)
+	STOK00.AP10=1
+	active=Doc.Save_Voucher()
+	aCount=aCount+1
+end if
+next
+End Sub
+
+Sub PassiveSub()
+for i= 1 to LISTET.GetRecCount()
+	RowNum=LISTET.KOD(i)
+	if LISTET.AP10=1 then
+   passive=Doc.Load_Voucher(RowNum)
+	STOK00.AP10=0
+	passive=Doc.Save_Voucher()
+	pCount=pCount+1
+end if
+next
+End Sub
+
+Sub DeleteSub()
+rowC=LISTET.GetRecCount()
+for i =1 to RowC
+	RowNum=LISTET.KOD(i)
+	k=doc.d7msgbox("Seçilen tüm STOK Kartlari silinecek.Emin misiniz?","Silme Onayi",Mb_YESNO)
+		if k=6 then
+			del=doc.Load_Voucher(RowNum)
+			del=doc.Delete_Voucher()
+			else
+			exit sub
+		end if
+Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : STOK001
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()		
+	Set STK00 = Doc.Select1("ABC","STOK00","AP10='"+"00"+"'","",-1)
+	'for t=1 to stk00.getreccount
+		kod=stk00.kod(t)
+		Set STK10 = Doc.Select1("ABCxxx","STOK10A","KOD='"+kod+"'","",-1)
+		if STK10.getreccount > 0 then
+				retcode=Doc.Load_Voucher(kod)
+				STOK00.AP10=1
+		next
+
+	'next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : TAHAKKUK-1
+Hangi Tablo için : BORDR1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Tahakkuk-Ýþyeri
+Kod : 
+Public sayfaBoyu, sayfaEni, sonSatir, satirSonu
+Public UstMargin, SolMargin, SagMargin, AltMargin, satiryuksekligi
+Public siraNo, satirBaslangic, satirAra, SatirBitis
+Public ToplamEURTutar, ToplamEURIskonto, ToplamEURIskontoluTutar
+Public Grid, xCizgi
+
+Sub Makro1()
+	Dim satirSayisi,pe1
+	sayfaBoyu = 297
+	sayfaEni = 210
+	siraNo = 0
+	satirBaslangic = 0
+	UstMargin = 10
+	AltMargin = SayfaBoyu - 20 
+	SolMargin = 10
+	SagMargin = SayfaEni - 7
+	satiryuksekligi = 5.5
+	satirBaslangic = UstMargin + 210
+	satirSonu = AltMargin - 30
+
+	Set pe1 = doc.CreatePrintEngineOutput()
+	res = pe1.Open(0, "BORDRO", SayfaBoyu, SayfaEni,"")
+	
+	If doc.ErrorNumber Then
+		MsgBox ("Hata main : " & doc.ErrorNumber)
+		Exit Sub
+	End If
+	siraNo = 0        
+
+	Call Print_form_sayfabasi(pe1)
+	
+	res = pe1.Show()
+	res = Doc.ActivateAfterMacro(1)
+End Sub
+Sub Print_form_sayfabasi(pe1)
+	res = pe1.selectfont("Arial",9)
+	res = pe1.line(ustmargin + satiryuksekligi *3,solmargin,0,sagmargin-solmargin)
+	res = pe1.pensize(0)
+	res = pe1.setbold(1)
+	res = pe1.write(ustmargin,solmargin+2,satiryuksekligi,50,"Rapor Tarihi / Saati")
+	res = pe1.write(pe1.gettop,solmargin+145,satiryuksekligi,20,"Sayfa No  1")
+	res = pe1.write(pe1.getbottom,solmargin + 2,satiryuksekligi,50,"Ýþyeri Adý")
+	res = pe1.write(pe1.gettop,solmargin+145,satiryuksekligi,20,"Dönem")
+	res = pe1.write(pe1.getbottom,solmargin + 2,satiryuksekligi,50,"Bölüm Adý")
+	res = pe1.write(ustmargin ,solmargin+34,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin+34,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin+34,satiryuksekligi,2,":")
+	res = pe1.SetUnderlined(1)
+	res = pe1.write(ustmargin + satiryuksekligi * 4,solmargin+35,satiryuksekligi,50,"KAZANÇLAR")
+	res = pe1.write(ustmargin + satiryuksekligi * 4,solmargin+125,satiryuksekligi,50,"YASAL KESÝNTÝLER")
+	res = pe1.SetUnderlined(0)
+	res = pe1.SetUnderlined(0)
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin,satiryuksekligi,50,"Normal Çalýþma")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Hafta Tatili")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Genel Tatil")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yýllýk Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ücretli Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Normal Kazanç Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"%100 Mesai")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Gece Mesaisi")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Fazla Mesai Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"Çocuk Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yakacak Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ýkramiye")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Bayram Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yýllýk Ýzin Ücreti")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Doðum Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Evlenme Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ölüm Yardýmý-Kendisi")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ölüm Yardýmý-Yakýný")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Askerlik Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Posta Baþý Ücreti")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Tahsil Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yol Parasý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Sosyal Yardým Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"Kazançlar Toplamý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 40,satiryuksekligi,2,":")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 100,satiryuksekligi,50,"SSK Matrahý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Ýþçi")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SGDP Ýþçi")	
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Alt Toplamý Ýþçi")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SGDP Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Alt Toplamý Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ýþsizlik Ýþçi")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ýþsizlik Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ýþsizlik SSK Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 100,satiryuksekligi,50,"SSK Ýþveren Toplamý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Ýþçi Toplamý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ödenecek SSK Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 100,satiryuksekligi,50,"Gelir Vergisi Matrahý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Gelir Vergisi Toplamý")
+	'res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"DV Matrahý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Damga Vergisi")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 100,satiryuksekligi,50,"Toplam Ýþveren Maliyeti")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Net Ücret Ödemesi")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+
+	res = pe1.setunderlined(1)
+	res = pe1.write(ustmargin + satiryuksekligi * 33,solmargin + 70,satiryuksekligi,50,"ÖZEL KESÝNTÝLER/ÝNDÝRÝMLER")
+	res = pe1.setunderlined(0)
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"Avans")
+	res = pe1.write(pe1.gettop,solmargin + 105,satiryuksekligi,50,"Yuvarlama Farký")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Borç")
+	res = pe1.write(pe1.gettop,solmargin + 105,satiryuksekligi,50,"Sendika Kesintisi")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Net AGÝ")
+	res = pe1.write(pe1.gettop,solmargin + 105,satiryuksekligi,50,"Kesinti Toplamý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 45,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,2,":")
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 145,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 145,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 145,satiryuksekligi,2,":")
+
+	res = pe1.setunderlined(1)
+	res = pe1.write(ustmargin + satiryuksekligi * 40,solmargin + 72,satiryuksekligi,50,"ÝSTATÝSTÝK")
+	res = pe1.setunderlined(0)
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin,satiryuksekligi,50,"SSK Gün Sayýsý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Personel Sayýsý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Erkek")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Kadýn")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Giren Sayýsý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Çýkan Sayýsý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 65,satiryuksekligi,50,"Normal Çalýþma")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Hafta Tatili")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Resmi Tatil")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Yýllýk Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Ücretli Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Ýstirahat")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Ücretsiz Ýzin")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 130,satiryuksekligi,50,"%100 Mesai")
+	res = pe1.write(pe1.getbottom,solmargin + 130,satiryuksekligi,50,"Gece Mesai")
+	res = pe1.write(pe1.getbottom,solmargin + 130,satiryuksekligi,50,"Mesai Toplamý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 155,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 155,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 155,satiryuksekligi,2,":")
+
+
+'FÝELDLARIN YAZILMASI
+	res = pe1.setbold(0)
+	Bugun = doc.today()
+	Bugun = doc.StrtoNordate(Bugun)
+	Saat = doc.Saat(5)
+
+	Dim Tarih1
+	Dim Tarih2
+	Dim IsyeriKodu
+	yil= R_BORDR1.YIL(1)
+	ay1= R_BORDR1.AY(1)
+	
+	IsyeriKodu = R_BORDR1.ISYERIKODU(1)
+	IsyeriAdi = doc.GetDbFieldValue("PERSB01","IY_UNVAN",IsyeriKodu,"")
+
+	res = pe1.write(ustmargin,solmargin+36,satiryuksekligi,45,Bugun & " " & Saat)
+	res = pe1.write(pe1.getbottom, solmargin + 36,satiryuksekligi,100,IsyeriAdi)
+	res = pe1.write(pe1.getbottom, solmargin + 36,satiryuksekligi,100,DepartmanAdi)
+	res = pe1.write(ustmargin + satiryuksekligi,solmargin+165,satiryuksekligi,30,yil & " - " & ay1 )
+	If Doc.IsBlank(yil) Or Doc.IsBlank(ay1) Or Doc.IsBlank(IsyeriKodu) Then
+		Msgbox "Dönem ve Ýþyeri Belirtmelisiniz"
+		Exit Sub
+	End If
+	tarih1=yil  & "/" & ay1 & "/" & "01"
+	tarih2=yil  & "/" & ay1 & "/" & "31"
+	
+	Dim Kriter
+	dim Kriter1
+	Dim Kriter3
+	Kriter=""
+	Kriter1=""
+	Kriter3=""
+	Kriter=Kriter&"CTARIH1>="&Tarih1
+	Kriter=Kriter&" & "
+	Kriter=Kriter&"CTARIH1<="&Tarih2
+	Kriter=Kriter&" & "
+	Kriter=Kriter&"ISYERIKODU="&Isyerikodu
+
+	Dim Tbl_BRDR1TP
+	Set Tbl_BRDR1TP=Doc.Select1("__BRDR1TP","BRDR1TP",Kriter,"",-1)
+	Dim Tbl_BRDR1TP2
+	Set Tbl_BRDR1TP2=Doc.Select1("__BRDR1TP2","BRDR1TP2",Kriter,"",-1)
+
+	ay=Doc.getgecovalue("|MONTH2","AD",ay1,-1)
+	PersonelSayisi=Tbl_BRDR1TP.GetRowCount
+
+	NormalCalisma1 = 0 
+	NormalCalisma2 = 0
+	HaftaTatili1 = 0
+	HaftaTatili2 = 0
+	ResmiTatil1 = 0
+	ResmiTatil2 = 0
+	Yillilkizin1 = 0
+	Yillilkizin2 = 0
+	UcretliIzin1 = 0
+	UcretliIzin2 = 0
+	DogumIzni1 = 0 
+	DogumIzni2 = 0
+	OlumIzni1 = 0
+ 	OlumIzni2 = 0
+	UcretsizIzin1 = 0
+	UcretsizIzin2 = 0
+	Mesai50_1 = 0
+	Mesai50_2 = 0
+	Mesai100_1 = 0
+	Mesai100_2 = 0
+	MesaiToplami1 = 0	
+	MesaiToplami2	= 0
+
+	S01 = 0
+	S02 = 0
+	S03 = 0
+	S04 = 0
+	S05 = 0
+	S06 = 0
+	S07 = 0
+	S08 = 0
+	S09 = 0
+	S10 = 0
+	S11 = 0
+	S12 = 0
+	S13 = 0
+	S14 = 0
+	S15 = 0
+	S16 = 0
+
+	for m = 1 to Tbl_BRDR1TP2.Getrowcount()
+		Doc.StatusBarMessage "Kazançlar Hesaplanýyor : " & m & " / " & Tbl_BRDR1TP2.Getrowcount()
+		if trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG01" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS01" Then
+			NormalCalisma2 = NormalCalisma2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				NormalCalisma1 = NormalCalisma1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				NormalCalisma1 = NormalCalisma1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG02" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS02" Then
+			HaftaTatili2 = HaftaTatili2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				HaftaTatili1 = HaftaTatili1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				HaftaTatili1 = HaftaTatili1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG03" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS03" Then
+			ResmiTatil2 = ResmiTatil2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				ResmiTatil1  = ResmiTatil1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				ResmiTatil1  = ResmiTatil1  + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG04" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS04" Then
+			Yillikizin2 = Yillikizin2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				Yillikizin1  = Yillikizin1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				Yillikizin1  = Yillikizin1  + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG05" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS05" Then
+			UcretliIzin2 = UcretliIzin2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				UcretliIzin1  = UcretliIzin1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				UcretliIzin1  = UcretliIzin1  + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIG01" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIS01" Then
+			Raporlu2 = Raporlu2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				Istirahat1  = Istirahat1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				Istirahat1  = Istirahat1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIG02" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIS02" Then
+			UcretsizIzin2 = UcretsizIzin2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				UcretsizIzin1  = UcretsizIzin1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				UcretsizIzin1  = UcretsizIzin1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="E01" Then
+			Mesai50_1 =Mesai50_1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Mesai50_2 = Mesai50_2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="E02" Then
+			Mesai100_1 =Mesai100_1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Mesai100_2 = Mesai100_2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="Y_DV" Then
+			DVergisi = DVergisi + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="SENDIKA" Then
+			Sendika = Sendika + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S01" Then
+			S01 = S01 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S02" Then
+			S02 = S02 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S03" Then
+			S03 = S03 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S04" Then
+			S04 = S04 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S05" Then
+			S05 = S05 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S06" Then
+			S06 = S06 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S07" Then
+			S07 = S07 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S08" Then
+			S08 = S08 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S09" Then
+			S09 = S09 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S10" Then
+			S10 = S10 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S11" Then
+			S11 = S11 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S12" Then
+			S12 = S12 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S13" Then
+			S13 = S13 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		End if
+	Next
+	NormalKazanc = NormalCalisma2+HaftaTatili2+ResmiTatil2+	Yillikizin2+UcretliIzin2
+	NormalKazanc = NormalCalisma2+HaftaTatili2+ResmiTatil2+	Yillikizin2+UcretliIzin2
+	SosyalYardimToplami = S01+S02+S03+S04+S05+S06+S07+S08+S09+S10+S11+S12+S13+S14+S15+S16
+	MesaiToplami = Mesai50_2 + Mesai100_2
+	MesaiToplami2 = Mesai50_1 + Mesai100_1
+	KazancToplami = NormalKazanc + MesaiToplami + SosyalYardimToplami
+
+	res = pe1.setalign("Right")
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(NormalCalisma2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(HaftaTatili2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(ResmiTatil2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(Yillikizin2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(UcretliIzin2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(NormalKazanc,20,2))
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(Mesai50_2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(Mesai100_2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(MesaiToplami,20,2))
+
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S01,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S02,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S03,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S04,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S05,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S06,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S07,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S08,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S09,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S10,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S11,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S12,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S13,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(SosyalYardimToplami,20,2))
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(KazancToplami,20,2))
+
+	for i=1 to Tbl_BRDR1TP.Getrowcount()
+		Doc.StatusBarMessage "SSK Bilgileri Hesaplanýyor : " & i & " / " & Tbl_BRDR1TP2.Getrowcount()
+
+			tarih1=Tbl_BRDR1TP.TARIH1(i)
+			tarih1Sebebi=Tbl_BRDR1TP.TARIH1_SEBEBI(i)
+
+			if trim(tarih1)<>"" and trim(tarih1Sebebi) = "G" then
+				isegirensayisi=isegirensayisi+1
+			end if
+
+			tarih2=Tbl_BRDR1TP.TARIH2(i)
+			tarih2Sebebi=Tbl_BRDR1TP.TARIH2_SEBEBI(i)
+
+			if trim(tarih2)<>"" and trim(tarih2Sebebi) = "C" then
+				istencikansayisi=istencikansayisi+1
+			end if
+
+			Cinsiyet=Doc.GetDbFieldValue("PERSM0","CINSIYET",Tbl_BRDR1TP.KOD(i),"")
+			Select case trim(Cinsiyet)
+				case "K"
+					k_sayisi = k_sayisi + 1
+				case "E"
+					e_sayisi=e_sayisi + 1
+			End select
+
+		sskmatrahi=sskmatrahi + Tbl_BRDR1TP.BUBORDRO_SSKMATRAHI(i)
+		GVMatrahi=GVMatrahi + Tbl_BRDR1TP.BUBORDRO_GVMATRAHI(i)
+		GelirVergisi=GelirVergisi + Tbl_BRDR1TP.BUBORDRO_GV(i)
+		SSKGun = SSKGun + Tbl_BRDR1TP.BUBORDRO_SSKPRIMGN_P(i)
+		Borc = Borc + Tbl_BRDR1TP.KESILENBORC(i)
+		Avans = Avans + Tbl_BRDR1TP.KESILENAVANS(i)
+		AsgariGecim = AsgariGecim + Tbl_BRDR1TP.BUBORDRO_AGI(i)
+		NetOdenecek = NetOdenecek + Tbl_BRDR1TP.NETODENECEK(i)
+
+		IsciHastalik = IsciHastalik + Tbl_BRDR1TP.BUBRDR_SSKPRIMIH(i)
+		IsciMaluliyet = IsciMaluliyet + Tbl_BRDR1TP.BUBRDR_SSKPRIMIM(i)
+		IsciIssizlik = IsciIssizlik + Tbl_BRDR1TP.BUBRDR_SSKPRIMII(i)
+		IsciSGDP = IsciSGDP + Tbl_BRDR1TP.BUBRDR_SSKPRIMIS(i)
+		IsciToplam = IsciHastalik + IsciMaluliyet
+		IsciAlttoplam = IsciToplam + IsciSGDP 
+		IsciGenelToplam = IsciGenelToplam + Tbl_BRDR1TP.BUBORDRO_SSKPRIMI(i)
+	
+		IsvAnalik = IsvAnalik + Tbl_BRDR1TP.BUBRDR_SSKPRIMVA(i)
+		IsvHastalik = IsvHastalik + Tbl_BRDR1TP.BUBRDR_SSKPRIMVH(i)
+		IsvMaluliyet = IsvMaluliyet + Tbl_BRDR1TP.BUBRDR_SSKPRIMVM(i)
+		IsvIssizlik = IsvIssizlik + Tbl_BRDR1TP.BUBRDR_SSKPRIMVI(i)
+		IsvSGDP = IsvSGDP + Tbl_BRDR1TP.BUBRDR_SSKPRIMVS(i)
+		IsvMeslek = IsvMeslek + Tbl_BRDR1TP.BUBRDR_SSKPRIMVK(i) 
+
+		IsvToplam = IsvAnalik + IsvHastalik + IsvMaluliyet + IsvMeslek
+		IsvAltToplam = IsvToplam + IsvSGDP  	
+		IssizlikToplam = IsciIssizlik + IsvIssizlik
+
+		IsvGenelToplam = IsvGenelToplam + Tbl_BRDR1TP.BUBORDRO_SSKPRIMV(i)
+		SSK_Toplam = IsciGenelToplam + IsvGenelToplam
+
+		KesintiToplami = Borc + Avans + Sendika + DigerKesinti
+
+		Maliyet = Maliyet + Tbl_BRDR1TP.PERSONELMALIYETI(i)
+	Next
+'SSK Alanlarýn Yazýlmasý
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(SSKMatrahi,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsciToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsciSGDP,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsciAlttoplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsvToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsvSGDP,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsvAlttoplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsciIssizlik,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsvIssizlik,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IssizlikToplam,20,2))
+
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsvGenelToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsciGenelToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(SSK_Toplam,20,2))
+
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(GVMatrahi,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(GelirVergisi,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(DVergisi,20,2))
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(Maliyet,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(NetOdenecek,20,2))
+
+'Özel kesinti alanlarýnýn yazýlmasý
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 50,satiryuksekligi,20,doc.NumFormat0(Avans,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 50,satiryuksekligi,20,doc.NumFormat0(Borc,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 50,satiryuksekligi,20,doc.NumFormat0(AsgariGecim,20,2))
+
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 150,satiryuksekligi,20,doc.NumFormat0(DigerKesinti,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 150,satiryuksekligi,20,doc.NumFormat0(Sendika,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 150,satiryuksekligi,20,doc.NumFormat0(KesintiToplami,20,2))
+
+'Ýstatistik alanlarýnýn yazýlmasý
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(SSKGun,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(PersonelSayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(e_sayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(k_sayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(isegirensayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(istencikansayisi,20,0))
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(NormalCalisma1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(HaftaTatili1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(ResmiTatil1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(Yillikizin1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(UcretliIzin1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(Istirahat1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(UcretsizIzin1,20,0) & " Saat")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 157,satiryuksekligi,20,doc.NumFormat0(Mesai50_1,20,2) & " Sa")
+	res = pe1.write(pe1.getbottom,solmargin + 157,satiryuksekligi,20,doc.NumFormat0(Mesai100_1,20,2) & " Sa")
+	res = pe1.write(pe1.getbottom,solmargin + 157,satiryuksekligi,20,doc.NumFormat0(MesaiToplami2,20,2) & " Sa")
+
+End Sub                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : TAHAKKUK-2
+Hangi Tablo için : BORDR1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Tahakkuk-Departman
+Kod : 
+Public sayfaBoyu, sayfaEni, sonSatir, satirSonu
+Public UstMargin, SolMargin, SagMargin, AltMargin, satiryuksekligi
+Public siraNo, satirBaslangic, satirAra, SatirBitis
+Public ToplamEURTutar, ToplamEURIskonto, ToplamEURIskontoluTutar
+Public Grid, xCizgi
+
+Sub Makro1()
+	Dim satirSayisi,pe1
+	sayfaBoyu = 297
+	sayfaEni = 210
+	siraNo = 0
+	satirBaslangic = 0
+	UstMargin = 10
+	AltMargin = SayfaBoyu - 20 
+	SolMargin = 10
+	SagMargin = SayfaEni - 7
+	satiryuksekligi = 5.5
+	satirBaslangic = UstMargin + 210
+	satirSonu = AltMargin - 30
+
+	Set pe1 = doc.CreatePrintEngineOutput()
+	res = pe1.Open(0, "BORDRO", SayfaBoyu, SayfaEni,"")
+	
+	If doc.ErrorNumber Then
+		MsgBox ("Hata main : " & doc.ErrorNumber)
+		Exit Sub
+	End If
+	siraNo = 0        
+
+	Call Print_form_sayfabasi(pe1)
+	
+	res = pe1.Show()
+	res = Doc.ActivateAfterMacro(1)
+End Sub
+Sub Print_form_sayfabasi(pe1)
+	res = pe1.selectfont("Arial",9)
+	res = pe1.line(ustmargin + satiryuksekligi *3,solmargin,0,sagmargin-solmargin)
+	res = pe1.pensize(0)
+	res = pe1.setbold(1)
+	res = pe1.write(ustmargin,solmargin+2,satiryuksekligi,50,"Rapor Tarihi / Saati")
+	res = pe1.write(pe1.gettop,solmargin+145,satiryuksekligi,20,"Sayfa No  1")
+	res = pe1.write(pe1.getbottom,solmargin + 2,satiryuksekligi,50,"Ýþyeri Adý")
+	res = pe1.write(pe1.gettop,solmargin+145,satiryuksekligi,20,"Dönem")
+	res = pe1.write(pe1.getbottom,solmargin + 2,satiryuksekligi,50,"Bölüm Adý")
+	res = pe1.write(ustmargin ,solmargin+34,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin+34,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin+34,satiryuksekligi,2,":")
+	res = pe1.SetUnderlined(1)
+	res = pe1.write(ustmargin + satiryuksekligi * 4,solmargin+35,satiryuksekligi,50,"KAZANÇLAR")
+	res = pe1.write(ustmargin + satiryuksekligi * 4,solmargin+125,satiryuksekligi,50,"YASAL KESÝNTÝLER")
+	res = pe1.SetUnderlined(0)
+	res = pe1.SetUnderlined(0)
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin,satiryuksekligi,50,"Normal Çalýþma")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Hafta Tatili")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Genel Tatil")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yýllýk Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ücretli Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Normal Kazanç Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"%100 Mesai")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Gece Mesaisi")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Fazla Mesai Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"Çocuk Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yakacak Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ýkramiye")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Bayram Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yýllýk Ýzin Ücreti")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Doðum Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Evlenme Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ölüm Yardýmý-Kendisi")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Ölüm Yardýmý-Yakýný")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Askerlik Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Posta Baþý Ücreti")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Tahsil Yardýmý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Yol Parasý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Sosyal Yardým Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"Kazançlar Toplamý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 40,satiryuksekligi,2,":")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 100,satiryuksekligi,50,"SSK Matrahý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Ýþçi")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SGDP Ýþçi")	
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Alt Toplamý Ýþçi")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SGDP Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Alt Toplamý Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ýþsizlik Ýþçi")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ýþsizlik Ýþveren")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ýþsizlik SSK Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 100,satiryuksekligi,50,"SSK Ýþveren Toplamý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"SSK Ýþçi Toplamý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Ödenecek SSK Toplamý")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 100,satiryuksekligi,50,"Gelir Vergisi Matrahý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Gelir Vergisi Toplamý")
+	'res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"DV Matrahý")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Damga Vergisi")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 100,satiryuksekligi,50,"Toplam Ýþveren Maliyeti")
+	res = pe1.write(pe1.getbottom,solmargin + 100,satiryuksekligi,50,"Net Ücret Ödemesi")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 140,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 140,satiryuksekligi,2,":")
+
+	res = pe1.setunderlined(1)
+	res = pe1.write(ustmargin + satiryuksekligi * 33,solmargin + 70,satiryuksekligi,50,"ÖZEL KESÝNTÝLER/ÝNDÝRÝMLER")
+	res = pe1.setunderlined(0)
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin,satiryuksekligi,50,"Avans")
+	res = pe1.write(pe1.gettop,solmargin + 105,satiryuksekligi,50,"Yuvarlama Farký")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Borç")
+	res = pe1.write(pe1.gettop,solmargin + 105,satiryuksekligi,50,"Sendika Kesintisi")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Net AGÝ")
+	res = pe1.write(pe1.gettop,solmargin + 105,satiryuksekligi,50,"Kesinti Toplamý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 45,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,2,":")
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 145,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 145,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 145,satiryuksekligi,2,":")
+
+	res = pe1.setunderlined(1)
+	res = pe1.write(ustmargin + satiryuksekligi * 40,solmargin + 72,satiryuksekligi,50,"ÝSTATÝSTÝK")
+	res = pe1.setunderlined(0)
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin,satiryuksekligi,50,"SSK Gün Sayýsý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Personel Sayýsý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Erkek")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Kadýn")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Giren Sayýsý")
+	res = pe1.write(pe1.getbottom,solmargin,satiryuksekligi,50,"Çýkan Sayýsý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 30,satiryuksekligi,2,":")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 65,satiryuksekligi,50,"Normal Çalýþma")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Hafta Tatili")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Resmi Tatil")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Yýllýk Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Ücretli Ýzin")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Ýstirahat")
+	res = pe1.write(pe1.getbottom,solmargin + 65,satiryuksekligi,50,"Ücretsiz Ýzin")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,2,":")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 130,satiryuksekligi,50,"%100 Mesai")
+	res = pe1.write(pe1.getbottom,solmargin + 130,satiryuksekligi,50,"Gece Mesai")
+	res = pe1.write(pe1.getbottom,solmargin + 130,satiryuksekligi,50,"Mesai Toplamý")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 155,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 155,satiryuksekligi,2,":")
+	res = pe1.write(pe1.getbottom,solmargin + 155,satiryuksekligi,2,":")
+
+
+'FÝELDLARIN YAZILMASI
+	res = pe1.setbold(0)
+	Bugun = doc.today()
+	Bugun = doc.StrtoNordate(Bugun)
+	Saat = doc.Saat(5)
+
+	Dim Tarih1
+	Dim Tarih2
+	Dim IsyeriKodu
+	yil= R_BORDR1.YIL(1)
+	ay1= R_BORDR1.AY(1)
+	
+	IsyeriKodu = R_BORDR1.ISYERIKODU(1)
+	IsyeriAdi = doc.GetDbFieldValue("PERSB01","IY_UNVAN",IsyeriKodu,"")
+	DepartmanKodu = R_BORDR1.DEPARTMAN1(1)
+	DepartmanAdi = doc.GetDbFieldValue("PERSM04","ACIKLAMA",DepartmanKodu,"")
+
+	res = pe1.write(ustmargin,solmargin+36,satiryuksekligi,45,Bugun & " " & Saat)
+	res = pe1.write(pe1.getbottom, solmargin + 36,satiryuksekligi,100,IsyeriAdi)
+	res = pe1.write(pe1.getbottom, solmargin + 36,satiryuksekligi,100,DepartmanAdi)
+
+	res = pe1.write(ustmargin + satiryuksekligi,solmargin+165,satiryuksekligi,30,yil & " - " & ay1 )
+	If Doc.IsBlank(yil) Or Doc.IsBlank(ay1) Or Doc.IsBlank(IsyeriKodu) Then
+		Msgbox "Dönem ve Ýþyeri Belirtmelisiniz"
+		Exit Sub
+	End If
+	tarih1=yil  & "/" & ay1 & "/" & "01"
+	tarih2=yil  & "/" & ay1 & "/" & "31"
+	
+	Dim Kriter
+	dim Kriter1
+	Dim Kriter3
+	Kriter=""
+	Kriter1=""
+	Kriter3=""
+	Kriter=Kriter&"CTARIH1>="&Tarih1
+	Kriter=Kriter&" & "
+	Kriter=Kriter&"CTARIH1<="&Tarih2
+	Kriter=Kriter&" & "
+	Kriter=Kriter&"ISYERIKODU="&Isyerikodu
+	Kriter=Kriter&" & "
+	Kriter=Kriter&"DEPARTMAN="&DepartmanKodu
+
+	Dim Tbl_BRDR1TP
+	Set Tbl_BRDR1TP=Doc.Select1("__BRDR1TP","BRDR1TP",Kriter,"",-1)
+	Dim Tbl_BRDR1TP2
+	Set Tbl_BRDR1TP2=Doc.Select1("__BRDR1TP2","BRDR1TP2",Kriter,"",-1)
+
+	ay=Doc.getgecovalue("|MONTH2","AD",ay1,-1)
+	PersonelSayisi=Tbl_BRDR1TP.GetRowCount
+
+	NormalCalisma1 = 0 
+	NormalCalisma2 = 0
+	HaftaTatili1 = 0
+	HaftaTatili2 = 0
+	ResmiTatil1 = 0
+	ResmiTatil2 = 0
+	Yillilkizin1 = 0
+	Yillilkizin2 = 0
+	UcretliIzin1 = 0
+	UcretliIzin2 = 0
+	DogumIzni1 = 0 
+	DogumIzni2 = 0
+	OlumIzni1 = 0
+ 	OlumIzni2 = 0
+	UcretsizIzin1 = 0
+	UcretsizIzin2 = 0
+	Mesai50_1 = 0
+	Mesai50_2 = 0
+	Mesai100_1 = 0
+	Mesai100_2 = 0
+	MesaiToplami1 = 0	
+	MesaiToplami2	= 0
+
+	S01 = 0
+	S02 = 0
+	S03 = 0
+	S04 = 0
+	S05 = 0
+	S06 = 0
+	S07 = 0
+	S08 = 0
+	S09 = 0
+	S10 = 0
+	S11 = 0
+	S12 = 0
+	S13 = 0
+	S14 = 0
+	S15 = 0
+	S16 = 0
+
+	for m = 1 to Tbl_BRDR1TP2.Getrowcount()
+		Doc.StatusBarMessage "Kazançlar Hesaplanýyor : " & m & " / " & Tbl_BRDR1TP2.Getrowcount()
+		if trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG01" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS01" Then
+			NormalCalisma2 = NormalCalisma2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				NormalCalisma1 = NormalCalisma1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				NormalCalisma1 = NormalCalisma1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG02" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS02" Then
+			HaftaTatili2 = HaftaTatili2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				HaftaTatili1 = HaftaTatili1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				HaftaTatili1 = HaftaTatili1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG03" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS03" Then
+			ResmiTatil2 = ResmiTatil2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				ResmiTatil1  = ResmiTatil1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				ResmiTatil1  = ResmiTatil1  + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG04" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS04" Then
+			Yillikizin2 = Yillikizin2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				Yillikizin1  = Yillikizin1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				Yillikizin1  = Yillikizin1  + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCG05" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KCS05" Then
+			UcretliIzin2 = UcretliIzin2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				UcretliIzin1  = UcretliIzin1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				UcretliIzin1  = UcretliIzin1  + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIG01" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIS01" Then
+			Raporlu2 = Raporlu2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				Istirahat1  = Istirahat1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				Istirahat1  = Istirahat1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIG02" or trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="KIS02" Then
+			UcretsizIzin2 = UcretsizIzin2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+			if Tbl_BRDR1TP2.SURE_SAAT(m) > 0 then
+				UcretsizIzin1  = UcretsizIzin1  + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Else
+				UcretsizIzin1  = UcretsizIzin1 + (Tbl_BRDR1TP2.SURE_GUN(m)*7.5)
+			End if
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="E01" Then
+			Mesai50_1 =Mesai50_1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Mesai50_2 = Mesai50_2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="E02" Then
+			Mesai100_1 =Mesai100_1 + Tbl_BRDR1TP2.SURE_SAAT(m)
+			Mesai100_2 = Mesai100_2 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="Y_DV" Then
+			DVergisi = DVergisi + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="SENDIKA" Then
+			Sendika = Sendika + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S01" Then
+			S01 = S01 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S02" Then
+			S02 = S02 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S03" Then
+			S03 = S03 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S04" Then
+			S04 = S04 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S05" Then
+			S05 = S05 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S06" Then
+			S06 = S06 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S07" Then
+			S07 = S07 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S08" Then
+			S08 = S08 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S09" Then
+			S09 = S09 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S10" Then
+			S10 = S10 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S11" Then
+			S11 = S11 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S12" Then
+			S12 = S12 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		Elseif trim(Tbl_BRDR1TP2.KAZANCKESINTIKODU(m))="S13" Then
+			S13 = S13 + Tbl_BRDR1TP2.HESAPLANAN_TUTAR(m)
+		End if
+	Next
+	NormalKazanc = NormalCalisma2+HaftaTatili2+ResmiTatil2+	Yillikizin2+UcretliIzin2
+	NormalKazanc = NormalCalisma2+HaftaTatili2+ResmiTatil2+	Yillikizin2+UcretliIzin2
+	SosyalYardimToplami = S01+S02+S03+S04+S05+S06+S07+S08+S09+S10+S11+S12+S13+S14+S15+S16
+	MesaiToplami = Mesai50_2 + Mesai100_2
+	MesaiToplami2 = Mesai50_1 + Mesai100_1
+	KazancToplami = NormalKazanc + MesaiToplami + SosyalYardimToplami
+
+	res = pe1.setalign("Right")
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(NormalCalisma2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(HaftaTatili2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(ResmiTatil2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(Yillikizin2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(UcretliIzin2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(NormalKazanc,20,2))
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(Mesai50_2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(Mesai100_2,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(MesaiToplami,20,2))
+
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S01,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S02,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S03,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S04,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S05,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S06,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S07,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S08,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S09,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S10,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S11,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S12,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 45,satiryuksekligi,20,doc.NumFormat0(S13,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(SosyalYardimToplami,20,2))
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 70,satiryuksekligi,20,doc.NumFormat0(KazancToplami,20,2))
+
+	for i=1 to Tbl_BRDR1TP.Getrowcount()
+		Doc.StatusBarMessage "SSK Bilgileri Hesaplanýyor : " & i & " / " & Tbl_BRDR1TP2.Getrowcount()
+
+			tarih1=Tbl_BRDR1TP.TARIH1(i)
+			tarih1Sebebi=Tbl_BRDR1TP.TARIH1_SEBEBI(i)
+
+			if trim(tarih1)<>"" and trim(tarih1Sebebi) = "G" then
+				isegirensayisi=isegirensayisi+1
+			end if
+
+			tarih2=Tbl_BRDR1TP.TARIH2(i)
+			tarih2Sebebi=Tbl_BRDR1TP.TARIH2_SEBEBI(i)
+
+			if trim(tarih2)<>"" and trim(tarih2Sebebi) = "C" then
+				istencikansayisi=istencikansayisi+1
+			end if
+
+			Cinsiyet=Doc.GetDbFieldValue("PERSM0","CINSIYET",Tbl_BRDR1TP.KOD(i),"")
+			Select case trim(Cinsiyet)
+				case "K"
+					k_sayisi = k_sayisi + 1
+				case "E"
+					e_sayisi=e_sayisi + 1
+			End select
+
+		sskmatrahi=sskmatrahi + Tbl_BRDR1TP.BUBORDRO_SSKMATRAHI(i)
+		GVMatrahi=GVMatrahi + Tbl_BRDR1TP.BUBORDRO_GVMATRAHI(i)
+		GelirVergisi=GelirVergisi + Tbl_BRDR1TP.BUBORDRO_GV(i)
+		SSKGun = SSKGun + Tbl_BRDR1TP.BUBORDRO_SSKPRIMGN_P(i)
+		Borc = Borc + Tbl_BRDR1TP.KESILENBORC(i)
+		Avans = Avans + Tbl_BRDR1TP.KESILENAVANS(i)
+		AsgariGecim = AsgariGecim + Tbl_BRDR1TP.BUBORDRO_AGI(i)
+		NetOdenecek = NetOdenecek + Tbl_BRDR1TP.NETODENECEK(i)
+
+		IsciHastalik = IsciHastalik + Tbl_BRDR1TP.BUBRDR_SSKPRIMIH(i)
+		IsciMaluliyet = IsciMaluliyet + Tbl_BRDR1TP.BUBRDR_SSKPRIMIM(i)
+		IsciIssizlik = IsciIssizlik + Tbl_BRDR1TP.BUBRDR_SSKPRIMII(i)
+		IsciSGDP = IsciSGDP + Tbl_BRDR1TP.BUBRDR_SSKPRIMIS(i)
+		IsciToplam = IsciHastalik + IsciMaluliyet
+		IsciAlttoplam = IsciToplam + IsciSGDP 
+		IsciGenelToplam = IsciGenelToplam + Tbl_BRDR1TP.BUBORDRO_SSKPRIMI(i)
+	
+		IsvAnalik = IsvAnalik + Tbl_BRDR1TP.BUBRDR_SSKPRIMVA(i)
+		IsvHastalik = IsvHastalik + Tbl_BRDR1TP.BUBRDR_SSKPRIMVH(i)
+		IsvMaluliyet = IsvMaluliyet + Tbl_BRDR1TP.BUBRDR_SSKPRIMVM(i)
+		IsvIssizlik = IsvIssizlik + Tbl_BRDR1TP.BUBRDR_SSKPRIMVI(i)
+		IsvSGDP = IsvSGDP + Tbl_BRDR1TP.BUBRDR_SSKPRIMVS(i)
+		IsvMeslek = IsvMeslek + Tbl_BRDR1TP.BUBRDR_SSKPRIMVK(i) 
+
+		IsvToplam = IsvAnalik + IsvHastalik + IsvMaluliyet + IsvMeslek
+		IsvAltToplam = IsvToplam + IsvSGDP  	
+		IssizlikToplam = IsciIssizlik + IsvIssizlik
+
+		IsvGenelToplam = IsvGenelToplam + Tbl_BRDR1TP.BUBORDRO_SSKPRIMV(i)
+		SSK_Toplam = IsciGenelToplam + IsvGenelToplam
+
+		KesintiToplami = Borc + Avans + Sendika + DigerKesinti
+
+		Maliyet = Maliyet + Tbl_BRDR1TP.PERSONELMALIYETI(i)
+	Next
+'SSK Alanlarýn Yazýlmasý
+	res = pe1.write(ustmargin + satiryuksekligi * 6,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(SSKMatrahi,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsciToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsciSGDP,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsciAlttoplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsvToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsvSGDP,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsvAlttoplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsciIssizlik,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(IsvIssizlik,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IssizlikToplam,20,2))
+
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsvGenelToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(IsciGenelToplam,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 162,satiryuksekligi,20,doc.NumFormat0(SSK_Toplam,20,2))
+
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(GVMatrahi,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(GelirVergisi,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(DVergisi,20,2))
+	res = pe1.write(pe1.getbottom + satiryuksekligi,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(Maliyet,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 142,satiryuksekligi,20,doc.NumFormat0(NetOdenecek,20,2))
+
+'Özel kesinti alanlarýnýn yazýlmasý
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 50,satiryuksekligi,20,doc.NumFormat0(Avans,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 50,satiryuksekligi,20,doc.NumFormat0(Borc,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 50,satiryuksekligi,20,doc.NumFormat0(AsgariGecim,20,2))
+
+	res = pe1.write(ustmargin + satiryuksekligi * 35,solmargin + 150,satiryuksekligi,20,doc.NumFormat0(DigerKesinti,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 150,satiryuksekligi,20,doc.NumFormat0(Sendika,20,2))
+	res = pe1.write(pe1.getbottom,solmargin + 150,satiryuksekligi,20,doc.NumFormat0(KesintiToplami,20,2))
+
+'Ýstatistik alanlarýnýn yazýlmasý
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(SSKGun,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(PersonelSayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(e_sayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(k_sayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(isegirensayisi,20,0))
+	res = pe1.write(pe1.getbottom,solmargin + 40,satiryuksekligi,20,doc.NumFormat0(istencikansayisi,20,0))
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(NormalCalisma1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(HaftaTatili1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(ResmiTatil1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(Yillikizin1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(UcretliIzin1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(Istirahat1,20,0) & " Saat")
+	res = pe1.write(pe1.getbottom,solmargin + 95,satiryuksekligi,20,doc.NumFormat0(UcretsizIzin1,20,0) & " Saat")
+
+	res = pe1.write(ustmargin + satiryuksekligi * 41,solmargin + 157,satiryuksekligi,20,doc.NumFormat0(Mesai50_1,20,2) & " Sa")
+	res = pe1.write(pe1.getbottom,solmargin + 157,satiryuksekligi,20,doc.NumFormat0(Mesai100_1,20,2) & " Sa")
+	res = pe1.write(pe1.getbottom,solmargin + 157,satiryuksekligi,20,doc.NumFormat0(MesaiToplami2,20,2) & " Sa")
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : L2013 / Uygulama : MAKR7S
+Makro Kodu : e
+Hangi Tablo için : STOK29
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	Doc.LoadFirst_Voucher
+	Do
+		Doc.Save_Voucher
+	Loop While Doc.LoadNext_Voucher = 0
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
