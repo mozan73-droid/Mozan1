@@ -1,0 +1,1111 @@
+Makro Kaynak Kodu
+Firma Kodu : BDORA_2014 / Uygulama : MAKR7S
+Makro Kodu : MPSSIL
+Hangi Tablo için : MMPS10
+Ýlave Hangi Uygulamalar için : 
+Açýklama : LISTE TABINDAKI MPS LERI SILER
+Kod : 
+Sub Makro1()
+	msgbox Listet.getreccount
+	For i = 1 to Listet.GetReccount
+		Doc.Load_Voucher(LISTET.EVRAKNO(i))
+		Doc.Delete_Voucher
+	Next
+	Doc.LoadEmpty_Voucher
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BDORA_2014 / Uygulama : MAKR7S
+Makro Kodu : TEKL21-01
+Hangi Tablo için : TEKL21
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÜRÜN AÐACI PATLATMA
+Kod : 
+Sub Makro1
+	'ilk satýrda kaynaktype "M", kod alanýna mamül kodu ve sf_miktar alanýna da esas miktar girilerek makro çalýþtýrýlýrsa
+	'girilen esas miktara göre ürün aðacýný patlatýr.
+	'gelen liste içindeki bomrec_mamulmiktar ürün aðacýnda tanýmlý olan esas miktardýr.
+	Set T20TI = Doc.GetTableObject("TEKL20TI") 	
+	MamulKodu = T20TI.KOD(1)
+	EsasMiktar = T20TI.SF_MIKTAR(1)
+	T20TI.Empty
+	URUNAGACIFOYNO = ""
+	satirNo = T20TI.AddRow()
+	T20TI.SetCurrentRow(satirNo)
+	T20TI.KAYNAKTYPE = "M"
+	T20TI.KOD = MamulKodu
+	T20TI.SF_MIKTAR = EsasMiktar
+	
+	ret = Doc.Calc_Bom("M","M",MamulKodu,1,EsasMiktar,"","","","","","","","") 
+	Set Tbmrsys = Doc.GetTableObject("_WBMRSYS_SELECT") 
+	'CAll SendTableToExcel(Tbmrsys)
+
+	altseviyesayisi = Tbmrsys.GetRowCount()	
+	For j = 1 to altseviyesayisi
+		kaynaktipi = Trim(Tbmrsys.BOMREC_INPUTTYPE(j))
+		kod = Tbmrsys.BOMREC_KAYNAKCODE(j)
+		bomreccode = Trim(Tbmrsys.BOMREC_CODE(j))
+		bomrecaltkodu = Trim(Tbmrsys.BOMREC_ALTKODU(j))
+		treecode = Tbmrsys.TREE_CODE(j)
+		piclevel1 = Tbmrsys.XLEVEL(j)
+		altseviyebulundu = Tbmrsys.IALTSEVIYEBULUNDU(j)
+		sirano = Tbmrsys.BOMREC_SIRANO(j)
+		bomrecnotu = Tbmrsys.BOMREC_NOT(j)
+		OperasyonKodu = Trim(Tbmrsys.BOMREC_OPERASYON(j))
+
+		OperasyonAdi = Trim(Doc.GetDBFieldValue("IMLT01", "AD",OperasyonKodu, ""))
+		KartTipi = Trim(Doc.GetDBFieldValue("STOK00", "KART_TIPI", kod, ""))
+		KartTipAdi = Doc.GetGecoValue("|KARTTIPI","AD",KartTipi,-1)
+		
+		MamulMiktar = Tbmrsys.BOMREC_MAMULMIKTAR(j)
+		ayarsuresi = Tbmrsys.BOMREC_KAYNAK1(j)
+		yuklemesuresi = Tbmrsys.BOMREC_KAYNAK2(j)
+		hammaddemiktari_tezgahsuresi_ayar_dahil = Tbmrsys.KAYNAKMIKTART(j)
+		yarimamulkod = Tbmrsys.BOMREC_YMAMULCODE(j) 
+		yarimamulmiktari = Tbmrsys.BOMREC_YMAMULPM(j) 
+		kalipkodu = Tbmrsys.KALIPKODU(j) 
+		
+		BirimCevrimSuresiSaat = Tbmrsys.BOMREC_KAYNAK0(j)
+		BirimCevrimSuresiDakika = 60 * BirimCevrimSuresiSaat
+		BirimCevrimSuresiSaniye = Doc.NumFormat(60 * BirimCevrimSuresiDakika, 4, 2)
+				
+		satirNo = T20TI.AddRow()
+		T20TI.SetCurrentRow(satirNo)
+		T20TI.KAYNAKTYPE = kaynaktipi
+		T20TI.KOD = kod
+		T20TI.ARTIKEL_REF_NUM_1 = piclevel1
+		T20TI.ARTIKEL_REF_NUM_2 = altseviyebulundu
+		T20TI.SIRANO = sirano
+		T20TI.ARTIKEL_REF_NUM_4 = bomrecaltkodu		
+		T20TI.ARTIKEL_REF_NUM_5 = MamulMiktar	 
+		T20TI.SF_MIKTAR = BirimCevrimSuresiSaat				
+		T20TI.OPERASYON_SURESI = BirimCevrimSuresiDakika	
+		T20TI.AYARSETUP_SURESI = ayarsuresi
+		T20TI.YUKLEME_SURESI = yuklemesuresi
+		T20TI.ARTIKEL_REF_NUM_3 = hammaddemiktari_tezgahsuresi_ayar_dahil
+
+		If j = 1 Then 
+			T20TI.ARTIKEL_REF_TEXT_2(1) = MamulKodu
+			T20TI.SIRANO (1) = ""
+			URUNAGACIFOYNO = Trim(Doc.GetDBFieldValue("BOMU01E", "EVRAKNO", MamulKodu & "*", "MAMULCODE+AKTIF_PASIF"))
+			If URUNAGACIFOYNO <> "" Then 
+				T20TI.ARTIKEL_REF_TEXT_8(1) = URUNAGACIFOYNO
+				URUNAGACIFOYNO = ""
+			End If
+		End If
+		URUNAGACIFOYNO = Trim(Doc.GetDBFieldValue("BOMU01E", "EVRAKNO", kod & "*", "MAMULCODE+AKTIF_PASIF"))
+		If URUNAGACIFOYNO <> "" Then T20TI.ARTIKEL_REF_TEXT_8 = URUNAGACIFOYNO
+		URUNAGACIFOYNO = ""
+		If piclevel1 = " " Then
+			T20TI.ARTIKEL_REF_TEXT_2 = kod
+			T20TI.ARTIKEL_REF_TEXT_10 = kod
+		ElseIf piclevel1 = "1" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(3) & kod
+			T20TI.ARTIKEL_REF_TEXT_10 = space(3) & kod
+		ElseIf piclevel1 = "2" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(6) & kod
+			T20TI.ARTIKEL_REF_TEXT_10 = space(6) & kod
+		ElseIf piclevel1 = "3" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(9) & kod				
+			T20TI.ARTIKEL_REF_TEXT_10 = space(9) & kod	
+		ElseIf piclevel1 = "4" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(12) & kod		
+			T20TI.ARTIKEL_REF_TEXT_10 = space(12) & kod		
+		ElseIf piclevel1 = "5" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(15) & kod	
+			T20TI.ARTIKEL_REF_TEXT_10 = space(15) & kod		
+		ElseIf piclevel1 = "6" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(18) & kod
+			T20TI.ARTIKEL_REF_TEXT_10 = space(18) & kod
+		ElseIf piclevel1 = "7" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(21) & kod
+			T20TI.ARTIKEL_REF_TEXT_10 = space(21) & kod
+		ElseIf piclevel1 = "8" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(24) & kod	
+			T20TI.ARTIKEL_REF_TEXT_10 = space(24) & kod	
+		ElseIf piclevel1 = "9" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(27) & kod		
+			T20TI.ARTIKEL_REF_TEXT_10 = space(27) & kod		
+		ElseIf piclevel1 = "10" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(30) & kod		
+			T20TI.ARTIKEL_REF_TEXT_10 = space(30) & kod		
+		ElseIf piclevel1 = "11" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(33) & kod	
+			T20TI.ARTIKEL_REF_TEXT_10 = space(33) & kod	
+		ElseIf piclevel1 = "12" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(36) & kod
+			T20TI.ARTIKEL_REF_TEXT_10 = space(36) & kod
+		ElseIf piclevel1 = "13" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(39) & kod
+			T20TI.ARTIKEL_REF_TEXT_10 = space(39) & kod
+		ElseIf piclevel1 = "14" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(42) & kod	
+			T20TI.ARTIKEL_REF_TEXT_10 = space(42) & kod
+		ElseIf piclevel1 = "15" Then
+			T20TI.ARTIKEL_REF_TEXT_2 = space(45) & kod	
+			T20TI.ARTIKEL_REF_TEXT_10 = space(45) & kod
+		End If
+		
+		T20TI.ARTIKEL_REF_TEXT_4 = bomreccode
+		T20TI.ARTIKEL_REF_TEXT_1 = bomrecnotu	
+		T20TI.ARTIKEL_REF_TEXT_3 = OperasyonKodu	
+		T20TI.ARTIKEL_REF_TEXT_5 = OperasyonAdi	
+		T20TI.ARTIKEL_REF_TEXT_6 = yarimamulkod	
+		T20TI.ARTIKEL_REF_NUM_6 = yarimamulmiktari	
+		T20TI.ARTIKEL_REF_TEXT_7 = kalipkodu	
+		T20TI.ARTIKEL_REF_TEXT_9 = KartTipAdi		
+	Next
+	T20TI.SafePack
+end sub
+
+
+
+Sub SendTableToExcel(Tablo)
+	Set pe2 = Doc.CreateSObject("ExcelOutput")
+	PE2.SetOrientation "P"
+	PE2.PageB_ReportHead_std1 Tablo.GetAppName
+
+	Alanlar = Tablo.GetFields()
+	ncol = 0
+	For i=0 To uBound(Alanlar,1)
+		ncol = ncol+1
+		if ncol > 256 Then Exit For
+		AlanTuru = Alanlar(i,2)
+			AlanAdi = Alanlar(i,0)
+			If AlanTuru = "INT16" or AlanTuru = "INT32" or AlanTuru = "DOUBLE" Then
+			Align = "RIGHT"
+		Else
+			Align = "LEFT"
+		End if
+		pe2.AddColumnDef Alanlar(i,0), Alanlar(i,3), Alanlar(i,4), Align
+		pe2.SetRowValue_String -1, AlanAdi
+	Next
+	PE2.LineOut
+
+	For satirNo = 1 to Tablo.GetRowCount()
+		Doc.StatusBarMessage "Excel 'e gönderiliyor : " & Tablo.GetAppName & " - " & i & " / " & Tablo.GetRowCount
+		PE2.InitRowValues
+
+		ExcelSatir = -1
+		ncol = 0
+		For i=0 To uBound(Alanlar,1)
+			ncol = ncol+1
+			if ncol > 256 Then Exit For
+			AlanAdi = Alanlar(i,0)
+			AlanTuru = Alanlar(i,2)
+			If AlanTuru = "INT16" or AlanTuru = "INT32" or AlanTuru = "DOUBLE" Then
+				Deger = Tablo.GetFieldValue(AlanAdi,satirNo)
+				pe2.SetRowValue_Double ExcelSatir, Deger
+			ElseIf AlanTuru = "DATE" Then
+				OutputStr=Doc.StrToNorDate(Tablo.GetFieldValue(AlanAdi,satirNo))
+				pe2.SetRowValue_String ExcelSatir,OutputStr
+			Else
+				pe2.SetRowValue_String ExcelSatir,Tablo.GetFieldValue(AlanAdi,satirNo)
+			End if
+		Next
+		PE2.LineOut
+	Next
+	pe2.Show
+End Sub                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BDORA_2014 / Uygulama : MAKR7S
+Makro Kodu : _GNPRG1
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : STOK KARTI REVÝZYON ÖZELLÝÐÝ
+Kod : 
+Sub Makro1()
+	Set MTable=Doc.CreateTableObject("MAKROTABLE_SF=STACK","IO")
+	MTable.Addfield2 "REVNO","CHAR",2,0,"C","",""
+End Sub
+'---------------------------------------------------------------------------------
+Sub Revizyon
+
+	'If Not OzelHakVarMi("REVNO") Then 
+	'	Msgbox "Bu Özelliði Kullanma Yetkiniz Yok."
+	'	Exit Sub
+	'End If
+	
+	Set S00 = Doc.GetTableObject("STOK00")
+	StokKodu = Trim(S00.KOD)
+	If StokKodu = "" Then
+		Msgbox "Stok Kodu Seçilmemiþ"
+		Exit Sub
+	End If
+	
+	Dim Par
+	Set Par=Nothing
+	'Doc.LoadSubForm_Dyn "FORM_REVIZYON", SC_SCRIPTMODULEFILENAME, Par
+	Call RevizyonlariOlustur
+End Sub
+'---------------------------------------------------------------------------------
+Sub RevizyonlariOlustur
+	'Set MTable = Doc.GetTableObject("MAKROTABLE_SF")
+	'If Trim(MTable.REVNO) = "" Then
+	'	Msgbox "Revizyon No Girilmemiþ."
+	'	Exit Sub
+	'Else
+	'	RevizyonNo = Trim(MTable.REVNO)
+	'End If
+	
+	Set S00 = Doc.GetTableObject("STOK00")
+	StokKodu = Trim(S00.KOD)
+	
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK00", "")
+	Set S00X = Doc1.GetTableObject("STOK00")
+	
+	StokKartiSonRakami = Right(StokKodu, 1)
+	If StokKartiSonRakami = "9" Then
+		Msgbox "Son Rakamý 9 Olan Stok Kodlarýnda Revizyon Ýþlemi Yapýlamaz."
+		Exit Sub
+	End If
+
+	YeniStokKartiSonRakami = StokKartiSonRakami+1
+	
+	StokKartiUzunlugu = Len(StokKodu)
+	YeniStokKartiKodu = Left(StokKodu, StokKartiUzunlugu-1) & YeniStokKartiSonRakami
+ 	
+	'YeniStokKartiKodu = StokKodu & "-" & RevizyonNo
+	Set S00Kontrol = Doc.Select1("xddd", "STOK00", "KOD='"&YeniStokKartiKodu&"'", "", -1)
+	If S00Kontrol.GetRecCount > 0 Then
+		Msgbox "Stok Kartý Mevcut. Ýþlem Ýptal Edilmiþtir."
+		Exit Sub
+	Else
+	
+		k=doc.d7msgbox("Yeni Stok Kartý : " & vbcrlf & vbcrlf & YeniStokKartiKodu & vbcrlf & vbcrlf & "Koduyla Açýlacaktýr. Emin Misiniz?", "ONAY", MB_YESNO)
+		If k=6 Then
+			Doc.RunCommand "MT_DOC_COPY"
+			Doc1.Load_Voucher YeniStokKartiKodu
+			Doc1.RunCommand "MT_DOC_PASTE"
+			ret = Doc1.Save_Voucher
+			If ret = 0 Then 
+				Doc.d7MsgBox "[" & YeniStokKartiKodu & "] Kodlu Stok Kartý Oluþturuldu.", "Ýþlem Tamamlandý", MB_OK
+				Doc1.LoadEmpty_Voucher
+				'Ürün Aðacý Oluþturma
+				Set B01E = Doc.Select1("xxssdd", "BOMU01E", "MAMULCODE='"&StokKodu&"'", "", -1)
+				If B01E.GetRecCount = 0 Then
+					Msgbox "Ürün Aðacý Yok. Ýþlem Kesilmiþtir."
+					Exit Sub
+				Else
+					EskiUrunAgaciFoyNo = Trim(B01E.EVRAKNO)
+					Set Doc1 = Doc.CreateDocumentNoUI("BOMU01", "")
+					Set B01E = Doc1.GetTableObject("BOMU01E")
+					Set B01T = Doc1.GetTableObject("BOMU01T")
+					
+					Doc1.Load_Voucher EskiUrunAgaciFoyNo
+					Doc1.RunCommand "MT_DOC_COPY"
+					Doc1.LoadEmpty_Voucher
+					
+					Doc1.New_Voucher 
+					YeniUrunAgaciFoyNo = Trim(B01E.EVRAKNO)
+					Doc1.RunCommand "MT_DOC_PASTE"
+					B01E.MAMULCODE = YeniStokKartiKodu
+					ret = Doc1.Save_Voucher
+					If ret = 0 Then 
+						Doc.d7MsgBox "[" & YeniStokKartiKodu & "] Koduna ait Ürün Aðacý Aþaðýdaki Yeni Föy No ile Oluþturuldu." & vbcrlf & vbcrlf & YeniUrunAgaciFoyNo, "Ýþlem Tamamlandý", MB_OK
+						Doc1.Load_Voucher EskiUrunAgaciFoyNo
+						B01E.AKTIF_PASIF = " "
+						Doc1.Save_Voucher
+						Doc1.LoadEmpty_Voucher
+					Else
+						Doc.d7MsgBox "[" & YeniStokKartiKodu & "]" & " Koduna ait Ürün Aðacý Oluþturulamadý", "Ýþlem Kesilmiþtir.", MB_OK
+					End If
+					Doc1.LoadEmpty_Voucher
+				End If
+			Else
+				Doc.d7MsgBox "[" & YeniStokKartiKodu & "]" & " Kodlu Stok Kartý Oluþturulamadý", "Ýþlem Kesilmiþtir.", MB_OK
+			End If
+			Doc1.LoadEmpty_Voucher
+			Doc.RUN_APP_EXIT_ONIDLE
+		Else
+			Exit Sub
+		End If
+	End If
+End Sub
+'---------------------------------------
+'-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function OzelHakVarMi(HakKodu)
+	OzelHakVarMi = False
+	Set U12 = Doc.Select1("de443d44t", "UDEFT12", "KOD='" & Doc.Getd7UserName() & "'&OZEL_HAK_KODU='" & HakKodu & "'", "", -1)
+	if U12.GetRowCount() > 0 Then OzelHakVarMi = True
+End Function
+'---------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : STOK00
+Bu Uygulama için Baþlangýç Ekran Formu : STOK00XXX
+Baþlangýçta Bu Makro Çalýþacak : Makro1
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM STOK00XXX SCROLLBARS=NO SIZE=FULL
+SET CAPTION="Stok Kartý Tanýmlarý"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=10 BOLD=Y
+
+POPUPMENUDEF ID=EVRAKMENU
+ MENUITEM TEXT="Reçete Seviyesini Bul" ID="CMD_SEVIYELERI_BUL_KAYDET"
+ SEPARATOR
+ MENUITEM T="Kullanýcý Tanýmlý Alanlar" ID="MT_EDIT_UDF()"
+ MENUITEM T="Mesajlar" ID="MT_EDIT_LMSG()"
+ SEPARATOR
+ MENUITEM TEXT="Kart Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Kart Yapýþtýr", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Dýþarýya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Dýþarýdan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+  MENUITEM TEXT="Yeni Evrak\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM TEXT="Kaydet\tF10",    ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM TEXT="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+     MENUITEM TEXT="Çý&kýþ"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ýlk Kayýt\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayýt\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayýt\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ýlk Kayýt (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayýt (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayýt (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapýþtýr\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+  MENUITEM TEXT="&Sil\tDel",    ID=ID_EDIT_DELETE
+  SEPARATOR
+  MENUITEM TEXT="&Hepsini Seç\tCtrl+A",   ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+  MENUITEM TEXT="&Satýr Ekle\tCtrl+N",  ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satýr Sil\tCtrl+Y",  ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalýþtýr\tALT+F8",   ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Hesapla\tF9",   ID=ID000 KEY=F9
+  SEPARATOR
+  MENUITEM TEXT="&Ýþlevler\tF6",   ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM TEXT="&Yardým\tF1",   ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP TEXT="Ýþle&vler" POPUP = EVRAKMENU
+
+ POPUP TEXT="&TV"
+  MENUITEM TEXT="Stok TV",   ID="MT_RUNDOC('STOK00TV','STOK00TV','F=STOK00.KOD')"
+ ENDPOPUP
+
+ POPUP TEXT="&Yardým"
+     MENUITEM TEXT="&Yardým Baþlýklarý",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM TEXT="&Hakkýnda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=MUHA00_SAPP
+ SEPARATOR
+ MENUITEM TEXT="Yeni Muhasebe Hesap Kodu" ID="MT_RUNDOC('MUHA00')"
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU_MT_GO_APP
+ SEPARATOR
+ MENUITEM T="Evraký Göster" ID=MT_GO_APP
+ENDMENUDEF
+
+POPUPMENUDEF ID=MENU_CGCV70
+ SEPARATOR
+ MENUITEM T="Evraký Göster" ID="MT_RUNDOC('CGCV70','CGCV70','F=CGCV70E.EVRAKNO')"
+ENDMENUDEF
+
+INCLUDE TOOLBAR_FULLSET
+
+
+SAVELOCATION LOC1
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=1 TOP=+0 WIDTH=1007p HEIGHT=70p 
+
+ SAVELOCATION LOCXSDF234
+ LTEXT    LEFT=1 TOP=+16P W=40P T="Kod" TXTCOL=RGB_255_000_000
+ IF STARTUP=13
+  EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.KOD" BROWSEBUTTON=1 UPPERCASE=Y
+ ELSE
+  EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.KOD" BROWSEBUTTON=1
+ ENDIF 
+
+ RTEXT    LEFT=E+3P TOP=+0 W=63P CD="STOK00.CODETYPE" CDF="%6" TXTCOL=RGB_255_000_000
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.CODETYPE"
+
+ RTEXT    LEFT=E+3P TOP=+0 W=89P CD="STOK00.IUNIT" CDF="%6" TXTCOL=RGB_255_000_000
+ COMBOBOX LEFT=E+3p TOP=+0p D="STOK00.IUNIT"
+
+ RTEXT    LEFT=E+3P TOP=+0 W=59P CD="STOK00.KART_TIPI" CDF="%6"
+ PICTURECOMBO LEFT=E+3p TOP=+0p W=41p D="STOK00.KART_TIPI"
+
+ RTEXT    LEFT=E+3P TOP=+0 W=69P CD="STOK00.KALIPMI" CDF="%6"
+ CHECKBOX LEFT=E+3p TOP=+0p D="STOK00.KALIPMI" TRUEFALSE=EH
+
+ RTEXT    LEFT=E+3P TOP=+0 W=97P CD="STOK00.AP10" CDF="%6"
+ CHECKBOX LEFT=E+3p TOP=+0p D="STOK00.AP10" TRUEFALSE=10
+
+	BUTTON LEFT=E+10p TOP=E-10p W=100p HEIGHT=30p CAPTION="Revizyon" TXTCOL=RGB_000_000_000 BCKCOL=RGB_255_255_183 ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','Revizyon')" FOCUS=NO
+
+
+ LTEXT    LEFT=1 W=40P TOP=+1 CD="STOK00.AD" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=335p D="STOK00.AD"  BROWSEBUTTON=1
+
+ DEFINEFONT ID="RS_001" FACE="Arial" POINT=10 BOLD=Y CHARSET="RUSSIAN"
+ EDITTEXT LEFT=E+3p TOP=+0 W=335p D="STOK00.NAME2" 
+
+ RESTORELOCATION LOCXSDF234
+ PICTUREBOX LEFT=975P TOP=+16P W=23P D="STOK00.UDEF_UDF"
+ PICTUREBOX LEFT=975P TOP=+1 W=23P D="STOK00.UDEF_MSG"
+ENDGROUPBOX
+
+TABDEF X=0 Y=+4P WIDTH=1023p H=558p AUTOSIZE=N
+ TAB Name="Ana Sayfa" CAPTION=" Ana Sayfa "
+ TAB Name="Ek Tanýmlar" CAPTION=" Ek Tanýmlar "
+ TAB Name="Ek Tanýmlar-2" CAPTION=" Ek Tanýmlar-2 "
+ TAB Name="Ek Tanýmlar-3" CAPTION=" Ek Tanýmlar-3 "
+
+ TAB Name="Grup Kodlarý" CAPTION=" Grup Kodlarý "
+
+ TAB Name="Alternatifler" CAPTION=" Alternatifler "
+ 
+ TAB Name="Resimler" CAPTION=" Resimler " 
+ TAB Name="Üretici Kodlarý" CAPTION=" Üretici Kodlarý "
+ TAB Name="Fiyat Kartý" CAPTION=" Fiyat Kartý " 
+ TAB Name="Baðlantýlý Dökümanlar" CAPTION=" Baðlantýlý Dökümanlar "  
+
+
+ TAB Name="Liste" CAPTION=" Liste "  
+
+ENDTABDEF
+
+TAB "Ana Sayfa"
+LOCATE TOP=1
+GROUPBOX TEXT="Grup Kodlarý " AUTOSIZE=N LEFT=1 TOP=+5P WIDTH=142p HEIGHT=263P TXTCOL=RGB_000_089_132 
+ RTEXT    LEFT=1 TOP=+1 W=22p T="1"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_1"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="2"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_2"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="3"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_3"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="4"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_4"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="5"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_5"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="6"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_6"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="7"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_7"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="8"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_8"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="9"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_9"
+ RTEXT    LEFT=1 TOP=+1 W=22p T="10"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.GK_10"
+ENDGROUPBOX
+
+LOCATE TOP=1
+GROUPBOX TEXT="Fiyatlar" AUTOSIZE=N LEFT=157p TOP=+5p WIDTH=260p HEIGHT=110P TXTCOL=RGB_000_089_132 
+ LTEXT    LEFT=1 TOP=+17P W=15P T=" 1"
+ EDITTEXT LEFT=E+3p TOP=+0 W=160P D="STOK00.B_OR_FIYAT_1"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.PRICEUNIT_1"
+
+ LTEXT    LEFT=1 TOP=+1 W=15P T=" 2"
+ EDITTEXT LEFT=E+3p TOP=+0 W=160P D="STOK00.B_OR_FIYAT_2"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.PRICEUNIT_2"
+
+ LTEXT    LEFT=1 TOP=+1 W=15P T=" 3"
+ EDITTEXT LEFT=E+3p TOP=+0 W=160P D="STOK00.B_OR_FIYAT_3"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.PRICEUNIT_3"
+
+ LTEXT    LEFT=1 TOP=+1 W=15P T=" 4"
+ EDITTEXT LEFT=E+3p TOP=+0 W=160P D="STOK00.B_OR_FIYAT_4"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.PRICEUNIT_4"
+
+ENDGROUPBOX
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=157p TOP=+5p WIDTH=260p HEIGHT=65P TXTCOL=RGB_000_089_132 
+ LTEXT    LEFT=1 TOP=+15P W=50P CD="STOK00.GTIP" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.GTIP"
+
+ LTEXT    LEFT=1 TOP=+1 W=50P CD="STOK00.B_GVO" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.B_GVO"
+
+ENDGROUPBOX
+
+LOCATE TOP=1
+GROUPBOX TEXT="Stok Limitleri " AUTOSIZE=N LEFT=425p TOP=+5p WIDTH=320p HEIGHT=180P TXTCOL=RGB_000_089_132 
+ LTEXT    LEFT=1 TOP=+17P W=128P CD="STOK00.B_GUVENLIKSTOGU" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_GUVENLIKSTOGU" 
+ LTEXT    LEFT=1 TOP=+1 W=128P CD="STOK00.B_MAXENVANTERMIKTARI" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_MAXENVANTERMIKTARI" 
+ LTEXT    LEFT=1 TOP=+1 W=128P CD="STOK00.B_MINIMUMSIPMIKTARI" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_MINIMUMSIPMIKTARI"  
+ LTEXT    LEFT=1 TOP=+1 W=128P CD="STOK00.B_MINPARTIBUYUKLUGU" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_MINPARTIBUYUKLUGU"  
+ LTEXT    LEFT=1 TOP=+1 W=128P CD="STOK00.B_ORTTEMINSURES" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_ORTTEMINSURES" FORMAT=N3.0
+ LTEXT  LEFT=E+3p TOP=+0 W=25p T="Gün"
+ LTEXT    LEFT=1 TOP=+1 W=128P CD="STOK00.B_URETICI_GRNT_SURE" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_URETICI_GRNT_SURE"  FORMAT=N4.0
+ LTEXT  LEFT=E+3p TOP=+0 W=25p T="Gün"
+ LTEXT    LEFT=1 TOP=+1 W=128P CD="STOK00.B_SATIS_GRNT_SURE" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 W=123p D="STOK00.B_SATIS_GRNT_SURE" FORMAT=N4.0
+ LTEXT  LEFT=E+3p TOP=+0 W=25p T="Gün"
+ENDGROUPBOX
+
+LOCATE TOP=1
+
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=753p TOP=+5p WIDTH=262p HEIGHT=180P TXTCOL=RGB_000_089_132 
+ LTEXT    LEFT=1 TOP=+17P W=58P CD="STOK00.TSENO" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.TSENO"
+ LTEXT    LEFT=1 TOP=+1 W=58P CD="STOK00.EANKODU" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.EANKODU"
+ SAVELOCATION LOCX1
+ RTEXT    LEFT=1 TOP=+1 W=58P CD="STOK00.TEXT_TECH_1" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.TEXT_TECH_1"
+ LTEXT    LEFT=E+3p TOP=+0 T="2"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.TEXT_TECH_2"
+ RTEXT    LEFT=1 TOP=+1 W=58P T="3"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.TEXT_TECH_3"
+ LTEXT    LEFT=e+3p TOP=+0 T="4"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.TEXT_TECH_4"
+
+ RTEXT    LEFT=1  TOP=+1 W=58p CD="STOK00.PCX_FILE_1" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.PCX_FILE_1"
+ LTEXT    LEFT=E+3p TOP=+0 T="2"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.PCX_FILE_2"
+ RTEXT    LEFT=1 TOP=+1 W=58p T="3"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.PCX_FILE_3"
+
+ LTEXT    LEFT=1 TOP=+25P W=58p T="Ürün Yönetimi"
+ LTEXT    LEFT=E+3P TOP=+0 W=70p D="STOK00.UKODACIKLAMA" BORDER=ETCHED TXTCOL=RGB_255_000_000
+ LTEXT    LEFT=E+3P TOP=+0 W=20p D="STOK00.EKARTSTATUSU" BORDER=ETCHED TXTCOL=RGB_255_000_000
+ LTEXT    LEFT=E+3P TOP=+0 W=60p D="STOK00.EKARTSTAT_ACIKLAMA" BORDER=ETCHED TXTCOL=RGB_255_000_000 
+ BUTTON   LEFT=E+3P TOP=+0p WIDTH=20p HEIGHT=20P CAPTION=" " ID="MT_RUNDOC('EKART00','EKART00','F=STOK00.KOD')"
+
+ENDGROUPBOX
+
+SAVELOCATION LOC0
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=157p TOP=E+1p WIDTH=385p HEIGHT=40P TXTCOL=RGB_000_089_132 
+ LTEXT    LEFT=1 TOP=+15P W=50P CD="STOK00.B_OTV_ORANI" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.B_OTV_ORANI"
+
+ LTEXT    LEFT=e+3p TOP=+0 W=50P CD="STOK00.B_FON_ORANI" CDF="%6"
+ EDITTEXT LEFT=E+3p TOP=+0 D="STOK00.B_FON_ORANI"
+ENDGROUPBOX
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=157p TOP=E+0p WIDTH=385p HEIGHT=40P TXTCOL=RGB_000_089_132 
+ LTEXT    LEFT=1 TOP=+15P W=120p CD="STOK00.DEFAULT_LOCATION1" CDF="%6"
+ COMBOBOX LEFT=E+3P TOP=+0 D="STOK00.DEFAULT_LOCATION1"
+ COMBOBOX LEFT=E+3p TOP=+0 D="STOK00.DEFAULT_LOCATION2"
+ COMBOBOX LEFT=E+3p TOP=+0 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : BDORA_2014 / Uygulama : MAKR7S
+Makro Kodu : STOK47E
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : SATINALMA TALEBÝNE PROJE NO ALANI
+Kod : 
+
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : STOK47
+Bu Uygulama için Baþlangýç Ekran Formu : STOK47XXX
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM STOK47XXX SCROLLBARS=NO
+SET CAPTION="Satýnalma Talebi"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_font_radio_buuton" FACE="MS Sans Serif" POINT=8
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="FONT011" FACE="MS Sans Serif" POINT=8 
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU 
+ MENUITEM T="Döviz Kurlarý &Giriþi" ID=DO_SENT_KURENT_0
+ SEPARATOR
+ MENUITEM T="Tedarikçi ve Son Satýnalma Bilgileri" ID=CMD_TEDARIKCI_VE_SON_SATINALMA_BILGILERI
+ MENUITEM T="Fiyatlandýrma Þekline Göre Fiyatlarý Hesapla" ID=CMD_FIYATLANDIR_001
+ SEPARATOR 
+ MENUITEM TEXT="Yeni Önerilerinden Aktar" ID=CMD_ONERIDEN_AKTAR
+ SEPARATOR 
+ MENUITEM T="Diðer Evraklardan Kopya" ID=CMD_DIGER_EVRAKLARDAN_KOPYA
+ SEPARATOR
+ MENUITEM T="Malzeme Listesinden Kopyala" ID=USR_SENT_STOK19_USE1
+ SEPARATOR
+ MENUITEM T="Kullanýcý Tanýmlý Alanlar" ID="MT_EDIT_UDF()"
+ MENUITEM T="Mesajlar"   ID="MT_EDIT_LMSG()"
+ SEPARATOR
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapýþtýr", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Dýþarýya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Dýþarýdan Veri Al\t(Import)",   ID=MT_IMPORT
+ SEPARATOR
+ MENUITEM TEXT="Evrak Bilgilerini Gör/Deðiþtir",  ID=MT_SENTVIEWCHANGEEKINFO
+ENDMENUDEF
+
+MENUDEF
+ POPUP T="&Dosya"
+  MENUITEM T="Yeni Evrak\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM T="Kaydet\tF10",    ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM T="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM T="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+     MENUITEM T="Çý&kýþ"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP T="Dü&zen"
+  MENUITEM T="Ýlk Kayýt\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM T="Son Kayýt\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM T="Önceki Kayýt\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM T="Sonraki Kayýt\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ýlk Kayýt (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayýt (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayýt (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM T="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM T="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM T="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM T="Yapýþtýr\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+     MENUITEM T="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+     MENUITEM T="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+  MENUITEM T="&Satýr Detayý\tF4", ID=MT_LINEDETAIL KEY=F4
+  MENUITEM T="&Satýr Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM T="&Satýr Sil\tCtrl+Y",  ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalýþtýr\tALT+F8",   ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM T="&Ýþlevler\tF6",  ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM T="&Yardým\tF1",   ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP T="Ýþle&vler" POPUP=EVRAKMENU
+ POPUP T="&Yardým"
+     MENUITEM T="&Yardým Baþlýklarý",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM T="&Hakkýnda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=FOEDIT
+ SEPARATOR
+ MENUITEM T="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+ SEPARATOR
+ MENUITEM TEXT="Feature/Option Seçimi\t(F3)", ID="CFFV('DO_SENT_FOCODE_0','KODFN=KOD')" KEY=F3
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU
+ SEPARATOR
+ MENUITEM T="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+
+
+
+
+ SEPARATOR
+ MENUITEM T="Bu Kodun Tedarikçi ve Son Satýnalma Bilgileri" ID=CMD_TEDARIKCI_VE_SON_SATINALMA_BILGILERI2
+ENDMENUDEF
+
+POPUPMENUDEF ID=EVRAK_FIELD_MENU
+ SEPARATOR
+ MENUITEM TEXT="Araþtýr\t(F3)", ID="CFFNV('_BROWSE_3')" KEY=F3
+ENDMENUDEF
+
+POPUPMENUDEF ID=APP_MENU1
+ SEPARATOR
+ SEPARATOR
+ MENUITEM TEXT="Evraký Göster" ID="MT_RUNDOC('APP','FORM','F=STOK47T.SNSTLM_EN')"
+ENDMENUDEF
+POPUPMENUDEF ID=MENU_TDSNTM2
+ SEPARATOR
+ MENUITEM T="Bu Kodun Tedarikçi ve Son Satýnalma Bilgileri" ID=CMD_TEDARIKCI_VE_SON_SATINALMA_BILGILERI2
+ENDMENUDEF
+
+INCLUDE TOOLBAR_FULLSET
+
+TABDEF X=0p Y=+0p WIDTH=1023p H=633p AUTOSIZE=N
+ TAB Name="Satýnalma Talebi" CAPTION=" Satýnalma Talebi "
+ TAB Name="Detay" CAPTION=" Detay "
+ TAB Name="Liste" CAPTION=" Liste "
+ TAB Name="Tedarikçilerden Alýnan Teklifler" CAPTION=" Tedarikçilerden Alýnan Teklifler "
+ TAB Name="Satýnalma Sipariþlerini Oluþturma" CAPTION=" Satýnalma Sipariþlerini Oluþturma "
+ TAB Name="Tedarikçilerden Alýnan Teklifler Listesi" CAPTION=" Tedarikçilerden Alýnan Teklifler Listesi "
+ TAB Name="Bu Talep Ýçin Açýlan Sipariþler" CAPTION=" Bu Talep Ýçin Açýlan Sipariþler "
+ TAB Name="Sevk Adresi" CAPTION=" Sevk Adresi "
+ TAB Name="Baðlantýlý Dökümanlar" CAPTION=" Baðlantýlý Dökümanlar "
+ENDTABDEF
+
+TAB "Satýnalma Talebi"
+
+ SAVELOCATION LOCZXCSFD
+
+ GROUPBOX T="Evrak" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=450p HEIGHT=125p TXTCOL=RGB_000_089_132  
+  LOCATE TOP=0
+  SAVELOCATION LOCXCSDF234
+  LTEXT    LEFT=1 TOP=+18P W=100P CD="STOK47E.EVRAKNO" CDF="%6" TXTCOL=RGB_255_000_000
+IF STARTUP=13
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.EVRAKNO" BROWSEBUTTON=1 UPPERCASE=Y
+ELSE
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.EVRAKNO" BROWSEBUTTON=1
+ENDIF
+
+  LTEXT    LEFT=1 TOP=+1 W=100P CD="STOK47E.TARIH" CDF="%6" TXTCOL=RGB_255_000_000
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.TARIH" RBUTTON_POPUPMENU=EVRAK_FIELD_MENU
+
+  LTEXT    LEFT=1 TOP=+1 W=100P CD="STOK47E.CODEDBOLUM"  CDF="%6" TXTCOL=RGB_255_000_000
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.CODEDBOLUM"
+
+  LTEXT    LEFT=1 TOP=+1 W=100P CD="STOK47E.CODEDKISI"  CDF="%6" TXTCOL=RGB_255_000_000
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.CODEDKISI" BROWSEBUTTON=1
+  LTEXT    LEFT=E+3P TOP=+0 W=180P D="STOK47E.CODEDKISI_PERS00_AD" BORDER=ETCHED
+
+  RESTORELOCATION LOCXCSDF234
+  LTEXT    LEFT=280P TOP=+18P W=55P CD="STOK47E.ONAY" CDF="%6"
+  COMBOBOX LEFT=E+3P TOP=+0 W=42p D="STOK47E.ONAY" FORMAT=C1.0
+
+  LTEXT    LEFT=280p TOP=+1 W=55P CD="STOK47E.FIYSEKLI" CDF="%6"
+  COMBOBOX LEFT=E+3P TOP=+0 W=42p D="STOK47E.FIYSEKLI"
+  LTEXT    LEFT=280p TOP=+1 W=55P CD="STOK47E.FIYATLISTESI" CDF="%6"
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.FIYATLISTESI" BROWSEBUTTON=1
+
+ ENDGROUPBOX
+
+ RESTORELOCATION LOCZXCSFD
+ GROUPBOX T="" AUTOSIZE=N LEFT=464P TOP=+1 WIDTH=442p HEIGHT=125p TXTCOL=RGB_000_089_132  
+  LOCATE TOP=0
+  LTEXT    LEFT=1 TOP=+18p W=135p CD="STOK47E.GK_1" CDF="%4"
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.GK_1"
+  LTEXT    LEFT=E+3P TOP=+0 W=180P D="STOK47E.GK_1_AD" BORDER=ETCHED
+
+  LTEXT    LEFT=1 TOP=+1 W=135p CD="STOK47E.GK_2" CDF="%4"
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.GK_2"
+  LTEXT    LEFT=E+3P TOP=+0 W=180P D="STOK47E.GK_2_AD" BORDER=ETCHED
+
+  LTEXT    LEFT=1 TOP=+1 W=135p CD="STOK47E.GK_3" CDF="%4"
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.GK_3"
+  LTEXT    LEFT=E+3P TOP=+0 W=180P D="STOK47E.GK_3_AD" BORDER=ETCHED
+
+  LTEXT    LEFT=1 TOP=E+0P W=135p CD="STOK47E.KTA_PROJENO" CDF="%4"
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.KTA_PROJENO" BROWSEBUTTON=1
+  
+ ENDGROUPBOX
+
+ RESTORELOCATION LOCZXCSFD
+ GROUPBOX T="" AUTOSIZE=N LEFT=913P TOP=+1 WIDTH=103p HEIGHT=125p TXTCOL=RGB_000_089_132
+
+  BITMAPBUTTON LEFT=1 TOP=+10P    WIDTH=32P HEIGHT=41p ID=MT_SENTVIEWCHANGEEKINFO BITMAP=LNG_BT1BELGE FOCUS=N BITMAP_DISABLED=LNG_BT1BELGEPASIF
+  COLOR  LEFT=E+1P WIDTH=20P HEIGHT=19p TOP=+1p D="STOK47E.ONAY_SONVERILENNO" VALUECOLOR=@@@EVRAKONAYRENKLERI@@@ TOOLTIP="Verilen Onay"
+  COLOR  LEFT=E-21P WIDTH=20P HEIGHT=19p TOP=E+1p D="STOK47E.ONAY_BEKLENENNO" VALUECOLOR=@@@EVRAKONAYRENKLERI@@@ TOOLTIP="Bekleyen Onay"
+  BITMAPBUTTON LEFT=E+0p TOP=-22P    WIDTH=32P HEIGHT=41p ID=MT_DO_ONAYLA_EKINFO BITMAP=LNG_BT1ONAY FOCUS=N BITMAP_DISABLED=LNG_BT1ONAYPASIF
+
+  BUTTON LEFT=1 TOP=E+0p WIDTH=87p HEIGHT=40p CAPTION="Son Satýnalma Bilgileri" ID=CMD_TEDARIKCI_VE_SON_SATINALMA_BILGILERI FOCUS=N
+  BUTTON LEFT=1 TOP=E+0p WIDTH=87p HEIGHT=27p CAPTION="Takvim" ID=CMD_TALEPLERI_TAKVIM FOCUS=N
+ ENDGROUPBOX
+
+ GROUPBOX T="" AUTOSIZE=N LEFT=1 TOP=E+0P WIDTH=1007p HEIGHT=50P TXTCOL=RGB_000_089_132  
+  LTEXT    LEFT=1 TOP=+18p W=100p CD="STOK47E.SIPLEILGILINOTLAR_1" CDF="%6"
+  EDITTEXT LEFT=E+3P TOP=+0 W=390P D="STOK47E.SIPLEILGILINOTLAR_1"
+  LTEXT    LEFT=E+3P TOP=+0p W=100p CD="STOK47E.SIPLEILGILINOTLAR_2" CDF="%6"
+  EDITTEXT LEFT=E+3P TOP=+0 W=390P D="STOK47E.SIPLEILGILINOTLAR_2"
+ ENDGROUPBOX
+
+ GRID LEFT=1 TOP=+5p WIDTH=1007p HEIGHT=336p TABLE=STOK47T  HEADERROWHEIGHT=35P RBUTTON_POPUPMENU=GRIDMENU
+
+  PICTUREBOX D="UDEF_UDF" W=14P CAPTION="..."
+  PICTUREBOX D="UDEF_MSG" W=14P CAPTION="..."
+  
+
+  COMBOBOX D="STOK_NONSTOK" CDF="%6"
+
+  PICTUREBOX D="KOD_STOK00_KART_TIPI" CD=1 NOEDIT=YES CDF="%6"
+  EDITTEXT D="KOD" CDF="%6" BROWSEBUTTON=1
+  EDITTEXT D="KOD_STOK00_AD" CDF="%6" BROWSEBUTTON=1
+
+  EDITTEXT D=NONSTOK_AD CDF="%6"
+
+  EDITTEXT D="NOTE0" CDF="%6"
+  EDITTEXT D="NOTE1" CDF="%6"
+
+  EDITTEXT D="SF_MIKTAR" CDF="%6"  
+  COMBOBOX D="SF_SF_UNIT" CDF="%6"
+
+  EDITTEXT D="OR_FIYAT" CD=1 BROWSEBUTTON=1 CDF="%6"
+  EDITTEXT D="OR_TUTAR" CD=1 CDF="%6"
+  COMBOBOX D="PRICEUNIT" CD=1 CDF="%6"
+  EDITTEXT D="KUR" CD=1 CDF="%6"
+  EDITTEXT D="TL_FIYAT" CD=1 NOEDIT=Y CDF="%6"
+  EDITTEXT D="TL_TUTAR" CD=1 NOEDIT=Y CDF="%6"
+
+  PICTURECOMBO D="STATUS" W=86P CDF="%6"
+  COMBOBOX D="RTALEPEDILENTESTARIH" CDF="%6"
+
+  COMBOBOX D="TOLERANSTYPE" W=47p CDF="%6"
+  EDITTEXT D="TOLERANS" W=50P CDF="%6" FORMAT=N2.0
+
+  PICTURECOMBO D="ACIKKAPALI" W=33p CDF="%6"
+
+  EDITTEXT D="FOKOD" CDF="%6" BROWSEBUTTON=1 RBUTTON_POPUPMENU=FOEDIT
+  COMBOBOX D="SF_VRI_VR_C" CD=1 CDF="%6" 
+  EDITTEXT D="SF_VRI_VR_R1" CDF="%6" BROWSEBUTTON=1
+  EDITTEXT D="SF_VRI_VR_R2" CDF="%6"  BROWSEBUTTON=1
+  EDITTEXT D="SF_VRI_VR_R3" CDF="%6" BROWSEBUTTON=1
+
+  EDITTEXT D="SF_VRI_NUM1" CDF="%6"
+  EDITTEXT D="SF_VRI_NUM2" CDF="%6"
+
+  CHECKBOX D="SF_AUTOCALC"  W=30P TRUEFALSE=EH
+  EDITTEXT D="SF_STOK_MIKTAR" CDF="%6"  
+  EDITTEXT D="KOD_STOK00_IUNIT" CDF="%6"  NOEDIT=Y
+
+  EDITTEXT D="SF_NETKAPANANMIK" CDF="%6"
+  EDITTEXT D="SF_BAKIYE" CDF="%6"
+  PICTUREBOX D="BAKIYE_STATUSU" W=25p CDF="%6" RO=Y 
+  EDITTEXT D="ARTNO" CDF="%6"
+  EDITTEXT D=TESISKODU CD=1 CDF="%6" BROWSEBUTTON=1
+
+  EDITTEXT D="D_ID" CD=1 CDF="%6"
+  EDITTEXT D="D_ID_KAYNAK" W=40p CD=1 CDF="%6"
+
+  EDITTEXT D="TEDARIKCI_CH_T" RBUTTON_POPUPMENU=CARI00_MENU1   BROWSEBUTTON=1 CDF="%6"
+  EDITTEXT D="TEDARIKCI_CH_T_AD"   BROWSEBUTTON=1 CDF="%6"
+  PICTUREBOX D="TST0GT_STATU" RO=Y   CDF="%6"
+
+  EDITTEXT D="TEDARIKCI_CH_N" RBUTTON_POPUPMENU=CARI00_MENU1   BROWSEBUTTON=1 CDF="%6"
+  EDITTEXT D="TEDARIKCI_CH_N_AD"   BROWSEBUTTON=1 CDF="%6"
+
+  EDITTEXT D="SNSTLM_TEDARIKCI" NOEDIT=Y BCKCOL=RGB_232_232_200 CDF="%6"
+  EDITTEXT D="SNSTLM_TEDARIKCI_AD" CDF="%6" NOEDIT=Y BCKCOL=RGB_232_232_200
+  PICTUREBOX D="SST0GT_STATU" CDF="%6" RO=Y BCKCOL=RGB_232_232_200
+  EDITTEXT D="SNSTLM_TARIH" CDF="%6" NOEDIT=Y BCKCOL=RGB_232_232_200
+  EDITTEXT D="SNSTLM_ET" CDF="%6" RBUTTON_POPUPMENU=APP_MENU1 BCKCOL=RGB_232_232_200
+  EDITTEXT D="SNSTLM_EN" CDF="%6" RBUTTON_POPUPMENU=APP_MENU1 BCKCOL=RGB_232_232_200
+
+  EDITTEXT D="SNSTLM_SF_MIKTAR" CD=1 NOEDIT=Y BCKCOL=RGB_232_232_200
+  EDITTEXT D="SNSTLM_SF_SF_UNIT" CD=1 NOEDIT=Y BCKCOL=RGB_232_232_200
+
+  EDITTEXT D="SNSTLM_OR_FIYAT" CDF="%6" NOEDIT=Y BCKCOL=RGB_232_232_200
+  EDITTEXT D="SNSTLM_TL_FIYAT" CDF="%6" NOEDIT=Y BCKCOL=RGB_232_232_200
+  EDITTEXT D="SNSTLM_PB" CDF="%6" NOEDIT=Y BCKCOL=RGB_232_232_200
+
+  EDITTEXT D=SUGGESTIONEH NOEDIT=YES CDF="%6"  
+  EDITTEXT D=SUGGESTED_TARIH NOEDIT=YES CDF="%6" 
+  EDITTEXT D=SUGGESTIONTYPE NOEDIT=YES CDF="%6" 
+  EDITTEXT D=SUGGESTED_MIKTAR NOEDIT=YES CDF="%6" 
+
+ ENDGRID
+
+ GROUPBOX T="Dövizler" AUTOSIZE=N LEFT=1 TOP=E+0p WIDTH=1007p HEIGHT=56p TXTCOL=RGB_000_089_132   
+  LOCATE TOP=0P
+  SAVELOCATION LOCXCSDF2
+  LTEXT LEFT=1 TOP=+1 W=70P CD="STOK47E.TL_TUTAR" CDF="%6" 
+  LTEXT LEFT=E+3P TOP=+0 W=120P D="STOK47E.TL_TUTAR" BORDER=ETCHED  
+  RESTORELOCATION LOCXCSDF2
+  LTEXT LEFT=230p TOP=+1 W=85p T="Para Birimi/Tutar"
+
+  LTEXT LEFT=E+3P TOP=+0 W=42P D="STOK47E.PB_1" BORDER=ETCHED  
+  RTEXT LEFT=E+3P TOP=+0 W=120P D="STOK47E.PB_TUTAR_1" BORDER=ETCHED   
+  LTEXT LEFT=E+3P TOP=+0 W=42P D="STOK47E.PB_2" BORDER=ETCHED   
+  RTEXT LEFT=E+3P TOP=+0 W=120P D="STOK47E.PB_TUTAR_2" BORDER=ETCHED   
+  LTEXT LEFT=E+3P TOP=+0 W=42P D="STOK47E.PB_3" BORDER=ETCHED   
+  RTEXT LEFT=E+3P TOP=+0 W=120P D="STOK47E.PB_TUTAR_3" BORDER=ETCHED   
+  LTEXT LEFT=E+3P TOP=+0 W=42P D="STOK47E.PB_4" BORDER=ETCHED   
+  RTEXT LEFT=E+3P TOP=+0 W=120P D="STOK47E.PB_TUTAR_4" BORDER=ETCHED   
+
+ ENDGROUPBOX
+
+
+PICTUREBOX LEFT=1 TOP=600p W=23P D="STOK47E.UDEF_UDF"
+PICTUREBOX LEFT=E+3P TOP=600p W=23P D="STOK47E.UDEF_MSG"
+
+LTEXT    LEFT=608P W=60p TOP=600p T="Son Kayýt"
+LTEXT LEFT=E+3p  TOP=+0 D="STOK47E.ELOG_USERNAME" BORDER=ETCHED  
+LTEXT LEFT=E+0p  TOP=+0 D="STOK47E.ELOG_LOGTARIH"  BORDER=ETCHED  
+LTEXT LEFT=E+0p  TOP=+0 D="STOK47E.ELOG_LOGTIME"  BORDER=ETCHED  
+LTEXT LEFT=E+0p  TOP=+0 D="STOK47E.ELOG_PSTATION"  BORDER=ETCHED  
+
+ENDTAB
+
+TAB "Detay"
+
+ GROUPBOX T="Evrak" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=1007p HEIGHT=43p TXTCOL=RGB_000_089_132  
+  LOCATE TOP=0
+  LTEXT    LEFT=1 TOP=+14P W=52p CD="STOK47E.EVRAKNO"   CDF="%6" TXTCOL=RGB_255_000_000
+IF STARTUP=13
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.EVRAKNO" BROWSEBUTTON=1 UPPERCASE=Y
+ELSE
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.EVRAKNO" BROWSEBUTTON=1
+ENDIF
+
+  LTEXT    LEFT=E+20p TOP=+0P W=32p CD="STOK47E.TARIH"   CDF="%6" TXTCOL=RGB_255_000_000
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.TARIH" RBUTTON_POPUPMENU=EVRAK_FIELD_MENU
+
+  LTEXT    LEFT=E+20P TOP=+0P W=95p CD="STOK47E.CODEDBOLUM"   CDF="%6" TXTCOL=RGB_255_000_000
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.CODEDBOLUM"
+
+  LTEXT    LEFT=E+20P TOP=+0P W=82p CD="STOK47E.CODEDKISI" CDF="%6" TXTCOL=RGB_255_000_000
+  EDITTEXT LEFT=E+3P TOP=+0 D="STOK47E.CODEDKISI" BROWSEBUTTON=1
+
+  LTEXT    LEFT=E+20P TOP=+0P W=33p CD="STOK47E.ONAY" CDF="%6" 
+  COMBOBOX LEFT=E+3P TOP=+0 D="STOK47E.ONAY"
+
+  ENDGROUPBOX
+
+ GRID LEFT=1 TOP=+5P WIDTH=1007p HEIGHT=303p TABLE=STOK47T  HEADERROWHEIGHT=35P RBUTTON_POPUPMENU=GRIDMENU
+
+  PICTUREBOX D="UDEF_UDF" W=14P CAPTION="..."
+  PICTUREBOX D="UDEF_MSG" W=14P CAPTION="..."
+  
+
+  COMBOBOX D="STOK_NONSTOK" CDF="%6" 
+
+  PICTUREBOX D="KOD_STOK00_KART_TIPI" CD=1 NOEDIT=YES CDF="%6" 
+  EDITTEXT D="KOD"  CDF="%6"  BROWSEBUTTON=1
+  EDITTEXT D="KOD_STOK00_AD"  CDF="%6"  BROWSEBUTTON=1
+
+  EDITTEXT D=NONSTOK_AD
+
+  EDITTEXT D="NOTE0"  CDF="%6" 
+  EDITTEXT D="NOTE1"  CDF="%6" 
+
+  EDITTEXT D="SF_MIKTAR"  CDF="%6" 
+  COMBOBOX D="SF_SF_UNIT"  CDF="%6" 
+
+  PICTURECOMBO D="STATUS" W=86P  CDF="%6" 
+  COMBOBOX D="RTALEPEDILENTESTARIH"  CDF="%6" 
+
+  COMBOBOX D="TOLERANSTYPE" W=47p  CDF="%6" 
+  EDITTEXT D="TOLERANS" W=50P  CDF="%6"  FORMAT=N2.0
+
+  PICTURECOMBO D="ACIKKAPALI" W=33p  CDF="%6" 
+
+  EDITTEXT D="FOKOD"  CDF="%6"   BROWSEBUTTON=1 RBUTTON_POPUPMENU=FOEDIT
+  COMBOBOX D="SF_VRI_VR_C"  CDF="%6" 
+  EDITTEXT D="SF_VRI_VR_R1"  CDF="%6"  BROWSEBUTTON=1
+  EDITTEXT D="SF_VRI_VR_R2"  CDF="%6"   BROWSEBUTTON=1
+  EDITTEXT D="SF_VRI_VR_R3"  CDF="%6"  BROWSEBUTTON=1
+
+  EDITTEXT D="SF_VRI_NUM1"  CDF="%6" 
+  EDITTEXT D="SF_VRI_NUM2"  CDF="%6" 
+
+  CHECKBOX D="SF_AUTOCALC"  W=30P  TRUEFALSE=EH
+  EDITTEXT D="SF_STOK_MIKTAR"  CDF="%6" 
+  EDITTEXT D="KOD_STOK00_IUNIT"  CDF="%6" NOEDIT=Y
+
+  EDITTEXT D="SF_NETKAPANANMIK"  CDF="%6" 
+  EDITTEXT D="SF_BAKIYE"  CDF="%6" 
+  PICTUREBOX D="BAKIYE_STATUSU" W=25p  CDF="%6" RO=Y 
+  EDITTEXT D="ARTNO"  CDF="%6" 
+  EDITTEXT D=TESISKODU CD=1 BROWSEBUTTON=1 CDF="%6" 
+
+  EDITTEXT D="D_ID" CD=1  CDF="%6" 
+  EDITTEXT D="D_ID_KAYNAK" W=40p CD=1 CDF="%6" 
+
+  EDITTEXT D="TEDARIKCI_CH_T" RBUTTON_POPUPMENU=CARI00_MENU
+----------------------------------------------------------------
+

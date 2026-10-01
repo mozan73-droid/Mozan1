@@ -1,0 +1,25 @@
+Makro Kaynak Kodu
+Firma Kodu : SVL_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK70
+Hangi Tablo için : STOK70
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub BeforeSave()
+    Doc.DocFunctionV3 "IFONEPUNITNONKDVANDOTHER","1","",""
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : SVL_2014 / Uygulama : MAKR8S
+Makro Kodu : STOK71
+Hangi Tablo için : STOK71
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub BeforeSave()
+    Doc.DocFunctionV3 "IFONEPUNITNONKDVANDOTHER","1","",""
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+----------------------------------------------------------------
+

@@ -1,0 +1,2677 @@
+Makro Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : MAKR7S
+Makro Kodu : D
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Teklif Modülü Ana Uygulama- Silmeyin !!!!
+Kod : 
+Public FixFiyat, IskontoHesaplanmasin
+Sub Makro1()
+	Set STC_ONAY = Doc.CreateTableObject("ONAY_TABLE=STACK", "IO")
+	STC_ONAY.AddField2 "ASAMA_01_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_02_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_03_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_04_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_05_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_06_ONAY", "CHAR", 1, 0, "L", "", ""
+
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	Set TEKL20T4 = Doc.GetTableObject("TEKL20T4")
+	Set TEKL20NK = Doc.GetTableObject("TEKL20NK")
+	Set TEKL20BM = Doc.GetTableObject("TEKL20BM")
+	Set TEKL20IN = Doc.GetTableObject("TEKL20IN")
+
+	TEKL20E.AddField2 "TOPLAM_TUTAR", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_MALIYET", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_KAR_ORANI", "DOUBLE", 8, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_BRUT_KAR_ORANI", "DOUBLE", 8, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_FNS_TUTAR", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "ODEME_DOVIZI", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "STOK_URETIM", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "SIP_BUTCE", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "TOPLAM_40FT", "DOUBLE", 12, 4, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_20FT", "DOUBLE", 12, 4, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_BRUT_AGIRLIK", "DOUBLE", 12, 1, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_KONT_MALIYET", "DOUBLE", 12, 2, "R", "", ""
+	TEKL20E.AddField2 "KONT_PB", "CHAR", 4, 0, "L", "", "*PUNIT="
+	TEKL20E.AddField2 "KOMISYON_PB", "CHAR", 4, 0
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : Makro1
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM USR_TEKL21 SCROLLBARS=NO SIZE=FULL
+SET CAPTION="Teklif Fiyat Analizi"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="FONT011" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="FONT012" FACE="MS Sans Serif" POINT=10 BOLD=Y
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU
+ MENUITEM T="Revizyon" ID=CMD_REVIZYON_YAP
+
+SEPARATOR
+ MENUITEM T="Diger Tekliften Kopyala" ID="MT_LOADSUBFORM('TEKL21_OLD_EVRAK1')" 
+
+SEPARATOR
+
+  SEPARATOR
+// MENUITEM T=" [1] - 1.Seviyeden Hammaddeleri Hesapla" ID=CMD_SECENEK01
+// MENUITEM T=" [2] - Tüm Seviyelerden Hammaddeleri Hesapla" ID=CMD_SECENEK02
+// MENUITEM T=" [3] - 1.Seviyeden Operasyonlari Hesapla" ID=CMD_SECENEK03
+// MENUITEM T=" [4] - Tüm Seviyelerden Operasyonlari Hesapla" ID=CMD_SECENEK04
+// MENUITEM T=" [5] - 1.Seviyeden Hammaddeleri ve Operasyonlari Hesapla ([1] && [3])" ID=CMD_SECENEK05
+// MENUITEM T=" [6] - Tüm Seviyelerden Hammaddeleri ve Operasyonlari Hesapla ([2] && [4])" ID=CMD_SECENEK06
+ SEPARATOR
+// MENUITEM T=" [1] - 1.Seviyeden Hammaddeleri Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK01_CLINE
+// MENUITEM T=" [2] - Tüm Seviyelerden Hammaddeleri Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK02_CLINE
+// MENUITEM T=" [3] - 1.Seviyeden Operasyonlari Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK03_CLINE
+// MENUITEM T=" [4] - Tüm Seviyelerden Operasyonlari Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK04_CLINE
+ //MENUITEM T=" [5] - 1.Seviyeden Hammaddeleri ve Operasyonlari Hesapla ([1] && [3])\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK05_CLINE
+// MENUITEM T=" [6] - Tüm Seviyelerden Hammaddeleri ve Operasyonlari Hesapla ([2] && [4]\t(Üzerinde Bulunulan Satir))" ID=CMD_SECENEK06
+ MENUITEM T=" Teklifi Siparise Aktar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-4','Makro1')"
+ SEPARATOR
+ MENUITEM T=" Tüm fiyat bilgilerini sifirla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','FiyatlariSifirla')"
+// MENUITEM T="Hammadde Satirlarini Iptal Et" ID=CMD_HAMMADDE_SATIRLARINI_IPTAL_ET
+// MENUITEM T="Hesaplanan Alanlardaki Tüm Degerleri Sifirla" ID=CMD_HESAPLANAN_DEGERLERI_IPTAL_ET
+ SEPARATOR
+ MENUITEM TEXT="Stok ve Üretim E&mri Bilgileri\tF5" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-6','Makro1')" KEY=F5
+//		MENUITEM TEXT="&Ekle",	ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','Ekle')" KEY=F5
+
+//  MENUITEM TEXT="&Satir Detayi\tF4", ID=MT_LINEDETAIL KEY=F4
+
+ MENUITEM T="Diger Evraklardan Kopya"   ID=CMD_DIGER_EVRAKLARDAN_KOPYA
+ SEPARATOR
+ MENUITEM T="Kullanici Tanimli Alanlar" ID="MT_EDIT_UDF()"
+ MENUITEM T="Mesajlar"   ID="MT_EDIT_LMSG()"
+ SEPARATOR
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapistir", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Disariya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Disaridan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+  MENUITEM TEXT="Yeni Evrak\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM TEXT="Kaydet\tF10",   ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM TEXT="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+     MENUITEM TEXT="Çi&kis"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ilk Kayit\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayit\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayit\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayit\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ilk Kayit (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayit (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayit (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayit (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapistir\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+  MENUITEM TEXT="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+  MENUITEM TEXT="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+//  MENUITEM TEXT="&Satir Detayi\tF4", ID=MT_LINEDETAIL KEY=F4
+  MENUITEM TEXT="&Satir Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satir Sil\tCtrl+Y", ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalistir\tALT+F8", ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Islevler\tF6", ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM TEXT="&Yardim\tF1", ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP TEXT="Isle&vler" POPUP=EVRAKMENU
+
+ 
+
+ POPUP TEXT="&Yardim"
+     MENUITEM TEXT="&Yardim Basliklari",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM TEXT="&freedom Hakkinda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=FOEDIT
+ SEPARATOR
+// MENUITEM TEXT="Satir Detayi\t(F4)", ID=MT_LINEDETAIL
+ SEPARATOR
+ MENUITEM TEXT="Feature/Option Seçimi\t(F3)", ID="CFFV('DO_SENT_FOCODE_0','KODFN=KOD')" KEY=F3
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU
+ SEPARATOR
+// MENUITEM TEXT="Satir Detayi\t(F4)", ID=MT_LINEDETAIL
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU2
+ SEPARATOR
+// MENUITEM TEXT="Satir Detayi\t(F4)", ID=MT_LINEDETAIL
+ENDMENUDEF
+
+POPUPMENUDEF ID=EVRAK_FIELD_MENU
+ SEPARATOR
+ MENUITEM TEXT="Arastir\t(F3)", ID="CFFNV('_BROWSE_3')" KEY=F3
+ENDMENUDEF
+
+INCLUDE TOOLBAR_FULLSET
+
+GROUPBOX TEXT="Evrak" AUTOSIZE=N LEFT=1 TOP=+0 WIDTH=1007p HEIGHT=90p TXTCOL=RGB_000_089_132  
+ LOCATE TOP=0P
+ SAVELOCATION LOCXSDF23
+ LTEXT    LEFT=1 TOP=+16P W=40p CD="TEKL20E.EVRAKNO" CDF="%6"  TXTCOL=RGB_255_000_000
+ EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.EVRAKNO" BROWSEBUTTON=1
+
+ LTEXT    LEFT=E+3P TOP=+0P W=40p CD="TEKL20E.TARIH" CDF="%6"  TXTCOL=RGB_255_000_000
+ COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.TARIH"
+ SAVELOCATION W22W33W33
+
+ BUTTON LEFT=E+6P TOP=-2P WIDTH=66P HEIGHT=23p CAPTION="Teklif Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-7','Makro1')"
+ BUTTON LEFT=E+3P TOP=+0 WIDTH=66P HEIGHT=23p CAPTION="Kablo Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-11','Makro1')"
+
+
+// BUTTON LEFT=E+6P TOP=-2P WIDTH=66P HEIGHT=23p CAPTION="Teklif Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-7','Makro1')"
+// BUTTON LEFT=E+3P TOP=+0 WIDTH=66P HEIGHT=23p CAPTION="Kablo Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-11','Makro1')"
+
+ RESTORELOCATION W22W33W33
+ LTEXT    LEFT=1 TOP=+1 W=40p CD="TEKL20E.NOTES_1" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=377p D="TEKL20E.NOTES_1"
+ LTEXT    LEFT=1 TOP=+1 W=40p CD="TEKL20E.NOTES_2" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=377p D="TEKL20E.NOTES_2"
+
+ RESTORELOCATION LOCXSDF23
+ LTEXT    LEFT=440p TOP=+16p W=80P CD="TEKL20E.BASE_DF_CARIHESAP" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=146P D="TEKL20E.BASE_DF_CARIHESAP" BROWSEBUTTON=1
+
+ LTEXT    LEFT=E+66P TOP=+0P T="Siparis No"
+ RTEXT LEFT=E+3P TOP=+0 D="TEKL20E.SIPARIS_NO" BORDER=ETCHED
+
+ SAVELOCATION LOCXXCZC24
+ LTEXT    LEFT=440p TOP=+25P W=80P CD="TEKL20E.BASE_DF_CARIHESAP_A1" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=350p D="TEKL20E.BASE_DF_CARIHESAP_A1" BROWSEBUTTON=1
+ LTEXT    LEFT=440p TOP=+1 W=80P CD="TEKL20E.BASE_DF_CARIHESAP_A2" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=350p D="TEKL20E.BASE_DF_CARIHESAP_A2"
+
+ RESTORELOCATION LOCXXCZC24
+ LTEXT    LEFT=880p TOP=+1 W=30p T="RVZ" CDF="%6" 
+ RTEXT    LEFT=E+3P TOP=+0 W=82P D="TEKL20E.REVZ_KAYNAK_EVRAKNO" BORDER=ETCHED
+
+ LTEXT    LEFT=880p TOP=+1 W=30p T="RVZ#" CDF="%6" 
+ LTEXT    LEFT=E+3P TOP=+0 W=82P D="TEKL20E.REVZ_SIRANO" BORDER=ETCHED
+
+ BUTTON LEFT=+0 TOP=-50P WIDTH=82P HEIGHT=23p CAPTION="Revizyonlar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','RevizyonlarMain')"
+
+ RESTORELOCATION LOCXSDF23
+
+ENDGROUPBOX
+
+TABDEF X=0p Y=+0p WIDTH=1023p H=502p AUTOSIZE=N
+ TAB Name="Teklif Bilgileri" CAPTION=" Teklif Bilgileri "
+ TAB Name="Mamuller" CAPTION=" Mamuller "
+ TAB Name="Hammadde/Operasyon Listesi" CAPTION=" Hammadde/Operasyon Listesi "
+
+ TAB Name="Genel Sartlar / Notlar" CAPTION=" Genel Sartlar / Notlar "
+
+ TAB Name="Baglantili Dokümanlar" CAPTION=" Baglantili Dokümanlar " 
+ TAB Name="Liste" CAPTION=" Liste " 
+ENDTABDEF
+
+
+TAB "Teklif Bilgileri"
+ SAVELOCATION LOCXCSDF
+
+ GROUPBOX T="LME ve Döviz Kurlari" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=375p HEIGHT=138p TXTCOL=RGB_000_089_132  
+  SAVELOCATION LOCXSXF234234
+
+
+
+  SAVELOCATION LOXCZC234
+
+  LTEXT    LEFT=1 TOP=+18P W=90P T=" " TXTCOL=RGB_000_000_255
+  LTEXT    LEFT=e+3P TOP=+0  W=60P T="Bakir" TXTCOL=RGB_000_000_255
+  LTEXT    LEFT=e+3P TOP=+0p W=60P T="Alüminyum" TXTCOL=RGB_000_000_255
+
+  LTEXT    LEFT=1 TOP=E+0  W=90p T="Müþteri LME" TXTCOL=RGB_000_000_255
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.CU_LME_STD" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.AL_LME_STD" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+
+  LTEXT    LEFT=1 TOP=E+0  W=90p T="Maliyet LME" TXTCOL=RGB_000_000_255
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.CU_LME" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.AL_LME" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+
+  LTEXT    LEFT=1 TOP=E+0  W=90p T="Para Birimi" TXTCOL=RGB_000_000_255
+  COMBOBOX LEFT=E+3p TOP=+0 W=60p D="TEKL20E.CU_PB" BCKCOL=RGB_204_255_255
+  COMBOBOX LEFT=E+3p TOP=+0 W=60p D="TEKL20E.AL_PB" BCKCOL=RGB_204_255_255
+
+  LTEXT    LEFT=1 TOP=E+0 W=90p T="Aylik Vade Farki (%)" 
+  EDITTEXT LEFT=E+3P TOP=+0 W=50P D="TEKL20E.FINANSMANORANI"
+  SAVELOCATION XXYYZZZ1234
+
+
+  RESTORELOCATION LOXCZC234
+  LTEXT    LEFT=250P TOP=+18P W=100P CD="TEKL20E.LME_PREM_TYPE" CDF="%6" TXTCOL=RGB_000_000_255
+  COMBOBOX LEFT=250P TOP=E+0P W=60p D="TEKL20E.LME_PREM_TYPE" BCKCOL=RGB_204_255_255
+
+	BUTTON LEFT=+0 TOP=E+1p WIDTH=90P HEIGHT=23p CAPTION="Döviz Kurlari" ID=CMD_DOZVIZ_KURLARI FOCUS=N
+	BUTTON LEFT=+0 TOP=E+1P WIDTH=90P HEIGHT=23p CAPTION="Maliyet Bilgileri" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MaliyetBilgileriMain')"
+	BUTTON LEFT=+0 TOP=E+1p WIDTH=120P HEIGHT=23p CAPTION="Fiyatlarý Eskale Et" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-8','Makro1')"
+ ENDGROUPBOX
+
+ GROUPBOX T="" AUTOSIZE=N LEFT=1 TOP=E+0p WIDTH=375p HEIGHT=45p TXTCOL=RGB_000_089_132  
+  LTEXT    LEFT=1 TOP=+12P W=100P CD="TEKL20E.BASE_FIYSEKLI" CDF="%6" 
+  COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.BASE_FIYSEKLI"
+  EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.BASE_FIYATLISTESI" BROWSEBUTTON=1
+
+ ENDGROUPBOX
+
+
+  RESTORELOCATION LOCXSXF234234
+ GROUPBOX T="Teklif / Ödeme Bilgileri" AUTOSIZE=N LEFT=390P TOP=+1 WIDTH=624p HEIGHT=98p TXTCOL=RGB_000_089_132  
+	LTEXT    LEFT=+5P TOP=+1 W=92p CD="TEKL20E.TEKLIF_FIYAT_PB" CDF="%6"
+	COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.TEKLIF_FIYAT_PB"  BCKCOL=RGB_255_204_204
+
+
+  LTEXT    LEFT=E+5P TOP=+0 T="Ödeme Süresi (Gün)"
+  EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.BASE_DF_ODEMEGUNU" FORMAT=N3.0
+
+  LTEXT    LEFT=E+10P TOP=+0 T="Avans Orani (%)"
+  EDITTEXT LEFT=E+3P 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : MAKR7S
+Makro Kodu : MAKARA
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Makara Hesaplama
+Kod : 
+Sub Makro1()
+	MakaraTipi = "D-TAHTA-0"
+	StokKodu = "45 70104B 3V000000010000"
+	StokKodu = Doc.LeftJustify(trim(StokKodu), 24)
+	SevkBoyu = 400
+	
+	KabloCapi = Doc.GetUDFValue("STOK00", StokKodu, "DLG095", 0)
+	BirimKabloAgirligi = Doc.GetUDFValue("STOK00", StokKodu, "DLG109", 0) / 1000
+
+	Call GetCableInfo(StokKodu, Gerilim, MetalVarMi)
+
+	msgbox GetMakaraAmbalajKodu(MakaraTipi, SevkBoyu, KabloCapi, BirimKabloAgirligi, StokKodu, Gerilim, MetalVarMi)
+End Sub
+Function GetMakaraAmbalajKodu(ByVal MakaraTipi, ByVal KabloUzunlugu, ByVal KabloCapi, ByVal BirimKabloAgirligi, ByVal KabloKodu, ByVal Gerilim, ByVal MetalVarMi)
+	Dim Kriterler, k, MakaraTasima, MakaraGobek, MakaraKapasite,i,MakaraTable
+	
+	if KabloUzunlugu > 1500 Then KabloCapi = KabloCapi * 1.05
+
+	Makara = ""
+	If trim(MakaraTipi) <> "" Then
+		'Set MakaraTable=Doc.CreateRowSetObject("XXX=AMBLJ00","REPORT")
+		'Set Kriterler=Doc.CreateSObject("Query")
+		'Kriterler.UseTable "AMBLJ00"
+		'Kriterler.AddAndCriteria MakaraTable,"MKR_TURU","=",left(MakaraTipi & space(10),10)
+		'k = MakaraTable.RunQuery(Kriterler)
+		'k = MakaraTable.Sort(">MKR_FLANSCAPI+<MKR_ICHACIM")
+		QStr = "SELECT * FROM AMBLJ00"
+		QStr = QStr & " WHERE MKR_TURU='" & trim(MakaraTipi) & "'"
+		QStr = QStr & " ORDER BY MKR_FLANSCAPI, MKR_ICHACIM DESC, MKR_TASIMAKAP"
+		Set MakaraTable = Doc.RunSQLQuery("xxxsdfsdf", QStr)
+	Else
+		'Set MakaraTable=Doc.CreateRowSetObject("REPORT1=AMBLJ00","REPORT")
+		'Set Kriterler=Doc.CreateSObject("Query")
+		'Kriterler.UseTable "AMBLJ00"
+		'Kriterler.AddAndCriteria MakaraTable,"TEMEL_SINIFI","=",left("MAKARA" & space(10),10)
+		'k = MakaraTable.RunQuery(Kriterler)
+		'k = MakaraTable.Sort(">MKR_FLANSCAPI+<MKR_ICHACIM")
+		QStr = "SELECT * FROM AMBLJ00"
+		QStr = QStr & " WHERE TEMEL_SINIFI='MAKARA'"
+		QStr = QStr & " ORDER BY MKR_FLANSCAPI, MKR_ICHACIM DESC, MKR_TASIMAKAP"
+		Set MakaraTable = Doc.RunSQLQuery("xxxsdfsdf", QStr)
+	End If
+	satirNo = 1
+
+	satirNo = KapasiteSecim(satirNo, MakaraTipi, KabloUzunlugu, KabloCapi,MakaraTable, KabloKodu)
+	if satirNo = -1 Then Exit Function
+
+	satirNo = TasimaSecim(satirNo, MakaraTipi, KabloUzunlugu, BirimKabloAgirligi, MakaraTable, KabloKodu)
+	if satirNo = -1 Then Exit Function
+	
+	satirNo = GobekSecim(satirNo, MakaraTipi, KabloKodu, KabloCapi,MakaraTable, Gerilim, MetalVarMi)
+	if satirNo = -1 Then Exit Function
+
+	Makara = MakaraTable.KOD(satirNo)
+End Function
+Function TasimaSecim(BaslangicSatir, ByVal MakaraTipi, ByVal KabloUzunlugu, ByVal BirimKabloAgirligi, ByVal MakaraTable, StokKodu)
+	Dim KabloAgirligi, TasimaKap,i,k
+	KabloAgirligi = KabloUzunlugu * BirimKabloAgirligi
+	
+	TasimaSecim = -1
+	For i = BaslangicSatir To MakaraTable.GetRecCount()
+		TasimaKap = MakaraTable.MKR_TASIMAKAP(i)
+		If TasimaKap >= KabloAgirligi Then
+			TasimaSecim = i
+			Exit Function
+		End If
+	Next
+	If TasimaSecim = -1 Then
+		k = Doc.d7msgbox("Stok Kodu : " & trim(StokKodu) & ", Sevk Boyu : " & KabloUzunlugu & " Makara Tipi  : " & trim(MakaraTipi) & ", Bu kablo aðýrlýðýný taþýyabilecek makara bulunamadý","dinamo",MB_OK+MB_ICONWARNING)
+	End If
+End Function
+Function GobekSecim(BaslangicSatirNo, MakaraTipi, KabloKodu, KabloCapi, MakaraTable, Gerilim, MetalVarMi)
+	If Gerilim < 1 Then
+		BukumKatsayisi = 6
+	ElseIf Gerilim >= 1 and Gerilim <= 3.3 and not MetalVarMi Then
+		BukumKatsayisi =  8
+	ElseIf Gerilim >= 1 and Gerilim <= 3.3 and MetalVarMi Then
+		BukumKatsayisi =  10
+	ElseIf Gerilim > 3.3 Then
+		BukumKatsayisi =  12
+	Else
+		BukumKatsayisi =  12
+	End If
+	GobekCapi = KabloCapi * BukumKatsayisi
+
+	GobekSecim = GobekBul(KabloKodu, BaslangicSatirNo, MakaraTipi, GobekCapi, MakaraTable)
+End Function
+
+Function GobekSecim1(ByVal MakaraTipi, ByVal KabloKodu, ByVal KabloCapi, ByVal MakaraTable)
+	Dim Gerilim, Zirh, GobekCapi
+	Gerilim = Mid(Trim(KabloKodu), 4, 1)
+	Zirh = Mid(Trim(KabloKodu), 17, 1)
+	KilifTuru = Mid(trim(KabloKodu), 18, 2)
+	If KilifTuru >= "01" Or KilifTuru <= "29" Then
+		GobekCapi = KabloCapi * 18
+	ElseIf Gerilim >= "C" Or Zirh = "E" Then
+		GobekCapi = KabloCapi * 18
+	ElseIf Gerilim >= "A" Then
+		If (15 * KabloCapi) < 350 Then
+			GobekSecim = 350
+		Else
+			GobekCapi = KabloCapi * 15
+		End If
+	Else
+		GobekCapi = KabloCapi * 15
+	End If
+	If GobekSecim = 0 Then
+		GobekSecim = GobekBul(KabloKodu, MakaraTipi, GobekCapi, MakaraTable)
+	End If
+End Function
+Function GobekSecim2(ByVal MakaraTipi, ByVal KabloKodu, ByVal KabloCapi, ByVal MakaraTable)
+	Dim Gerilim, Zirh, GobekCapi
+	Gerilim = Mid(Trim(KabloKodu), 4, 1)
+	Zirh = Mid(Trim(KabloKodu), 17, 1)
+	If Gerilim >= "C" Or Zirh = "E" Then
+		GobekCapi = KabloCapi * 18
+	ElseIf Gerilim >= "A" Then
+		If (15 * KabloCapi) < 350 Then
+			GobekSecim = 350
+		Else
+			GobekCapi = KabloCapi * 15
+		End If
+	End If
+	If GobekSecim = 0 Then
+		GobekSecim = GobekBul(KabloKodu, MakaraTipi, GobekCapi, MakaraTable)
+	End If
+End Function
+Function GobekBul(StokKodu, BaslangicSatirNo, ByVal MakaraTipi, ByVal GobekCapi, ByVal MakaraTable)
+	GobekBul = -1
+	Dim MakaraGobek,i,k
+	For i = BaslangicSatirNo To MakaraTable.GetRecCount()
+		MakaraGobek = MakaraTable.MKR_GOBEKCAPI(i)
+		If MakaraGobek >= GobekCapi Then
+			GobekBul = i
+			Exit Function
+		End If
+	Next
+	If GobekBul = -1 Then
+		k = Doc.d7msgbox("Stok Kodu : " & trim(StokKodu) & ", Makara Tipi  : " & trim(MakaraTipi) & ", Göbek çapý bu çaptaki kabloyu sarmaya uygun makara bulunamadý","",MB_OK+MB_ICONWARNING)
+	End If
+End Function
+Function KapasiteSecim(satirNo, ByVal MakaraTipi, ByVal KabloUzunlugu, ByVal KabloCapi, ByVal MakaraTable, StokKodu)
+	KapasiteSecim = -1
+	Dim Pi, FlansCapi, GobekCapi, IcGenislik, YanYana, UstUste, KapamaPayi, FlansYuksekligi, Kapasite,i,k
+	Pi = 3.141592654
+	
+	For i = satirNo To MakaraTable.GetRecCount()
+		FlansCapi = MakaraTable.MKR_FLANSCAPI(i)
+		GobekCapi = MakaraTable.MKR_GOBEKCAPI(i)
+		IcGenislik = MakaraTable.MKR_ICGENISLIK(i)
+		
+		YanYana = Fix(Doc.Div(IcGenislik, KabloCapi))
+		
+		If KabloCapi <= 10 Then
+			KapamaPayi = 15
+		ElseIf KabloCapi <= 20 Then
+			KapamaPayi = 30
+		ElseIf KabloCapi <= 30 Then
+			KapamaPayi = 50
+		ElseIf KabloCapi <= 40 Then
+			KapamaPayi = 70
+		Else
+			KapamaPayi = 100
+		End If
+		FlansYuksekligi = ((FlansCapi - GobekCapi) / 2) - KapamaPayi
+		
+		UstUste = Doc.Div(FlansYuksekligi,KabloCapi)
+		Kapasite = Round(YanYana * UstUste * (GobekCapi + (UstUste * KabloCapi)) * Pi / 1000, 0)
+		If Kapasite >= KabloUzunlugu Then
+			KapasiteSecim = i
+			Exit Function
+		End If
+	Next
+	If KapasiteSecim = -1 Then
+		k = Doc.d7msgbox("Stok Kodu : " & trim(StokKodu) & ", Sevk Boyu : " & KabloUzunlugu & " Makara Tipi  : " & trim(MakaraTipi) & ", Bu kablonun sýðabileceði makara bulunamadý","dinamo",MB_OK+MB_ICONWARNING)
+	End If
+End Function
+Sub get_parent_table_info(MakaraTipi, KabloUzunlugu, KabloCapi, BirimKabloAgirligi, KabloKodu)
+	Dim ParentTable
+	Dim RecNums
+	Dim PRecNo
+	Dim cTable
+	
+	Set cTable=Doc.GetTableObject("TEKL40T2")
+	if Doc.IsBlank(cTable) then Exit Sub
+	
+	MakaraTipi=" "
+	KabloUzunlugu=0
+	KabloCapi=0
+	BirimKabloAgirligi=0
+	KabloKodu=" "
+	
+	Set ParentTable=cTable.GetParentTableObject()
+	RecNums=ParentTable.FindRecNumsForEQ("ARTNO",cTable.ARTNO)
+	If Doc.d7IsArray(RecNums) Then
+		PRecNo=RecNums(0)
+		if PRecNo>0 then
+			KabloKodu=ParentTable.KOD(PRecNo)
+			MakaraTipi=cTable.MKR_TURU
+			KabloUzunlugu=cTable.ICINDEKI_MIKTAR
+			if vapp("TEKL401")=0 then
+				KabloCapi = Doc.GetUDFValue("STOK00",KabloKodu,"DLG095",0)
+				BirimKabloAgirligi = Doc.GetUDFValue("STOK00",KabloKodu,"DLG109",0)
+			else
+				KabloCapi=Doc.GetDBFieldValue("STOK00","B_CAP",KabloKodu," ")
+				BirimKabloAgirligi=ParentTable.EXT_NUM14(PRecNo)
+			end if
+		end if
+	end if
+	
+End Sub
+Sub makara_al()
+	Dim MakaraTipi
+	Dim KabloUzunlugu
+	Dim KabloCapi
+	Dim BirimKabloAgirligi
+	Dim KabloKodu
+	Dim cTable
+	
+	Set cTable=Doc.GetTableObject("TEKL40T2")
+	if Doc.IsBlank(cTable) then Exit Sub
+	
+	Call get_parent_table_info(MakaraTipi, KabloUzunlugu, KabloCapi, BirimKabloAgirligi, KabloKodu)
+	if  KabloUzunlugu<=0 or cTable.SF_MIKTAR<=0 then
+		Exit Sub
+	end if
+	cTable.KOD=Makara(MakaraTipi, KabloUzunlugu, KabloCapi, BirimKabloAgirligi, KabloKodu)
+	Doc.CallFieldCalc_Table "TEKL40T2","KOD_AMBLJ00_REC"
+	Doc.CallFieldCalc_Table "TEKL40T2","SF_SF_UNIT"
+	cTable.SF_AUTOCALC="E"
+	Doc.CallFieldCalc_Table "TEKL40T2","SF_STOK_MIKTAR"
+	Doc.CallFieldCalc_Table "TEKL40T2","OR_FIYAT"
+End Sub
+Function GetKapamaTahtasiInfo(MakaraKodu, TahtaKalinligi_cm, TahtaEni_cm, KapamaYuzdesi)
+	Dim KapamaTahtasiInfo(1)
+	KapamaTahtasiInfo(0) = 0
+	KapamaTahtasiInfo(1) = ""
+
+	YanakCapi = Doc.GetDBFieldValue("AMBLJ00", "MKR_FLANSCAPI", MakaraKodu, "") / 1000
+	MakaraDisGenislik = Doc.GetDBFieldValue("AMBLJ00", "MKR_DISGENISLIK", MakaraKodu, "") / 1000
+
+	pi = 3.141592654
+'	TahtaSayisi = Doc.Floor(Doc.Div(pi * (YanakCapi + TahtaKalinligi_cm / 100), TahtaEni_cm / 100))
+	TahtaSayisi = Doc.Floor(Doc.Div(pi * YanakCapi, TahtaEni_cm / 100))
+	
+	TahtaHacmi = TahtaKalinligi_cm / 100 * MakaraDisGenislik * TahtaEni_cm / 100 * TahtaSayisi * KapamaYuzdesi / 100
+	KapamaTahtasiInfo(0) = TahtaHacmi
+	KapamaTahtasiInfo(1) = TahtaKalinligi_cm & " cm x " & TahtaEni_cm & " cm x " & MakaraDisGenislik * 100 & " cm"
+	GetKapamaTahtasiInfo = KapamaTahtasiInfo
+End Function
+Sub GetCableInfo(StokKodu, Gerilim, MetalVarMi)
+	QStr = "SELECT KTT.ATTRIB, KTT.DEGER"
+	QStr = QStr & " FROM KTT_CBATTR0T KTT"
+	QStr = QStr & " LEFT JOIN KTT_CBATTR0E KTE ON KTE.EVRAKNO=KTT.EVRAKNO"
+	QStr = QStr & " LEFT JOIN KTA_STOK00 S ON S.CB_PLCODE=KTE.PLANTCODE"
+	QStr = QStr & " WHERE S.KOD='" & StokKodu & "'"
+	QStr = QStr & " AND KTT.ATTRIB IN ('voltagepp','metalliclayer')"
+	Set TblAttrib = Doc.RunSQLQuery("sadg3grgdfgsfhha", QStr)
+	if TblAttrib.GetRowCount() > 0 Then
+		For i = 1 to TblAttrib.GetRowCount()
+			if trim(TblAttrib.ATTRIB(i)) = "voltagepp" Then
+				Gerilim = Doc.CDbl(TblAttrib.DEGER(i))
+			Elseif trim(TblAttrib.ATTRIB(i)) = "metalliclayer" Then
+				if UCase(trim(TblAttrib.DEGER(i))) = "YES" Then
+					MetalVarMi = True
+				Else
+					MetalVarMi = False
+				End if
+			End if
+		Next
+	Else
+		Zirh = Mid(Trim(StokKodu), 17, 1)
+		Ekran = Mid(Trim(StokKodu), 15, 1)
+		if trim(Zirh) = "0" and trim(Ekran) = "0" Then
+			MetalVarMi = False
+		Else
+			MetalVarMi = True
+		End if
+		Gerilim = GetGerilim(Mid(Trim(StokKodu), 4, 1))
+	End if
+End Sub
+Function GetGerilim(GerilimKodu)
+	Select Case trim(UCase(GerilimKodu))
+		Case "3"
+			GetGerilim = 0.3
+		Case "5"
+			GetGerilim = 0.5
+		Case "7"
+			GetGerilim = 0.75
+		Case "A"
+			GetGerilim = 1
+		Case "B"
+			GetGerilim = 3
+		Case "C"
+			GetGerilim = 3.3
+		Case "D"
+			GetGerilim = 6
+		Case "E"
+			GetGerilim = 6.6
+		Case "F"
+			GetGerilim = 10
+		Case "G"
+			GetGerilim = 11
+		Case "H"
+			GetGerilim = 15
+		Case "K"
+			GetGerilim = 20
+		Case "L"
+			GetGerilim = 22
+		Case "M"
+			GetGerilim = 30
+		Case "N"
+			GetGerilim = 33
+		Case "P"
+			GetGerilim = 35
+		Case "R"
+			GetGerilim = 45
+		Case "S"
+			GetGerilim = 47
+		Case "T"
+			GetGerilim = 66
+		Case "U"
+			GetGerilim = 69
+		Case "V"
+			GetGerilim = 78
+		Case "Z"
+			GetGerilim = 36
+		Case Else
+			GetGerilim = 0
+	End Select
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : MAKR7S
+Makro Kodu : D
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Teklif Modülü Ana Uygulama- Silmeyin !!!!
+Kod : 
+Public FixFiyat, IskontoHesaplanmasin
+Sub Makro1()
+	Set STC_ONAY = Doc.CreateTableObject("ONAY_TABLE=STACK", "IO")
+	STC_ONAY.AddField2 "ASAMA_01_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_02_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_03_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_04_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_05_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_06_ONAY", "CHAR", 1, 0, "L", "", ""
+
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	Set TEKL20T4 = Doc.GetTableObject("TEKL20T4")
+	Set TEKL20NK = Doc.GetTableObject("TEKL20NK")
+	Set TEKL20BM = Doc.GetTableObject("TEKL20BM")
+	Set TEKL20IN = Doc.GetTableObject("TEKL20IN")
+
+	TEKL20E.AddField2 "TOPLAM_TUTAR", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_MALIYET", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_KAR_ORANI", "DOUBLE", 8, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_BRUT_KAR_ORANI", "DOUBLE", 8, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_FNS_TUTAR", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "ODEME_DOVIZI", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "STOK_URETIM", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "SIP_BUTCE", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "TOPLAM_40FT", "DOUBLE", 12, 4, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_20FT", "DOUBLE", 12, 4, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_BRUT_AGIRLIK", "DOUBLE", 12, 1, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_KONT_MALIYET", "DOUBLE", 12, 2, "R", "", ""
+	TEKL20E.AddField2 "KONT_PB", "CHAR", 4, 0, "L", "", "*PUNIT="
+	TEKL20E.AddField2 "KOMISYON_PB", "CHAR", 4, 0
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : Makro1
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM USR_TEKL21 SCROLLBARS=NO SIZE=FULL
+SET CAPTION="Teklif Fiyat Analizi"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="FONT011" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="FONT012" FACE="MS Sans Serif" POINT=10 BOLD=Y
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU
+ MENUITEM T="Revizyon" ID=CMD_REVIZYON_YAP
+
+SEPARATOR
+ MENUITEM T="Diger Tekliften Kopyala" ID="MT_LOADSUBFORM('TEKL21_OLD_EVRAK1')" 
+
+SEPARATOR
+
+  SEPARATOR
+// MENUITEM T=" [1] - 1.Seviyeden Hammaddeleri Hesapla" ID=CMD_SECENEK01
+// MENUITEM T=" [2] - Tüm Seviyelerden Hammaddeleri Hesapla" ID=CMD_SECENEK02
+// MENUITEM T=" [3] - 1.Seviyeden Operasyonlari Hesapla" ID=CMD_SECENEK03
+// MENUITEM T=" [4] - Tüm Seviyelerden Operasyonlari Hesapla" ID=CMD_SECENEK04
+// MENUITEM T=" [5] - 1.Seviyeden Hammaddeleri ve Operasyonlari Hesapla ([1] && [3])" ID=CMD_SECENEK05
+// MENUITEM T=" [6] - Tüm Seviyelerden Hammaddeleri ve Operasyonlari Hesapla ([2] && [4])" ID=CMD_SECENEK06
+ SEPARATOR
+// MENUITEM T=" [1] - 1.Seviyeden Hammaddeleri Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK01_CLINE
+// MENUITEM T=" [2] - Tüm Seviyelerden Hammaddeleri Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK02_CLINE
+// MENUITEM T=" [3] - 1.Seviyeden Operasyonlari Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK03_CLINE
+// MENUITEM T=" [4] - Tüm Seviyelerden Operasyonlari Hesapla\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK04_CLINE
+ //MENUITEM T=" [5] - 1.Seviyeden Hammaddeleri ve Operasyonlari Hesapla ([1] && [3])\t(Üzerinde Bulunulan Satir)" ID=CMD_SECENEK05_CLINE
+// MENUITEM T=" [6] - Tüm Seviyelerden Hammaddeleri ve Operasyonlari Hesapla ([2] && [4]\t(Üzerinde Bulunulan Satir))" ID=CMD_SECENEK06
+ MENUITEM T=" Teklifi Siparise Aktar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-4','Makro1')"
+ SEPARATOR
+ MENUITEM T=" Tüm fiyat bilgilerini sifirla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','FiyatlariSifirla')"
+// MENUITEM T="Hammadde Satirlarini Iptal Et" ID=CMD_HAMMADDE_SATIRLARINI_IPTAL_ET
+// MENUITEM T="Hesaplanan Alanlardaki Tüm Degerleri Sifirla" ID=CMD_HESAPLANAN_DEGERLERI_IPTAL_ET
+ SEPARATOR
+ MENUITEM TEXT="Stok ve Üretim E&mri Bilgileri\tF5" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-6','Makro1')" KEY=F5
+//		MENUITEM TEXT="&Ekle",	ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','Ekle')" KEY=F5
+
+//  MENUITEM TEXT="&Satir Detayi\tF4", ID=MT_LINEDETAIL KEY=F4
+
+ MENUITEM T="Diger Evraklardan Kopya"   ID=CMD_DIGER_EVRAKLARDAN_KOPYA
+ SEPARATOR
+ MENUITEM T="Kullanici Tanimli Alanlar" ID="MT_EDIT_UDF()"
+ MENUITEM T="Mesajlar"   ID="MT_EDIT_LMSG()"
+ SEPARATOR
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapistir", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Disariya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Disaridan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+  MENUITEM TEXT="Yeni Evrak\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM TEXT="Kaydet\tF10",   ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM TEXT="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+     MENUITEM TEXT="Çi&kis"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ilk Kayit\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayit\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayit\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayit\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ilk Kayit (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayit (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayit (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayit (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapistir\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+  MENUITEM TEXT="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+  MENUITEM TEXT="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+//  MENUITEM TEXT="&Satir Detayi\tF4", ID=MT_LINEDETAIL KEY=F4
+  MENUITEM TEXT="&Satir Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satir Sil\tCtrl+Y", ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalistir\tALT+F8", ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Islevler\tF6", ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM TEXT="&Yardim\tF1", ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP TEXT="Isle&vler" POPUP=EVRAKMENU
+
+ 
+
+ POPUP TEXT="&Yardim"
+     MENUITEM TEXT="&Yardim Basliklari",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM TEXT="&freedom Hakkinda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=FOEDIT
+ SEPARATOR
+// MENUITEM TEXT="Satir Detayi\t(F4)", ID=MT_LINEDETAIL
+ SEPARATOR
+ MENUITEM TEXT="Feature/Option Seçimi\t(F3)", ID="CFFV('DO_SENT_FOCODE_0','KODFN=KOD')" KEY=F3
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU
+ SEPARATOR
+// MENUITEM TEXT="Satir Detayi\t(F4)", ID=MT_LINEDETAIL
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU2
+ SEPARATOR
+// MENUITEM TEXT="Satir Detayi\t(F4)", ID=MT_LINEDETAIL
+ENDMENUDEF
+
+POPUPMENUDEF ID=EVRAK_FIELD_MENU
+ SEPARATOR
+ MENUITEM TEXT="Arastir\t(F3)", ID="CFFNV('_BROWSE_3')" KEY=F3
+ENDMENUDEF
+
+INCLUDE TOOLBAR_FULLSET
+
+GROUPBOX TEXT="Evrak" AUTOSIZE=N LEFT=1 TOP=+0 WIDTH=1007p HEIGHT=90p TXTCOL=RGB_000_089_132  
+ LOCATE TOP=0P
+ SAVELOCATION LOCXSDF23
+ LTEXT    LEFT=1 TOP=+16P W=40p CD="TEKL20E.EVRAKNO" CDF="%6"  TXTCOL=RGB_255_000_000
+ EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.EVRAKNO" BROWSEBUTTON=1
+
+ LTEXT    LEFT=E+3P TOP=+0P W=40p CD="TEKL20E.TARIH" CDF="%6"  TXTCOL=RGB_255_000_000
+ COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.TARIH"
+ SAVELOCATION W22W33W33
+
+ BUTTON LEFT=E+6P TOP=-2P WIDTH=66P HEIGHT=23p CAPTION="Teklif Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-7','Makro1')"
+ BUTTON LEFT=E+3P TOP=+0 WIDTH=66P HEIGHT=23p CAPTION="Kablo Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-11','Makro1')"
+
+
+// BUTTON LEFT=E+6P TOP=-2P WIDTH=66P HEIGHT=23p CAPTION="Teklif Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-7','Makro1')"
+// BUTTON LEFT=E+3P TOP=+0 WIDTH=66P HEIGHT=23p CAPTION="Kablo Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-11','Makro1')"
+
+ RESTORELOCATION W22W33W33
+ LTEXT    LEFT=1 TOP=+1 W=40p CD="TEKL20E.NOTES_1" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=377p D="TEKL20E.NOTES_1"
+ LTEXT    LEFT=1 TOP=+1 W=40p CD="TEKL20E.NOTES_2" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=377p D="TEKL20E.NOTES_2"
+
+ RESTORELOCATION LOCXSDF23
+ LTEXT    LEFT=440p TOP=+16p W=80P CD="TEKL20E.BASE_DF_CARIHESAP" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=146P D="TEKL20E.BASE_DF_CARIHESAP" BROWSEBUTTON=1
+
+ LTEXT    LEFT=E+66P TOP=+0P T="Siparis No"
+ RTEXT LEFT=E+3P TOP=+0 D="TEKL20E.SIPARIS_NO" BORDER=ETCHED
+
+ SAVELOCATION LOCXXCZC24
+ LTEXT    LEFT=440p TOP=+25P W=80P CD="TEKL20E.BASE_DF_CARIHESAP_A1" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=350p D="TEKL20E.BASE_DF_CARIHESAP_A1" BROWSEBUTTON=1
+ LTEXT    LEFT=440p TOP=+1 W=80P CD="TEKL20E.BASE_DF_CARIHESAP_A2" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=350p D="TEKL20E.BASE_DF_CARIHESAP_A2"
+
+ RESTORELOCATION LOCXXCZC24
+ LTEXT    LEFT=880p TOP=+1 W=30p T="RVZ" CDF="%6" 
+ RTEXT    LEFT=E+3P TOP=+0 W=82P D="TEKL20E.REVZ_KAYNAK_EVRAKNO" BORDER=ETCHED
+
+ LTEXT    LEFT=880p TOP=+1 W=30p T="RVZ#" CDF="%6" 
+ LTEXT    LEFT=E+3P TOP=+0 W=82P D="TEKL20E.REVZ_SIRANO" BORDER=ETCHED
+
+ BUTTON LEFT=+0 TOP=-50P WIDTH=82P HEIGHT=23p CAPTION="Revizyonlar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','RevizyonlarMain')"
+
+ RESTORELOCATION LOCXSDF23
+
+ENDGROUPBOX
+
+TABDEF X=0p Y=+0p WIDTH=1023p H=502p AUTOSIZE=N
+ TAB Name="Teklif Bilgileri" CAPTION=" Teklif Bilgileri "
+ TAB Name="Mamuller" CAPTION=" Mamuller "
+ TAB Name="Hammadde/Operasyon Listesi" CAPTION=" Hammadde/Operasyon Listesi "
+
+ TAB Name="Genel Sartlar / Notlar" CAPTION=" Genel Sartlar / Notlar "
+
+ TAB Name="Baglantili Dokümanlar" CAPTION=" Baglantili Dokümanlar " 
+ TAB Name="Liste" CAPTION=" Liste " 
+ENDTABDEF
+
+
+TAB "Teklif Bilgileri"
+ SAVELOCATION LOCXCSDF
+
+ GROUPBOX T="LME ve Döviz Kurlari" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=375p HEIGHT=138p TXTCOL=RGB_000_089_132  
+  SAVELOCATION LOCXSXF234234
+
+
+
+  SAVELOCATION LOXCZC234
+
+  LTEXT    LEFT=1 TOP=+18P W=90P T=" " TXTCOL=RGB_000_000_255
+  LTEXT    LEFT=e+3P TOP=+0  W=60P T="Bakir" TXTCOL=RGB_000_000_255
+  LTEXT    LEFT=e+3P TOP=+0p W=60P T="Alüminyum" TXTCOL=RGB_000_000_255
+
+  LTEXT    LEFT=1 TOP=E+0  W=90p T="Müþteri LME" TXTCOL=RGB_000_000_255
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.CU_LME_STD" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.AL_LME_STD" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+
+  LTEXT    LEFT=1 TOP=E+0  W=90p T="Maliyet LME" TXTCOL=RGB_000_000_255
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.CU_LME" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+  EDITTEXT LEFT=E+3p TOP=+0 W=60p D="TEKL20E.AL_LME" BCKCOL=RGB_204_255_255 FORMAT=N10.2
+
+  LTEXT    LEFT=1 TOP=E+0  W=90p T="Para Birimi" TXTCOL=RGB_000_000_255
+  COMBOBOX LEFT=E+3p TOP=+0 W=60p D="TEKL20E.CU_PB" BCKCOL=RGB_204_255_255
+  COMBOBOX LEFT=E+3p TOP=+0 W=60p D="TEKL20E.AL_PB" BCKCOL=RGB_204_255_255
+
+  LTEXT    LEFT=1 TOP=E+0 W=90p T="Aylik Vade Farki (%)" 
+  EDITTEXT LEFT=E+3P TOP=+0 W=50P D="TEKL20E.FINANSMANORANI"
+  SAVELOCATION XXYYZZZ1234
+
+
+  RESTORELOCATION LOXCZC234
+  LTEXT    LEFT=250P TOP=+18P W=100P CD="TEKL20E.LME_PREM_TYPE" CDF="%6" TXTCOL=RGB_000_000_255
+  COMBOBOX LEFT=250P TOP=E+0P W=60p D="TEKL20E.LME_PREM_TYPE" BCKCOL=RGB_204_255_255
+
+	BUTTON LEFT=+0 TOP=E+1p WIDTH=90P HEIGHT=23p CAPTION="Döviz Kurlari" ID=CMD_DOZVIZ_KURLARI FOCUS=N
+	BUTTON LEFT=+0 TOP=E+1P WIDTH=90P HEIGHT=23p CAPTION="Maliyet Bilgileri" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','MaliyetBilgileriMain')"
+	BUTTON LEFT=+0 TOP=E+1p WIDTH=120P HEIGHT=23p CAPTION="Fiyatlarý Eskale Et" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-8','Makro1')"
+ ENDGROUPBOX
+
+ GROUPBOX T="" AUTOSIZE=N LEFT=1 TOP=E+0p WIDTH=375p HEIGHT=45p TXTCOL=RGB_000_089_132  
+  LTEXT    LEFT=1 TOP=+12P W=100P CD="TEKL20E.BASE_FIYSEKLI" CDF="%6" 
+  COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.BASE_FIYSEKLI"
+  EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.BASE_FIYATLISTESI" BROWSEBUTTON=1
+
+ ENDGROUPBOX
+
+
+  RESTORELOCATION LOCXSXF234234
+ GROUPBOX T="Teklif / Ödeme Bilgileri" AUTOSIZE=N LEFT=390P TOP=+1 WIDTH=624p HEIGHT=98p TXTCOL=RGB_000_089_132  
+	LTEXT    LEFT=+5P TOP=+1 W=92p CD="TEKL20E.TEKLIF_FIYAT_PB" CDF="%6"
+	COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.TEKLIF_FIYAT_PB"  BCKCOL=RGB_255_204_204
+
+
+  LTEXT    LEFT=E+5P TOP=+0 T="Ödeme Süresi (Gün)"
+  EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.BASE_DF_ODEMEGUNU" FORMAT=N3.0
+
+  LTEXT    LEFT=E+10P TOP=+0 T="Avans Orani (%)"
+  EDITTEXT LEFT=E+3P 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : MAKR7S
+Makro Kodu : TEKL21
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Teklif Modülü Ana Uygulama- Silmeyin !!!!
+Kod : 
+Public FixFiyat, IskontoHesaplanmasin
+Sub Makro1()
+	Set STC_ONAY = Doc.CreateTableObject("ONAY_TABLE=STACK", "IO")
+	STC_ONAY.AddField2 "ASAMA_01_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_02_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_03_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_04_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_05_ONAY", "CHAR", 1, 0, "L", "", ""
+	STC_ONAY.AddField2 "ASAMA_06_ONAY", "CHAR", 1, 0, "L", "", ""
+
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	Set TEKL20T4 = Doc.GetTableObject("TEKL20T4")
+	Set TEKL20NK = Doc.GetTableObject("TEKL20NK")
+	Set TEKL20BM = Doc.GetTableObject("TEKL20BM")
+	Set TEKL20IN = Doc.GetTableObject("TEKL20IN")
+
+	TEKL20E.AddField2 "TOPLAM_TUTAR", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_MALIYET", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_KAR_ORANI", "DOUBLE", 8, 2, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_FNS_TUTAR", "DOUBLE", 15, 2, "R", "", ""
+	TEKL20E.AddField2 "ODEME_DOVIZI", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "STOK_URETIM", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "SIP_BUTCE", "CHAR", 2, 0, "L", "", ""
+	TEKL20E.AddField2 "TOPLAM_40FT", "DOUBLE", 12, 4, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_20FT", "DOUBLE", 12, 4, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_BRUT_AGIRLIK", "DOUBLE", 12, 1, "R", "", ""
+	TEKL20E.AddField2 "TOPLAM_KONT_MALIYET", "DOUBLE", 12, 2, "R", "", ""
+	TEKL20E.AddField2 "KONT_PB", "CHAR", 4, 0, "L", "", "*PUNIT="
+	TEKL20E.AddField2 "KOMISYON_PB", "CHAR", 4, 0, "L", "", "*PUNIT="
+	TEKL20E.AddField2 "MAKARA_TURU", "CHAR", 10, 0, "L", "", "AMBJMKT="
+	TEKL20E.AddField2 "MAKARA_TURU_AD", "CHAR", 50, 0, "L", "", ""
+	TEKL20E.AddField2 "AMBALAJ_RESET", "CHAR", 1, 0, "L", "", ""
+	TEKL20E.AddField2 "AMBALAJ_FL_OP", "CHAR", 1, 0, "L", "", ""
+	TEKL20E.AddField2 "SEVK_BOYU", "DOUBLE", 12, 1, "R", "", ""
+	TEKL20E.AddField2 "SIPIVEREN_PERS00_AD", "CHAR", 50, 0, "L", "", ""
+
+	TEKL20E.AddField2 "MALIYET_UYARI", "CHAR", 1, 0, "L", "", ""
+	TEKL20E.AddField2 "SIPARIS_NO", "CHAR", 10, 0, "R", "", ""
+
+	TEKL20E.Setd7FieldEvent "ODEME_DOVIZI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "ODEME_DOVIZI_AV"
+	TEKL20E.Setd7FieldEvent "STOK_URETIM","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "STOK_URETIM_AV"
+	TEKL20E.Setd7FieldEvent "SIP_BUTCE","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "SIP_BUTCE_AV"
+	TEKL20E.Setd7FieldEvent "TEKLIF_FIYAT_PB","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKLIF_FIYAT_PB_AV"
+	TEKL20E.Setd7FieldEvent "BASE_DF_ODEMEGUNU","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_BASE_DF_ODEMEGUNU_AV"
+	TEKL20E.Setd7FieldEvent "BASE_DF_ODEMEGUNU","ONVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_BASE_DF_ODEMEGUNU_OV"
+	TEKL20E.Setd7FieldEvent "FINANSMANORANI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_FINANSMANORANI_AV"
+	TEKL20E.Setd7FieldEvent "KOMISYON_ORANI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_KOMISYON_ORANI_AV"
+	TEKL20E.Setd7FieldEvent "KOMISYON_LME","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_KOMISYON_LME_AV"
+	TEKL20E.Setd7FieldEvent "KOMISYON_LME_PUNIT","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_KOMISYON_LME_PUNIT_AV"
+	TEKL20E.Setd7FieldEvent "PRIM_ORANI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_PRIM_ORANI_AV"
+	TEKL20E.Setd7FieldEvent "REF_NUM_1","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_REF_NUM_1_AV"
+	TEKL20E.Setd7FieldEvent "REF_NUM_2","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_REF_NUM_2_AV"
+	TEKL20E.Setd7FieldEvent "REF_NUM_3","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_REF_NUM_3_AV"
+	TEKL20E.Setd7FieldEvent "REF_NUM_4","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_REF_NUM_4_AV"
+	TEKL20E.Setd7FieldEvent "KONT_PB","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "KONT_PB_AV"
+	TEKL20E.Setd7FieldEvent "KOMISYON_PB","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "KOMISYON_PB_AV"
+	TEKL20E.Setd7FieldEvent "GK_8","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_GK_8_AV"
+	TEKL20E.Setd7FieldEvent "FINANSMANORANI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_FINANSMANORANI_AV"
+	TEKL20E.Setd7FieldEvent "MAKARA_TURU","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_MAKARA_TURU_AV"
+	TEKL20E.Setd7FieldEvent "BASE_DF_CARIHESAP","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_BASE_DF_CARIHESAP_AV"
+	TEKL20E.Setd7FieldEvent "SIPIVEREN","ONVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_SIPIVEREN_OV"
+	TEKL20E.Setd7FieldEvent "SIPIVEREN","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20E_SIPIVEREN_AV"
+	TEKL20E.Setd7FieldEvent "CU_LME","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "CU_LME_AV"
+	TEKL20E.Setd7FieldEvent "AL_LME","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "AL_LME_AV"
+	TEKL20E.Setd7FieldEvent "INCO_KOD","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "INCO_KOD_AV"
+	TEKL20E.Setd7FieldEvent "U_INT_DOM", "ONVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "U_INT_DOM_OV"
+	TEKL20E.Setd7FieldEvent "U_DZN_FAB", "ONVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "U_DZN_FAB_OV"
+	TEKL20E.Setd7FieldEvent "U_DZN_FAB", "AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "U_DZN_FAB_AV"
+
+	TEKL20T4.Setd7FieldEvent "AMBALAJ_TURU","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "AMBALAJ_TURU_AV"
+	TEKL20T4.Setd7FieldEvent "SF_PAKETICERIGI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "SF_PAKETICERIGI_AV"
+	TEKL20T4.Setd7FieldEvent "SF_PAKETSAYISI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "SF_PAKETSAYISI_AV"
+	
+'	TEKL20T4.Setd7FieldEvent "TR_GK_1","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TR_GK_1_AV"
+'	TEKL20T4.Setd7FieldEvent "ARTIKEL_REF_NUM_1","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "ARTIKEL_REF_NUM_1_AV"
+'	TEKL20T4.Setd7FieldEvent "ARTIKEL_REF_NUM_2","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "ARTIKEL_REF_NUM_2_AV"
+'	TEKL20T4.Setd7FieldEvent "KOD_AV","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20T4_KOD_AV"
+
+'	TEKL20T.AddField2 "ARTIKEL_REF_TEXT_15", "CHAR", 2, 0, "L", "", "|TOLTY"
+	TEKL20T.AddField2 "SF_PAKETICERIGI", "DOUBLE", 8, 2, "R", "", ""
+	TEKL20T.AddField2 "AMBALAJ_TURU", "CHAR", 10, 0, "L", "", "AMBJMKT"
+
+	TEKL20T.Setd7FieldEvent "KOD","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "KOD_AV"
+	TEKL20T.Setd7FieldEvent "FIYAT","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "FIYAT_AV"
+	TEKL20T.Setd7FieldEvent "TUTAR","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TUTAR_AV"
+	TEKL20T.Setd7FieldEvent "FNS_D_TEKLIF_BIRIM_F","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "FNS_D_TEKLIF_BIRIM_F_AV"
+	TEKL20T.Setd7FieldEvent "FNS_D_TEKLIF_TUTARI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "FNS_D_TEKLIF_TUTARI_AV"
+	TEKL20T.Setd7FieldEvent "ISKONTO", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "ISKONTO_AV"
+	TEKL20T.Setd7FieldEvent "SF_MIKTAR", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20T_SF_MIKTAR_AV"
+'	TEKL20T.Setd7FieldEvent "BASE_FIYAT","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20T_BASE_FIYAT_AV"
+	TEKL20T.Setd7FieldEvent "ARTIKEL_REF_NUM_10", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "STLMNT_FIYAT_AV"
+	TEKL20T.Setd7FieldEvent "ARTIKEL_REF_NUM_11", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "STLMNT_TUTAR_AV"
+	TEKL20T.Setd7FieldEvent "ARTIKEL_REF_NUM_12", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "TKL_ISKONTO_AV"
+	TEKL20T.Setd7FieldEvent "ARTIKEL_REF_NUM_13", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "TKL_ARTTIRIM_AV"
+	TEKL20T.Setd7FieldEvent "ARTIKEL_REF_NUM_14", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "KAR_AV"
+	TEKL20T.Setd7FieldEvent "ARTIKEL_REF_NUM_15", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "BRUTTUTAR_AV"
+
+	TEKL20T.Setd7FieldEvent "AMBALAJ_TURU","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "T_AMBALAJ_TURU_AV"
+	TEKL20T.Setd7FieldEvent "SF_PAKETICERIGI","ONVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "T_SF_PAKETICERIGI_OV"
+	TEKL20T.Setd7FieldEvent "SF_PAKETICERIGI","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "T_SF_PAKETICERIGI_AV"
+
+	Doc.ReSetFilteredTables() 
+
+	TEKL20NK.Setd7FieldEvent "MIKTAR", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20NK_MIKTAR_AV"
+	TEKL20NK.Setd7FieldEvent "NEREDEN", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "TEKL20NK_NEREDEN_AV"
+	
+	TEKL20IN.Setd7FieldEvent "MASRAF_TIPI", "AFTERVALIDATE", "MAKR7S." & SC_SCRIPTMODULEFILENAME, "MASRAF_TIPI_AV"
+
+'	Call KilitButonlariniAktiflestir()
+End Sub
+Sub DigerTeklifBilgileriMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_TEKL21_DIGERBILGILER",SC_SCRIPTMODULEFILENAME,Par
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	TEKL20E.SIPIVEREN_PERS00_AD = Doc.GetDBFieldValue("PERS00", "AD", TEKL20E.SIPIVEREN, "")
+End Sub
+Sub TeklifDizaynBilgileriMain()
+	Dim Par
+	Set Par=Nothing
+'	if OzelHakVarMi("DIZAYN") Then
+'		Par.SetParameter "PAR1","D"
+'	End if
+'	if OzelHakVarMi("LOJ") Then
+'		Par.SetParameter "PAR1","L"
+'	End if
+
+	Doc.LoadSubForm_Dyn "USR_TEKL21_DIZAYNBILGILERI",SC_SCRIPTMODULEFILENAME,Par
+End Sub
+Sub MaliyetBilgileriMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_MALIYET_BILGILERI",SC_SCRIPTMODULEFILENAME,Par
+End Sub
+Sub RevizyonlarMain()
+	Set RVZ = Doc.CreateTransactionalTableObject("REVIZYONLAR=TEKL20E(NOFILE)", "IO")
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_REVIZYONLAR",SC_SCRIPTMODULEFILENAME,Par	
+	Call RevizyonlariGoster()
+End Sub
+Sub AmbalajMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_TEKL21_AMBALAJ",SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+Sub SabitSevkBoylariMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_SEVK_BOYLARI",SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+
+Sub IhracatMasraflariMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_TEKL21_INCO",SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+Sub NakliyeMasraflariMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_TEKL21_NAKLIYE",SC_SCRIPTMODULEFILENAME,Par	
+	Call NakliyeAgirliklariniHesapla()
+End Sub
+Sub ReceteMain()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_RECETELER",SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+Sub KonteynerSecimi()
+	Set KONTEYNER_SECIM = Doc.CreateTransactionalTableObject("KONTEYNER_SECIM=STACK", "IO")
+	KONTEYNER_SECIM.AddField2 "MAKARA_KODU", "CHAR", 24, 0, "L", "", ""
+	KONTEYNER_SECIM.AddField2 "MAKARA_ADI", "CHAR", 50, 0, "L", "", ""
+	KONTEYNER_SECIM.AddField2 "MAKARA_SAYISI", "DOUBLE", 6, 0, "R", "", ""
+	KONTEYNER_SECIM.AddField2 "KONT_40FT", "DOUBLE", 12, 4, "R", "", ""
+	KONTEYNER_SECIM.AddField2 "KONT_20FT", "DOUBLE", 12, 4, "R", "", ""
+
+	Call MakaraListesiniGetir()
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "USR_KONTEYNER_SECIM",SC_SCRIPTMODULEFILENAME,Par
+End Sub
+Sub MamulSatirlariniFiyatlandirmayaAktar()
+	Set TEKL20TI_FIYAT = Doc.GetTableObject("TEKL20TI_FIYAT")
+	Set TEKL20TI = Doc.GetTableObject("TEKL20TI")
+
+	Set T20TI = Doc.Select2("sefw3gs", "TEKL20TI", "KAYNAKTYPE='M'", "", -1)
+	TEKL20TI_FIYAT.SetRowAID 1,1,1
+	TEKL20TI_FIYAT.Empty
+	Alanlar = TEKL20TI.GetFieldNames("")
+	For i = 1 to T20TI.GetRowCount()
+		satirNo = TEKL20TI_FIYAT.AddRow
+		TEKL20TI_FIYAT.SetCurrentRow(satirNo)
+		For each Alan in Alanlar
+			if Alan <> "EVRAKNO" and Alan <> "TRNUM" and Alan <> "SRNUM" Then
+				AlanDegeri = T20TI.GetFieldValue(Alan, i)
+				TEKL20TI_FIYAT.SetFieldValue Alan, -1, AlanDegeri
+			End if
+		Next
+		TEKL20TI_FIYAT.GROUPBYF = "E"
+		HammaddeveOPMaliyeti = T20TI.MAL_HAMMADDE_TUTAR(i) + T20TI.MAL_OPERASYON_TUTAR(i)
+		AmbalajNakliyeIhracatMasraflari = T20TI.AMBALAJ_MALIYETI(i) + T20TI.INCO_TUTARI(i) + T20TI.NAKLIYE_TUTARI(i)
+		ToplamMasraf = HammaddeveOPMaliyeti + AmbalajNakliyeIhracatMasraflari
+
+		TEKL20TI_FIYAT.ARTIKEL_REF_NUM_2 = HammaddeveOPMaliyeti
+		TEKL20TI_FIYAT.ARTIKEL_REF_NUM_3 = ToplamMasraf
+		TEKL20TI_FIYAT.TEKLIF_SATIRNO = Doc.CDbl(T20TI.SRNUM(i))
+	Next
+	TEKL20TI_FIYAT.SetRowAID 0,0,0
+	if T20TI.GetRowCount() > 0 Then TEKL20TI_FIYAT.SetCurrentRow(1)
+End Sub
+Sub AlanlariEkle()
+	Set TEKL20TI = Doc.GetTableObject("TEKL20TI")
+	Set TEKL20TI_FIYAT = Doc.GetTableObject("TEKL20TI_FIYAT")
+	Alanlar = TEKL20TI.GetFields
+	For i = 0 to UBound(Alanlar, 1)
+		TEKL20TI_FIYAT.Addfield2 Alanlar(i,0), Alanlar(i,2),Alanlar(i,3),Alanlar(i,4),Alanlar(i,5),"",""
+	Next
+	TEKL20TI_FIYAT.Addfield2 "GROUPBYF", "CHAR", 1, 0, "L", "", ""
+	TEKL20TI_FIYAT.Addfield2 "TEKLIF_SATIRNO", "DOUBLE", 10, 0, "R", "", ""
+End Sub
+Sub TEKL20E_SIPIVEREN_OV()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set P00 = Doc.Select1("sdg4ghsh", "PERS00", "KOD='" & TEKL20E.SIPIVEREN & "'", "", -1)
+	if P00.GetRowCount() = 0 Then
+		Doc.d7MsgBox "Personel kartýnda tanýmlý olan kartlardan seçebilirsiniz", "", MB_OK
+		TEKL20E.SIPIVEREN = ""
+		Doc.SetFocus "TEKL20E_SIPIVEREN"
+	End if
+End Sub
+Sub TEKL20E_SIPIVEREN_AV()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	TEKL20E.SIPIVEREN_PERS00_AD = Doc.GetDBFieldValue("PERS00", "AD", TEKL20E.SIPIVEREN, "")
+End Sub
+
+Sub 	TEKL20T_SF_MIKTAR_AV()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	if trim(TEKL20T.STOK_NONSTOK) = "NS" Then
+		TEKL20T.SF_STOK_MIKTAR = TEKL20T.SF_MIKTAR
+	End if
+	TEKL20T.ARTIKEL_REF_NUM_11 = TEKL20T.ARTIKEL_REF_NUM_10 * TEKL20T.SF_MIKTAR
+'	TEKL20T.ARTIKEL_REF_NUM_15 = TEKL20T.ARTIKEL_REF_NUM_14 * TEKL20T.SF_MIKTAR
+End Sub
+Sub ODEME_DOVIZI_AV()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	TEKL20E.GK_1 = TEKL20E.ODEME_DOVIZI
+End Sub
+Sub STOK_URETIM_AV()
+	if Doc.IsBlank(TEKL20E) Then Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	TEKL20E.GK_2 = TEKL20E.STOK_URETIM
+	Call DovizKuruveMaliyetleriHesapla()
+End Sub
+Sub DovizKuruveMaliyetleriHesapla()
+	Call DovizKurlariniGetir()
+	Call cmdHammaddeveOpHesapla()	
+	Call cmdMamulMaliyetHesapla()
+End Sub
+Sub SIP_BUTCE_AV()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	TEKL20E.GK_3 = TEKL20E.SIP_BUTCE
+End Sub
+Sub TEKLIF_FIYAT_PB_AV()
+	Call AylikVadeFarkiOraniHesapla()
+	Call TumMamulSatirlarininParaBirimleriniGuncelle()
+	Call AmbalajTutarlariniHesapla()
+	Call TumSatirlarinFiyatlariniHesapla()	
+'	Doc.RunMacro0 "MAKR7S.TEKL21", "TumSatirlarinFiyatlariniHesapla"
+End Sub
+Sub TEKL20E_BASE_DF_ODEMEGUNU_AV()
+	Call TumSatirlarinFiyatlariniHesapla()
+End Sub
+Sub TEKL20E_BASE_DF_ODEMEGUNU_OV()
+	Call OdemeGunuVarsaliyanVadedenFazlaysaSil()
+End Sub
+Sub TEKL20E_BASE_DF_CARIHESAP_AV()
+	Call KomisyonOraniHesapla()
+	Call OdemeGunuHesapla()
+	Call TumSatirlarinPrimOranlariniHesapla()
+End Sub
+Sub TEKL20E_FINANSMANORANI_AV()
+	Call TumSatirlarinFiyatlariniHesapla()
+End Sub
+Sub TEKL20E_KOMISYON_ORANI_AV()
+	Call TumSatirlarinFiyatlariniHesapla()
+End Sub
+Sub TEKL20E_KOMISYON_LME_AV()
+	Call TumSatirlarinFiyatlariniHesapla()
+End Sub
+Sub TEKL20E_KOMISYON_LME_PUNIT_AV()
+	Call TumSatirlarinFiyatlariniHesapla()
+End Sub
+Sub TEKL20E_PRIM_ORANI_AV()
+	Call TumSatirlarinFiyatlariniHesapla()
+End Sub
+Sub OdemeGunuHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")	
+	Set C00 = Doc.Select1("e3fg3aa", "CARI00", "KOD='" & TEKL20E.BASE_DF_CARIHESAP & "'", "", -1)
+	if C00.GetRowCount() > 0 Then
+		TEKL20E.BASE_DF_ODEMEGUNU = C00.B_DEFAULT_VADEGUN
+	End if
+End Sub
+Sub OdemeGunuVarsaliyanVadedenFazlaysaSil()
+	exit sub
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")	
+	Set C00 = Doc.Select1("e3fg3aa", "CARI00", "KOD='" & TEKL20E.BASE_DF_CARIHESAP & "'", "", -1)
+	if C00.GetRowCount() > 0 Then
+		if TEKL20E.BASE_DF_ODEMEGUNU > C00.B_DEFAULT_VADEGUN Then
+			Doc.d7MsgBox "Ödeme vadesi maksimum " & C00.B_DEFAULT_VADEGUN & " gün olabilir.", "", MB_OK
+			TEKL20E.BASE_DF_ODEMEGUNU = 0
+		End if
+	End if
+End Sub
+
+Sub TumSatirlarinFiyatlariniHesapla()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	TEKL20T.SafePack()
+	Call KomisyonTutariniSatirlaraDagit(0)
+	satirNo = TEKL20T.GetCurrentRow()
+	For i = 1 to TEKL20T.GetRowCount()
+		TEKL20T.SetCurrentRow(i)
+		if trim(TEKL20T.FIX_FIYAT) = "1" Then
+			TEKL20T.FNS_D_TEKLIF_BIRIM_F = TEKL20T.FNS_D_TEKLIF_BIRIM_F
+			Doc.CallFieldAfterValidate_Row "TEKL20T","FNS_D_TEKLIF_BIRIM_F",TEKL20T.GetCurrentRow()	
+		Else
+'			TEKL20T.FNS_D_TEKLIF_BIRIM_F = TEKL20T.MALIYET_TOTAL_FIYAT
+			TEKL20T.ARTIKEL_REF_NUM_14 = TEKL20T.ARTIKEL_REF_NUM_14
+			Doc.CallFieldAfterValidate_Row "TEKL20T","ARTIKEL_REF_NUM_14",TEKL20T.GetCurrentRow()	
+'			Call KAR_AV()
+		End if
+	Next
+	TEKL20T.SetCurrentRow(satirNo)
+End Sub
+Sub FIYAT_AV()
+	Call TutarHesapla()
+	Call KarOraniHesapla()
+	Call VadeFarkliFiyatHesapla()
+	Call VadeFarkliTutarHesapla()
+	Call KomisyonTutariHesapla()
+	Call PrimTutariHesapla()
+	Call NetSatisTutariHesapla()
+	Call IskontoHesapla()
+	Call DipToplamlariHesapla()
+End Sub
+Sub TUTAR_AV()
+	Call FiyatHesapla()
+	Call KarOraniHesapla()
+	Call VadeFarkliFiyatHesapla()
+	Call VadeFarkliTutarHesapla()
+	Call KomisyonTutariHesapla()
+	Call PrimTutariHesapla()
+	Call NetSatisTutariHesapla()
+	Call IskontoHesapla()
+	Call DipToplamlariHesapla()
+End Sub
+Sub FNS_D_TEKLIF_BIRIM_F_AV()
+	Call FinansDahilFiyattanTutarHesapla()
+	Call VadeFarkliTutarHesapla()
+	Call KomisyonTutariHesapla()
+	Call PrimTutariHesapla()
+	Call FiyatHesapla()
+	Call KarOraniHesapla()
+	Call NetSatisTutariHesapla()
+	Call IskontoHesapla()
+	Call DipToplamlariHesapla()
+End Sub
+Sub FNS_D_TEKLIF_TUTARI_AV()
+	Call FinansDahilTutardanTutarHesapla()
+	Call VadeFarkliFiyatHesapla()
+	Call KomisyonTutariHesapla()
+	Call PrimTutariHesapla()
+	Call FiyatHesapla()
+	Call KarOraniHesapla()
+	Call NetSatisTutariHesapla()
+	if not IskontoHesaplanmasin Then Call IskontoHesapla()
+	Call DipToplamlariHesapla()
+End Sub
+Sub TEKL20T_BASE_FIYAT_AV()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	TEKL20T.BASE_TUTAR = TEKL20T.BASE_FIYAT * TEKL20T.SF_MIKTAR
+	Call ISKONTO_AV()
+End Sub
+Sub ISKONTO_AV()
+	Call IskontodanTutarHesapla()
+	Call VadeFarkliFiyatHesapla()
+	Call VadeFarkliTutarHesapla()
+	Call KomisyonTutariHesapla()
+	Call FiyatHesapla()
+	Call KarOraniHesapla()
+	Call PrimTutariHesapla()
+	Call NetSatisTutariHesapla()
+	Call DipToplamlariHesapla()
+End Sub
+Sub TutarHesapla()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	TEKL20T.TUTAR = TEKL20T.FIYAT * TEKL20T.SF_MIKTAR
+End Sub
+Sub FiyatHesapla()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	TEKL20T.FIYAT = Doc.Div(TEKL20T.TUTAR, TEKL20T.SF_MIKTAR)
+End Sub
+Sub KarOraniHesapla()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	TEKL20T.ARTIKEL_REF_NUM_14=Doc.Div(TEKL20T.TUTAR - TEKL20T.MALIYET_TOTAL_TUTAR, TEKL20T.MALIYET_TOTAL_TUTAR) * 100
+End Sub
+Sub VadeFarkliTutarHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+'  TEKL20T.FNS_D_TEKLIF_TUTARI = TEKL20T.TUTAR + TEKL20T.FNS_MALIYETI
+	TEKL20T.FNS_D_TEKLIF_TUTARI = TEKL20T.FNS_D_TEKLIF_BIRIM_F * TEKL20T.SF_MIKTAR
+	TEKL20T.FNS_MALIYETI = TEKL20T.FNS_D_TEKLIF_TUTARI - TEKL20T.TUTAR
+	Call SettlementTutariHesapla()
+'	Call BrutSatisTutariveyaIskontoHesapla()
+End Sub
+Sub VadeFarkliFiyatHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+  FinansMaliyeti = TEKL20T.TUTAR * TEKL20E.BASE_DF_ODEMEGUNU * TEKL20E.FINANSMANORANI / 30 / 100
+  FinansDahilTeklifTutari = TEKL20T.TUTAR + FinansMaliyeti
+
+	TEKL20T.FNS_D_TEKLIF_BIRIM_F	= Doc.Round(Doc.Div(FinansDahilTeklifTutari, TEKL20T.SF_MIKTAR), 5)
+End Sub
+Sub PrimTutariHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	PrimOrani = GetCurRowPrimOrani()
+	TEKL20T.PRIM_TUTARI = Doc.Round(PrimOrani * TEKL20T.FNS_D_TEKLIF_TUTARI / 100, 2)
+End Sub
+Sub NetSatisTutariHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	FinansmanOrani = TEKL20E.BASE_DF_ODEMEGUNU * TEKL20E.FINANSMANORANI / 30 / 100
+	PesinPrimTutari = TEKL20T.PRIM_TUTARI / (1 + FinansmanOrani)
+	TEKL20T.ARTIKEL_REF_NUM_1 = TEKL20T.TUTAR - PesinPrimTutari
+'	TEKL20T.ARTIKEL_REF_NUM_1 = TEKL20T.FNS_D_TEKLIF_TUTARI - TEKL20T.PRIM_TUTARI
+'	TEKL20T.ARTIKEL_REF_NUM_1 = TEKL20T.FNS_D_TEKLIF_TUTARI - TEKL20T.PRIM_TUTARI - TEKL20T.FNS_MALIYETI
+End Sub
+Sub KomisyonTutariHesapla()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	if TEKL20E.KOMISYON_ORANI > 0 Then
+		if TEKL20E.KOMISYON_LME > 0 Then
+			BakirMiktari = GetCurrRowBakirMiktar()
+			EskalasyonFarki = GetEskalasyonFarki(BakirMiktari, TEKL20E.CU_LME, TEKL20E.CU_PB, TEKL20E.KOMISYON_LME, TEKL20E.KOMISYON_LME_PUNIT, 1)
+		Else
+			EskalasyonFarki = 0
+		End if
+
+		EskaleTeklifTutari = TEKL20T.FNS_D_TEKLIF_TUTARI + EskalasyonFarki
+		TEKL20T.KOMISYON_TUTARI	= Doc.Round(TEKL20E.KOMISYON_ORANI * EskaleTeklifTutari / 100, 2)
+	End if
+End Sub
+Sub IskontoHesapla()
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	TEKL20T.ISKONTO = Doc.Round(Doc.Div(TEKL20T.BASE_TUTAR - TEKL20T.FNS_D_TEKLIF_TUTARI, TEKL20T.BASE_TUTAR) * 100, 2)
+'	TEKL20T.ISKONTO = Doc.Round(Doc.Div(TEKL20T.BASE_TUTAR - TEKL20T.ARTIKEL_REF_NUM_15, TEKL20T.BASE_TUTAR) * 100, 2)
+End Sub
+Sub IskontodanTutarHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+'	TEKL20T.FNS_D_TEKLIF_TUTARI = TEKL20T.BASE_TUTAR * (1 - TEKL20T.ISKONTO / 100)
+	TEKL20T.ARTIKEL_REF_NUM_15 = TEKL20T.BASE_TUTAR * (1 - TEKL20T.ISKONTO / 100)
+
+	IskontoHesaplanmasin = True
+	Call BRUTTUTAR_AV()
+	IskontoHesaplanmasin = False
+
+	Oran = TEKL20E.BASE_DF_ODEMEGUNU * TEKL20E.FINANSMANORANI / 30 / 100
+	TEKL20T.TUTAR = Doc.Round(Doc.Div(TEKL20T.FNS_D_TEKLIF_TUTARI, 1 + Oran), 2)
+	TEKL20T.FNS_MALIYETI = TEKL20T.FNS_D_TEKLIF_TUTARI - TEKL20T.TUTAR
+End Sub
+Sub DipToplamlariHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+
+	if TEKL20T.GetRowCount() > 0 Then
+		TEKL20E.TOPLAM_TUTAR = TEKL20T.SumOf("TUTAR")
+		TEKL20E.TOPLAM_MALIYET = TEKL20T.SumOf("MALIYET_TOTAL_TUTAR")
+		TEKL20E.TOPLAM_KAR_ORANI = Round(Doc.Div(TEKL20E.TOPLAM_TUTAR - TEKL20E.TOPLAM_MALIYET, TEKL20E.TOPLAM_MALIYET) * 100, 2)
+		TEKL20E.TOPLAM_FNS_TUTAR = TEKL20T.SumOf("FNS_D_TEKLIF_TUTARI")
+	Else
+		TEKL20E.TOPLAM_TUTAR = 0
+	End if
+End Sub
+Sub FinansDahilFiyattanTutarHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	
+	FinansDahilTutar = TEKL20T.FNS_D_TEKLIF_BIRIM_F * TEKL20T.SF_MIKTAR
+
+	FinansmanOrani = TEKL20E.BASE_DF_ODEMEGUNU * TEKL20E.FINANSMANORANI / 30 / 100
+
+	TEKL20T.TUTAR = Doc.Div(FinansDahilTutar,  1 + FinansmanOrani)
+End Sub
+Sub FinansDahilTutardanTutarHesapla()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20T = Doc.GetTableObject("TEKL20T")
+	
+	FinansmanOrani = TEKL20E.BASE_DF_ODEMEGUNU * TEKL20E.FINANSMANORANI / 30 / 100
+
+	TEKL20T.TUTAR = Doc.Div(TEKL20T.FNS_D_TEKLIF_TUTARI,  1 + FinansmanOrani)
+	TEKL20T.FNS_D_TEKLIF_BIRIM_F =  Doc.Round(Doc.Div(TEKL20T.FNS_D_TEKLIF_TUTARI, TEKL20T.SF_MIKTAR), 5)
+End Sub
+Sub FiyatOK()
+	Set TEKL20TI = Doc.GetTableObject("TEKL20TI")
+	Set TEKL20TI_FIYAT = Doc.GetTableObject("TEKL20TI_FIYAT")
+	Alanlar = TEKL20TI.GetFieldNames("")
+
+	For i = 1 to TEKL20TI_FIYAT.GetRowCount()
+		TEKL20TI.SetCurrentRow(TEKL20TI_FIYAT.TEKLIF_SATIRNO(i))
+		For Each Alan in Alanlar
+			if Alan <> "EVRAKNO" and Alan <> "TRNUM" and Alan <> "SRNUM" and Alan <> "KAYNAKTYPE" and Alan <> "KOD" _
+					and Alan <> "STOK_AD1" and Alan <> "SF_MIKTAR" and Alan <> "SF_SF_UNIT" Then
+				AlanDegeri = TEKL20TI_FIYAT.GetFieldValue(Alan, i)
+				TEKL20TI.SetFieldValue Alan, -1, AlanDegeri
+			End if
+		Next
+	Next
+	Call Iptal()
+End Sub
+Sub Iptal()
+	Doc.RUN_APP_CANCEL
+End Sub
+Sub GrupKodlariYoksaYarat()
+	Call OdemeTipiGrupKodlariniYarat()
+	Call SatisTuruGrupKodlariniYarat()
+	Call TeklifTuruGrupKodlariniYarat()
+	Call KapamaTahtasiVarmiGrupKoduYarat()
+End Sub
+Sub OdemeTipiGrupKodlariniYarat()
+	Call GKYoksaEkle("TK20GK1", "TL", "TL", "")
+	Call GKYoksaEkle("TK20GK1", "DV", "Dövizli", "")
+End Sub
+Sub SatisTuruGrupKodlariniYarat()
+	Call GKYoksaEkle("TK20GK2", "ST", "Stoktan Satýþ", "")
+	Call GKYoksaEkle("TK20GK2", "UR", "Üretimden Satýþ", "")
+End Sub
+Sub TeklifTuruGrupKodlariniYarat()
+	Call GKYoksaEkle("TK20GK3", "SP", "Sipariþe Dönük", "Order")
+	Call GKYoksaEkle("TK20GK3", "BT", "Bütçe Amaçlý", "Budget")
+End Sub
+Sub KapamaTahtasiVarmiGrupKoduYarat()
+	Call GKYoksaEkle("TK20GK8", "E", "Var", "")
+	Call GKYoksaEkle("TK20GK8", "H", "Yok", "")
+End Sub
+Sub GKYoksaEkle(GrupKoduEvrakNo, GrupKodu, Ad, Ad2)
+	Set GST = Doc.Select1("ddee", "GECOUST", "EVRAKNO='" & GrupKoduEvrakNo & "'&KOD='" & GrupKodu & "'", "", -1)
+	if GST.GetRowCount = 0 Then
+		Set Doc1 = Doc.CreateDocumentNoUI("GECO10", "")
+		Set GT = Doc1.GetTableObject("GECOUST")
+
+		Doc1.Load_Voucher GrupKoduEvrakNo
+		satirNo = GT.AddRow
+		GT.KOD(satirNo) = GrupKodu
+		GT.AD(satirNo) = Ad
+		GT.AD_L2(satirNo) = Ad2
+		Doc1.Save_Voucher
+		Doc1.LoadEmpty_Voucher
+	End if
+End Sub
+Sub DovizKurlariniGetir()
+	Set TEKL20E = Doc.GetTableObject("TEKL20E")
+	Set TEKL20PB = Doc.GetTableObject("TEKL20PB")
+	For i = 1 to TEKL20PB.GetRowCount()
+		if trim(TEKL20PB.CODEFROM(i)) <> "SEUR" Then
+			if trim(TEKL20E.STOK_URETIM) = "ST" Then
+				TEKL20
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : TEKL21
+Bu Uygulama için Baþlangýç Ekran Formu : USR_TEKL21
+Baþlangýçta Bu Makro Çalýþacak : Makro1
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM USR_TEKL21 SCROLLBARS=NO SIZE=FULL
+SET CAPTION="Teklif Fiyat Analizi"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="FONT011" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="FONT012" FACE="MS Sans Serif" POINT=10 BOLD=Y
+DEFINEFONT ID="FONT013" FACE="Arial" POINT=10
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU
+ MENUITEM T="Revizyon" ID=CMD_REVIZYON_YAP
+
+SEPARATOR
+ MENUITEM T="Diðer Tekliften Kopyala" ID="MT_LOADSUBFORM('TEKL21_OLD_EVRAK1')" 
+
+SEPARATOR
+
+  SEPARATOR
+// MENUITEM T=" [1] - 1.Seviyeden Hammaddeleri Hesapla" ID=CMD_SECENEK01
+// MENUITEM T=" [2] - Tüm Seviyelerden Hammaddeleri Hesapla" ID=CMD_SECENEK02
+// MENUITEM T=" [3] - 1.Seviyeden Operasyonlarý Hesapla" ID=CMD_SECENEK03
+// MENUITEM T=" [4] - Tüm Seviyelerden Operasyonlarý Hesapla" ID=CMD_SECENEK04
+// MENUITEM T=" [5] - 1.Seviyeden Hammaddeleri ve Operasyonlarý Hesapla ([1] && [3])" ID=CMD_SECENEK05
+// MENUITEM T=" [6] - Tüm Seviyelerden Hammaddeleri ve Operasyonlarý Hesapla ([2] && [4])" ID=CMD_SECENEK06
+ SEPARATOR
+// MENUITEM T=" [1] - 1.Seviyeden Hammaddeleri Hesapla\t(Üzerinde Bulunulan Satýr)" ID=CMD_SECENEK01_CLINE
+// MENUITEM T=" [2] - Tüm Seviyelerden Hammaddeleri Hesapla\t(Üzerinde Bulunulan Satýr)" ID=CMD_SECENEK02_CLINE
+// MENUITEM T=" [3] - 1.Seviyeden Operasyonlarý Hesapla\t(Üzerinde Bulunulan Satýr)" ID=CMD_SECENEK03_CLINE
+// MENUITEM T=" [4] - Tüm Seviyelerden Operasyonlarý Hesapla\t(Üzerinde Bulunulan Satýr)" ID=CMD_SECENEK04_CLINE
+ //MENUITEM T=" [5] - 1.Seviyeden Hammaddeleri ve Operasyonlarý Hesapla ([1] && [3])\t(Üzerinde Bulunulan Satýr)" ID=CMD_SECENEK05_CLINE
+// MENUITEM T=" [6] - Tüm Seviyelerden Hammaddeleri ve Operasyonlarý Hesapla ([2] && [4]\t(Üzerinde Bulunulan Satýr))" ID=CMD_SECENEK06
+ MENUITEM T=" Teklifi Sipariþe Aktar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-4','Makro1')"
+ SEPARATOR
+ MENUITEM T=" Tüm fiyat bilgilerini sýfýrla" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','FiyatlariSifirla')"
+// MENUITEM T="Hammadde Satýrlarýný Ýptal Et" ID=CMD_HAMMADDE_SATIRLARINI_IPTAL_ET
+// MENUITEM T="Hesaplanan Alanlardaki Tüm Deðerleri Sýfýrla" ID=CMD_HESAPLANAN_DEGERLERI_IPTAL_ET
+ SEPARATOR
+ MENUITEM TEXT="Stok ve Üretim E&mri Bilgileri\tF5" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-6','Makro1')" KEY=F5
+//		MENUITEM TEXT="&Ekle",	ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','Ekle')" KEY=F5
+
+//  MENUITEM TEXT="&Satýr Detayý\tF4", ID=MT_LINEDETAIL KEY=F4
+
+ MENUITEM T="Diðer Evraklardan Kopya"   ID=CMD_DIGER_EVRAKLARDAN_KOPYA
+ SEPARATOR
+ MENUITEM T="Kullanýcý Tanýmlý Alanlar" ID="MT_EDIT_UDF()"
+ MENUITEM T="Mesajlar"   ID="MT_EDIT_LMSG()"
+ SEPARATOR
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapýþtýr", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Dýþarýya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Dýþarýdan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+  MENUITEM TEXT="Yeni Evrak\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM TEXT="Kaydet\tF10",   ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM TEXT="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+     MENUITEM TEXT="Çý&kýþ"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ýlk Kayýt\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayýt\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayýt\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ýlk Kayýt (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayýt (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayýt (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapýþtýr\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+  MENUITEM TEXT="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+  MENUITEM TEXT="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+//  MENUITEM TEXT="&Satýr Detayý\tF4", ID=MT_LINEDETAIL KEY=F4
+  MENUITEM TEXT="&Satýr Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satýr Sil\tCtrl+Y", ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalýþtýr\tALT+F8", ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Ýþlevler\tF6", ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM TEXT="&Yardým\tF1", ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP TEXT="Ýþle&vler" POPUP=EVRAKMENU
+
+ 
+
+ POPUP TEXT="&Yardým"
+     MENUITEM TEXT="&Yardým Baþlýklarý",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM TEXT="&freedom Hakkýnda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=FOEDIT
+ SEPARATOR
+// MENUITEM TEXT="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+ SEPARATOR
+ MENUITEM TEXT="Feature/Option Seçimi\t(F3)", ID="CFFV('DO_SENT_FOCODE_0','KODFN=KOD')" KEY=F3
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU
+ SEPARATOR
+// MENUITEM TEXT="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU2
+ SEPARATOR
+// MENUITEM TEXT="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+ENDMENUDEF
+
+POPUPMENUDEF ID=EVRAK_FIELD_MENU
+ SEPARATOR
+ MENUITEM TEXT="Araþtýr\t(F3)", ID="CFFNV('_BROWSE_3')" KEY=F3
+ENDMENUDEF
+
+INCLUDE TOOLBAR_FULLSET
+
+GROUPBOX TEXT="Evrak" AUTOSIZE=N LEFT=1 TOP=+0 WIDTH=1007p HEIGHT=90p TXTCOL=RGB_000_089_132  
+ LOCATE TOP=0P
+ SAVELOCATION LOCXSDF23
+ LTEXT    LEFT=1 TOP=+16P W=40p CD="TEKL20E.EVRAKNO" CDF="%6"  TXTCOL=RGB_255_000_000
+ EDITTEXT LEFT=E+3P TOP=+0 D="TEKL20E.EVRAKNO" BROWSEBUTTON=1
+
+ LTEXT    LEFT=E+3P TOP=+0P CD="TEKL20E.TARIH" CDF="%6"  TXTCOL=RGB_255_000_000
+ COMBOBOX LEFT=E+3P TOP=+0 D="TEKL20E.TARIH"
+ 
+ LTEXT    LEFT=E+20P TOP=+0P T="Sipariþ No"
+ RTEXT LEFT=E+3P TOP=+0 D="TEKL20E.SIPARIS_NO" BORDER=ETCHED
+ 
+ SAVELOCATION W22W33W33
+
+// BUTTON LEFT=E+6P TOP=-2P WIDTH=66P HEIGHT=23p CAPTION="Teklif Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-7','Makro1')"
+// BUTTON LEFT=E+3P TOP=+0 WIDTH=66P HEIGHT=23p CAPTION="Kablo Bul" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.TEKL21-11','Makro1')"
+
+ RESTORELOCATION W22W33W33
+ LTEXT    LEFT=1 TOP=+1 W=40p CD="TEKL20E.NOTES_1" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=377p D="TEKL20E.NOTES_1"
+ LTEXT    LEFT=1 TOP=+1 W=40p CD="TEKL20E.NOTES_2" CDF="%6" 
+ EDITTEXT LEFT=E+3P TOP=+0 W=377p D="TEKL20E.NOTES_2"
+
+ RESTORELOCATION LOCXSDF23
+ LTEXT    LEFT=440p TOP=+16p W=40P T="Müþteri"
+ EDITTEXT LEFT=E+3P TOP=+0 W=120P D="TEKL20E.BASE_DF_CARIHESAP" BROWSEBUTTON=1
+ SAVELOCATION LOCXXCZC24
+ EDITTEXT LEFT=E+3p TOP=+0P W=267P D="TEKL20E.BASE_DF_CARIHESAP_A1" BROWSEBUTTON=1
+
+ LTEXT    LEFT=440p TOP=+1 W=40P T="Ýlgili"
+ EDITTEXT LEFT=E+3P TOP=+0 W=193p D="TEKL20E.KTA_KNT_AD"
+
+ LTEXT    LEFT=E+3p TOP=+0 W=40P T="Ünvan"
+ EDITTEXT LEFT=E+3P TOP=+0 W=150p D="TEKL20E.KTA_KNT_UNVAN"
+ 
+ LTEXT    LEFT=440p TOP=+1 W=40P T="e-Mail"
+ EDITTEXT LEFT=E+3P TOP=+0 W=193p D="TEKL20E.KTA_KNT_EMAIL"
+
+ LTEXT    LEFT=E+3p TOP=+0 W=40P T="Tel"
+ EDITTEXT LEFT=E+3P TOP=+0 W=150p D="TEKL20E.KTA_KNT_TEL"
+
+ RESTORELOCATION LOCXXCZC24
+ LTEXT    LEFT=880p TOP=+1 W=30p T="RVZ" CDF="%6" 
+ RTEXT    LEFT=E+3P TOP=+0 W=82P D="TEKL20E.REVZ_KAYNAK_EVRAKNO" BORDER=ETCHED
+
+ LTEXT    LEFT=880p TOP=+1 W=30p T="RVZ#" CDF="%6" 
+ LTEXT    LEFT=E+3P TOP=+0 W=82P D="TEKL20E.REVZ_SIRANO" BORDER=ETCHED
+
+ BUTTON LEFT=+0 TOP=-50P WIDTH=82P HEIGHT=23p CAPTION="Revizyonlar" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','RevizyonlarMain')"
+
+ RESTORELOCATION LOCXSDF23
+
+ENDGROUPBOX
+
+TABDEF X=0p Y=+0p WIDTH=1023p H=502p AUTOSIZE=N
+ TAB Name="Teklif Bilgileri" CAPTION=" Teklif Bilgileri "
+ TAB Name="Mamuller" CAPTION=" Mamuller "
+ TAB Name="Hammadde/Operasyon Listesi" CAPTION=" Hammadde/Operasyo
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : MAKR7S
+Makro Kodu : _GNPRGSK
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Teklif Satýþ Koþullarý
+Kod : 
+Sub Makro1()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : _GNPRGSK
+Bu Uygulama için Baþlangýç Ekran Formu : GNPRGSK
+Baþlangýçta Bu Makro Çalýþacak : Makro1
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM GNPRGSK SCROLLBARS=NO
+SET CAPTION="Teklif Satýþ Koþullarý"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="FONT011" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="FONT013" FACE="Arial" POINT=10
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapýþtýr", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Dýþarýya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Dýþarýdan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+  MENUITEM TEXT="Yeni Fiþ No\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM TEXT="Kaydet\tF10",    ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM TEXT="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+     MENUITEM TEXT="Çý&kýþ"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ýlk Kayýt\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayýt\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayýt\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapýþtýr\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+     MENUITEM TEXT="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+     MENUITEM TEXT="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+  MENUITEM TEXT="&Satýr Detayý\tF4", ID=MT_LINEDETAIL KEY=F4
+  MENUITEM TEXT="&Satýr Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satýr Sil\tCtrl+Y",  ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalýþtýr\tALT+F8",   ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Ýþlevler\tF6",  ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM TEXT="&Yardým\tF1",   ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP TEXT="Ýþle&vler" POPUP=EVRAKMENU
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+
+INCLUDE TOOLBAR_FULLSET
+
+TABDEF X=0p Y=+0p WIDTH=1023p H=633p AUTOSIZE=N
+ TAB Name="Satýþ Koþullarý" CAPTION=" Satýþ Koþullarý "
+ //TAB Name="Liste" CAPTION=" Liste "
+ENDTABDEF
+
+TAB "Satýþ Koþullarý"
+
+ SAVELOCATION LOCX0002
+ GROUPBOX TEXT="Evrak" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=1007p HEIGHT=100p TXTCOL=RGB_000_089_132
+  LOCATE TOP=5p
+  LTEXT    LEFT=1 TOP=+15P W=85p T="Fiþ No" TXTCOL=RGB_255_000_000
+  EDITTEXT LEFT=E+3P TOP=+0 D="KTT_TEKLIF_SKE.EVRAKNO" BROWSEBUTTON=1
+
+  LTEXT    LEFT=1 TOP=+1 W=85p T="Açýklama"
+  EDITTEXT LEFT=E+3P TOP=+0 D="KTT_TEKLIF_SKE.ACIKLAMA"
+ ENDGROUPBOX
+
+ GRID LEFT=1 TOP=+15p WIDTH=300p HEIGHT=469p TABLE=KTT_TEKLIF_SKT HEADERROWHEIGHT=35P ZEBRACOLOR1=RGB_255_255_255 ZEBRACOLOR2=RGB_255_255_255
+  EDITTEXT D="SART_ADI" CAPTION="Koþul"
+  EDITTEXT D="ACIKLAMA" CAPTION="Açýklama"
+ ENDGRID
+ EDITTEXT LEFT=E+3P TOP=+35P WIDTH=680P HEIGHT=195p D=KTT_TEKLIF_SKT.ACIKLAMA MULTILINE=YES FONT=FONT013
+
+	LTEXT    LEFT=600P TOP=600p W=66P T="Son Kayýt"
+	LTEXT LEFT=E+3p  TOP=+0 D="KTT_TEKLIF_SKE.ELOG_USERNAME" BORDER=ETCHED  
+	LTEXT LEFT=E+0p  TOP=+0 D="KTT_TEKLIF_SKE.ELOG_LOGTARIH"  BORDER=ETCHED  
+	LTEXT LEFT=E+0p  TOP=+0 D="KTT_TEKLIF_SKE.ELOG_LOGTIME"  BORDER=ETCHED  
+	LTEXT LEFT=E+0p  TOP=+0 D="KTT_TEKLIF_SKE.ELOG_PSTATION"  BORDER=ETCHED  
+ENDTAB
+
+/*
+TAB "Liste"
+ LOCATE TOP=1
+ GROUPBOX T="Kriterler" AUTOSIZE=N LEFT=1 TOP=+5p WIDTH=1007p HEIGHT=98p TXTCOL=RGB_000_089_132 
+  SAVELOCATION LOXC555
+  LTEXT    LEFT=1 TOP=+20P W=70p T="Evrak No"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.B_EVRAKNO" BROWSEBUTTON=1
+  LTEXT    LEFT=E+3p TOP=+0 T="->"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.E_EVRAKNO" BROWSEBUTTON=1
+
+  LTEXT    LEFT=1 TOP=+1 W=70p T="Tarih"
+  COMBOBOX LEFT=E+3P TOP=+0 D="LISTEE.B_TARIH"
+  LTEXT    LEFT=E+3p TOP=+0 T="->"
+  COMBOBOX LEFT=E+3P TOP=+0 D="LISTEE.E_TARIH"
+  
+  BITMAPBUTTON LEFT=893P TOP=18P WIDTH=47P HEIGHT=49p ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','cmdSuz')" BITMAP=BT4PROCESS
+  BITMAPBUTTON LEFT=E+3P TOP=+0p WIDTH=47P HEIGHT=49p ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','cmdSec')" BITMAP=BT5PROCESS
+ ENDGROUPBOX
+
+ GRID LEFT=1 TOP=E+5P WIDTH=1007p HEIGHT=487p TABLE=LISTET HEADERROWHEIGHT=35P NOEDIT=YES RBUTTON_POPUPMENU=GRIDMENU2
+  EDITTEXT D="EVRAKNO" CAPTION="Evrak No"
+  EDITTEXT D="TARIH" CAPTION="Tarih"
+  EDITTEXT D="NOTES" CAPTION="Not"
+ ENDGRID
+ENDTAB
+*/
+ENDFORM                                                                                                                                           
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : EMTAKBLO_2014 / Uygulama : MAKR7S
+Makro Kodu : _GNPRGMPS3
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : MPS Yönetim Panosu
+Kod : 
+Sub Makro1()
+	'Doc.WinMaximize
+	Set Doc1 = Doc.CreateDocumentNoUI("MMPS10", "")
+	Set MTable = Doc.CreateTableObject("MAKROTABLE=STACK", "IO")
+	MTable.AddField2 "TEZGAH_GK_1","CHAR",10,0,"L","","I00GK1"
+	MTable.AddField2 "TEZGAH_GK_11","CHAR",10,0,"L","","I00GK1"
+	MTable.AddField2 "TEZGAH_GK_12","CHAR",10,0,"L","","I00GK1"
+	MTable.AddField2 "TEZGAH_GK_13","CHAR",10,0,"L","","I00GK1"
+	MTable.AddField2 "TEZGAH_GK_14","CHAR",10,0,"L","","I00GK1"		
+	MTable.AddField2 "B_ANAMAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "E_ANAMAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "ANAMAMULADI","CHAR",50,0,"L","",""
+	MTable.AddField2 "B_ANAMPSNO","CHAR",10,0,"R","F2=DO_BRW('MMPS10E')",""
+	MTable.AddField2 "E_ANAMPSNO","CHAR",10,0,"R","F2=DO_BRW('MMPS10E')",""
+	MTable.AddField2 "B_EVRAKNO","CHAR",10,0,"R","F2=DO_BRW('MMPS10E')",""
+	MTable.AddField2 "E_EVRAKNO","CHAR",10,0,"R","F2=DO_BRW('MMPS10E')",""
+	MTable.AddField2 "B_MAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "E_MAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "MAMULADI","CHAR",50,0,"L","",""
+	MTable.AddField2 "B_REVURETIMDENTESTARIH","DATE",10,0,"L","",""
+	MTable.AddField2 "E_REVURETIMDENTESTARIH","DATE",10,0,"L","",""
+	MTable.AddField2 "B_TEZGAH","CHAR",24,0,"L","F2=DO_BRW('IMLT00')",""
+	MTable.AddField2 "E_TEZGAH","CHAR",24,0,"L","F2=DO_BRW('IMLT00')",""
+	MTable.AddField2 "B_OPERASYON","CHAR",6,0,"L","F2=DO_BRW('IMLT01')",""
+	MTable.AddField2 "E_OPERASYON","CHAR",6,0,"L","F2=DO_BRW('IMLT01)",""
+	MTable.AddField2 "MUSTERIKODU","CHAR",16,0,"L","F2=DO_BRW('CARI00')",""
+	MTable.AddField2 "MUSTERIADI","CHAR",50,0,"L","",""
+	MTable.AddField2 "MUSTERISIPINO","CHAR",10,0,"R","F2=DO_BRW('STOK40E')",""
+	MTable.AddField2 "SIPNOVAR","CHAR",1,0,"L","",""
+	MTable.AddField2 "OPDETAYYOK","CHAR",1,0,"L","",""
+	MTable.AddField2 "ACIKOP","CHAR",1,0,"L","",""
+	MTable.AddField2 "BAGLI_YM_OP","CHAR",1,0,"L","",""
+	MTable.AddField2 "STATUS1","CHAR",2,0,"L","","|MPSST"
+	MTable.AddField2 "STATUS2","CHAR",2,0,"L","","|MPSST"
+	MTable.AddField2 "STATUS3","CHAR",2,0,"L","","|MPSST"
+	MTable.AddField2 "ACIK_KAPALI","CHAR",1,0,"L","",""
+	MTable.AddField2 "FILTER_MAINTBL","CHAR",20,0,"L","",""
+	MTable.AddField2 "FILTER_MAINFLD","CHAR",50,0,"L","",""
+	MTable.AddField2 "FILTER_MAINSNO","DOUBLE",10,0,"R","",""
+
+	MTable.ACIK_KAPALI = "A"
+	'MTable.OPDETAYYOK = "E"
+	MTable.ACIKOP = "E"
+	MTable.BAGLI_YM_OP = "E"
+
+	QStr = GetQStr(" AND 1=0")
+
+	Set M10T = Doc.RunSQLQuery("ACIK_ISLER", QStr)
+	
+	M10T.SetRowAID 0,0,0
+
+	M10T.SetFieldToDate("REVURETIMDENTESTARIH")
+	M10T.SetFieldToDate("SONOP_TARIH")
+	M10T.SetFieldToDate("PLAN_TARIH")
+	M10T.SetFieldToDate("CREA_TARIH")
+	M10T.SetFieldAlign "EVRAKNO","R"
+	M10T.Setd7FieldEvent "OP_SIRANO","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "OP_SIRANO_AV"
+
+	Call F2Degistir(M10T.GetAppName, "EVRAKNO", "MMPS10E")
+	Call F2Degistir(M10T.GetAppName, "R_MAMULKODU", "STOK00")
+	Call F2Degistir(M10T.GetAppName, "HMD_KODU", "STOK00")
+	Call F2Degistir(M10T.GetAppName, "R_KAYNAKKODU", "IMLT00")
+	Call F2Degistir(M10T.GetAppName, "R_OPERASYON", "IMLT01")
+	Call F2DegistirGeco(M10T.GetAppName, "R_STATUS", "|MPSST", "H")
+	Call F2DegistirGeco(M10T.GetAppName, "SELECTED", "|GENEH=", "H")
+
+	QStr = GetQStr2("AND 1=0")
+	Set I00 = Doc.RunSQLQuery("TEZGAH_YUKLERI", QStr)
+	I00.SetRowAID 0,0,0
+	Call F2Degistir(I00.GetAppName, "KOD", "IMLT00")
+
+	Call MPSTabAlanlar()
+	Call SiparisAlanlar()
+	Call BaglantiliIsListesiTabAlanlar()
+
+End Sub
+Sub MPSTabAlanlar()
+	Set MTable = Doc.CreateTableObject("MAKROTABLEMPS=STACK", "IO")
+	MTable.AddField2 "TEZGAH_GK_1","CHAR",10,0,"L","","I00GK1"
+	MTable.AddField2 "B_MAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "E_MAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "B_REVURETIMDENTESTARIH","DATE",10,0,"L","",""
+	MTable.AddField2 "E_REVURETIMDENTESTARIH","DATE",10,0,"L","",""
+	MTable.AddField2 "B_TEZGAH","CHAR",24,0,"L","F2=DO_BRW('IMLT00')",""
+	MTable.AddField2 "E_TEZGAH","CHAR",24,0,"L","F2=DO_BRW('IMLT00')",""
+	MTable.AddField2 "B_OPERASYON","CHAR",6,0,"L","F2=DO_BRW('IMLT01')",""
+	MTable.AddField2 "E_OPERASYON","CHAR",6,0,"L","F2=DO_BRW('IMLT001)",""
+	MTable.AddField2 "MUSTERIKODU","CHAR",16,0,"L","F2=DO_BRW('CARI00')",""
+	MTable.AddField2 "MUSTERIADI","CHAR",50,0,"L","",""
+	MTable.AddField2 "MUSTERISIPINO","CHAR",10,0,"R","F2=DO_BRW('STOK40E')",""
+	MTable.AddField2 "SIPNOVAR","CHAR",1,0,"L","",""
+	MTable.AddField2 "STATUS1","CHAR",2,0,"L","","|MPSST"
+	MTable.AddField2 "STATUS2","CHAR",2,0,"L","","|MPSST"
+	MTable.AddField2 "STATUS3","CHAR",2,0,"L","","|MPSST"
+	MTable.AddField2 "ACIK_KAPALI","CHAR",1,0,"L","",""
+
+	MTable.ACIK_KAPALI = "A"
+
+	QStr = GetQStrMPS()
+	QStr = QStr & " AND 1=0"
+	Set M10E = Doc.RunSQLQuery("ACIK_MPSLER", QStr)
+	M10E.SetRowAID 0,0,0
+
+	M10E.SetFieldToDate("URETIMDENTESTARIH")	
+	M10E.SetFieldToDate("REVURETIMDENTESTARIH")
+	M10E.SetFieldToDate("SONOP_TARIH")
+	M10E.SetFieldToDate("CREA_TARIH")
+	M10E.SetFieldAlign "EVRAKNO","R"
+
+	Call F2Degistir(M10E.GetAppName, "EVRAKNO", "MMPS10E")
+	Call F2Degistir(M10E.GetAppName, "MAMULSTOKKODU", "STOK00")
+	Call F2DegistirGeco(M10E.GetAppName, "STATUS", "|MPSST", "H")
+	Call F2DegistirGeco(M10E.GetAppName, "SELECTED", "|GENEH=", "H")
+
+	QStr = Replace(GetQStrMPS2(), "@@@WHERESTR@@@", "WHERE 1=0")
+	Set I00 = Doc.RunSQLQuery("TEZGAH_YUKLERI2", QStr)
+	I00.SetRowAID 0,0,0
+	Call F2Degistir(I00.GetAppName, "KOD", "IMLT00")
+End Sub
+Sub SiparisAlanlar()
+	Set MTable = Doc.CreateTableObject("MAKROTABLESP=STACK", "IO")
+	MTable.AddField2 "B_MAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "E_MAMULKODU","CHAR",24,0,"L","F2=DO_BRW('STOK00')",""
+	MTable.AddField2 "MUSTERIKODU","CHAR",16,0,"L","F2=DO_BRW('CARI00')",""
+	MTable.AddField2 "MUSTERIADI","CHAR",50,0,"L","",""
+	MTable.AddField2 "MUSTERISIPINO","CHAR",10,0,"R","F2=DO_BRW('STOK40E')",""
+
+	Set MTableTK = Doc.CreateTableObject("MAKROTABLETK=STACK", "IO")
+	MTableTK.AddField2 "BASLANGIC_TARIHI", "DATE",10,0,"L","",""
+	MTableTK.AddField2 "BITIS_TARIHI", "DATE",10,0,"L","",""
+	MTableTK.AddField2 "DONEM_TURU", "CHAR",1,0,"L","",""
+	MTableTK.AddField2 "DONEM_SAYISI", "DOUBLE",3,0,"R","",""
+
+	MTableTK.BASLANGIC_TARIHI = Doc.BuGun
+	MTableTK.DONEM_SAYISI = 15
+	MTableTK.BITIS_TARIHI = Doc.StrDate_Increment(MTableTK.BASLANGIC_TARIHI, MTableTK.DONEM_SAYISI)
+	MTableTK.DONEM_TURU = "G"
+End Sub
+Sub BaglantiliIsListesiTabAlanlar()
+	QStr = GetQStrBList("AND 1=0")
+	Set M10T = Doc.RunSQLQuery("ACIK_ISLER2", QStr)
+	
+	M10T.SetRowAID 0,0,0
+
+	M10T.SetFieldToDate("REVURETIMDENTESTARIH")
+	M10T.SetFieldToDate("ANA_MPS_REVURETIMDENTESTARIH")
+	M10T.SetFieldToDate("SONOP_TARIH")
+	M10T.SetFieldToDate("CREA_TARIH")
+	M10T.SetFieldAlign "EVRAKNO","R"
+	M10T.SetFieldAlign "ANA_MPS","R"
+	M10T.SetFieldAlign "KAYNAKMPS","R"
+	M10T.SetFieldAlign "MUSTERISIPINO","R"
+	M10T.SetFieldAlign "MUSTERISIPIARTNO","R"
+
+	'M10T.Setd7FieldEvent "OP_SIRANO","AFTERVALIDATE","MAKR7S." & SC_SCRIPTMODULEFILENAME, "OP_SIRANO_AV"
+
+	Call F2Degistir(M10T.GetAppName, "EVRAKNO", "MMPS10E")
+	Call F2Degistir(M10T.GetAppName, "ANA_MPS", "MMPS10E")
+	Call F2Degistir(M10T.GetAppName, "ANA_MAMUL_KODU", "STOK00")
+	Call F2Degistir(M10T.GetAppName, "MAMULSTOKKODU", "STOK00")
+	Call F2Degistir(M10T.GetAppName, "R_KAYNAKKODU", "IMLT00")
+	Call F2Degistir(M10T.GetAppName, "R_OPERASYON", "IMLT01")
+	Call F2DegistirGeco(M10T.GetAppName, "STATUS", "|MPSST", "H")
+	Call F2DegistirGeco(M10T.GetAppName, "SELECTED", "|GENEH=", "H")
+End Sub
+Sub cmdAcikSiparisListesi()
+	QStr = GetSipQStr("")
+
+	Set S40T = Doc.RunSQLQuery("ACIK_SIPARISLER", QStr)
+	S40T.SetRowAID 0,0,0
+
+	Call F2Degistir(S40T.GetAppName, "KOD", "STOK00")
+	Call F2Degistir(S40T.GetAppName, "MUSTERIKODU", "CARI00")
+
+	EkranFormu = GetEkranFormu(S40T)
+
+	Set Par = GetScreenPar()
+	Doc.LoadSubForm_Dyn "ACIK_SIPARISLER",EkranFormu, Par
+End Sub
+Sub cmdSuz()
+	Set M10T = Doc.GetTableObject("ACIK_ISLER")
+	Set TEZGAH_YUKLERI = Doc.GetTableObject("TEZGAH_YUKLERI")
+
+	QStr = GetQStr("")
+
+	Set M10T1 = Doc.RunSQLQuery("sadfsgwdefsdga", QStr)
+	M10T.SetRowAID 1,1,1
+	M10T.CopyTable(M10T1)
+	if M10T.GetRowCount() > 0 Then M10T.SetCurrentRow(1)
+	
+	M10T.SetRowAID 0,0,0
+
+	Set MTable = Doc.GetTableObject("MAKROTABLE")
+	WhereStr = ""
+	if trim(MTable.TEZGAH_GK_1) <> "" Then
+		WhereStr = " AND I.GK_1='" & MTable.TEZGAH_GK_1 & "'"
+	End if
+	QStr = GetQStr2(WhereStr)
+	Set I00 = Doc.RunSQLQuery("sadfsgwdefsdga", QStr)
+	TEZGAH_YUKLERI.SetRowAID 1,1,1
+	TEZGAH_YUKLERI.Empty
+	TEZGAH_YUKLERI.AppendTable(I00)
+	
+	TEZGAH_YUKLERI.SetRowAID 0,0,0
+End Sub
+Function GetQStr(WhereStr)
+	Set MTable = Doc.GetTableObject("MAKROTABLE")
+
+	QStr = "SELECT /*+ ORDERED */ 'H' SELECTED, (CASE WHEN T.ACIK_KAPALI='K' THEN '255000000' WHEN TRIM(KTT.TARIH) IS NOT NULL THEN '255255000' ELSE '255255255' END) PLANLANDI, "
+	QStr = QStr & " T.EVRAKNO, T.TRNUM, T.JOBNO, T.R_SIRANO, T.R_STATUS, T.R_MAMULKODU, S.AD R_MAMULKODU_STOK00_AD, T.R_KAYNAKKODU, "
+	QStr = QStr & " I00.AD R_KAYNAKKODU_IMLT00_AD, T.R_OPERASYON, I01.AD R_OPERASYON_IMLT01_AD, T.R_YMAMULMIKTAR, "
+	QStr = QStr & " T.R_TMYMAMULMIKTAR, T.R_BAKIYEYMAMULMIKTAR, E.CREA_TARIH, E.SF_TOPLAMMIKTAR, KTA_MMPS10T.SIRANO OP_SIRANO, KTA_MMPS10T.SIRANO ESKI_OP_SIRANO,"
+	QStr = QStr & " TO_CHAR(TO_DATE(T.REVURETIMDENTESTARIH, 'YYYY/MM/DD'),'IYYY/IW') HAFTA, T.REVURETIMDENTESTARIH, "
+	QStr = QStr & " M10TH.R_KAYNAKKODU HAMMDDE, M10TH.R_MIKTAR0, M10TH.R_KAYNAKKODU HMD_KODU, SH.AD HMD_ADI, "
+	QStr = QStr & " M10TH.R_MIKTAR0 HMD_MIK, SH.IUNIT HMD_BIRIM, KTT.TARIH PLAN_TARIH, CAST(TRIM(GKTT.AD) AS CHAR(11)) PLAN_VARDIYA, "
+	QStr = QStr & " KTTI00.AD PLAN_TEZGAH, KTT.MIKTAR PLAN_MIKTAR, KTTP00.AD PLAN_OPERATOR, "
+	QStr = QStr & " KTT.KALIP1 PLAN_KALIP1,KTT.KALIP2 PLAN_KALIP2,KTT.KALIP3 PLAN_KALIP3, KTT_KLP.ADRES KALIP_ADRES, KTT_KLP.GOZ_SAYISI KALIP_GOZ_SAYISI,"
+	QStr = QStr & " (CASE WHEN S20TSONOP.SONOP_TARIHSAAT IS NOT NULL THEN SUBSTR(S20TSONOP.SONOP_TARIHSAAT, 1, 10) ELSE ' ' END)  SONOP_TARIH, "
+	QStr = QStr & " (CASE WHEN S20TSONOP.SONOP_TARIHSAAT IS NOT NULL THEN SUBSTR(S20TSONOP.SONOP_TARIHSAAT, 11) ELSE ' ' END) SONOP_SAAT,"
+	QStr = QStr & " M10TM.MUSTERI, M10TM.MUSTERISIPINO, M10TM.SIP_NOTU"
+	QStr = QStr & " FROM MMPS10T T"
+	QStr = QStr & " INNER JOIN MMPS10E E ON E.EVRAKNO=T.EVRAKNO"
+	QStr = QStr & " INNER JOIN STOK00 S ON S.KOD=T.R_MAMULKODU"
+	QStr = QStr & " LEFT JOIN IMLT00 I00 ON I00.KOD=T.R_KAYNAKKODU"
+	QStr = QStr & " LEFT JOIN IMLT01 I01 ON I01.KOD=T.R_OPERASYON"
+	QStr = QStr & " LEFT JOIN KTT_MPS_PLN KTT ON KTT.MPSNO=T.EVRAKNO AND KTT.OPERASYON=T.R_OPERASYON"
+	QStr = QStr & " LEFT JOIN PERS00 KTTP00 ON KTTP00.KOD=KTT.OPERATOR"
+	QStr = QStr & " LEFT JOIN GECOUST GKTT ON GKTT.KOD=KTT.VARDIYA AND GKTT.EVRAKNO='VARDKD'"
+	QStr = QStr & " LEFT JOIN IMLT00 KTTI00 ON KTTI00.KOD=KTT.TEZGAH"
+	QStr = QStr & " LEFT JOIN KTT_KLP_BSK KTT_KLP ON KTT_KLP.KOD=KTT.KALIP1"
+	QStr = QStr & " LEFT JOIN KTA_MMPS10T  ON KTA_MMPS10T.EVRAKNO=T.EVRAKNO AND KTA_MMPS10T.TRNUM=T.TRNUM"
+	QStr = QStr & " LEFT JOIN ("
+	QStr = QStr & "   SELECT T.EVRAKNO, T.R_SIRANO, T.R_KAYNAKKODU, T.R_MIKTAR0/ E.SF_TOPLAMMIKTAR R_MIKTAR0"
+	QStr = QStr & "   FROM MMPS10T T"
+	QStr = QStr & "   INNER JOIN ("
+	QStr = QStr & "   	SELECT EVRAKNO, MIN(SRNUM)	SRNUM"
+	QStr = QStr & "   	FROM MMPS10T"
+	QStr = QStr & "   	WHERE R_KAYNAKTYPE='H'"
+	if trim(MTable.ACIK_KAPALI) = "A" Then
+		QStr = QStr & "   	AND ACIK_KAPALI=' '"
+	Elseif trim(MTable.ACIK_KAPALI) = "K" Then
+		QStr = QStr & "   	AND ACIK_KAPALI='K'"
+		QStr = QStr & "   	AND R_STATUS='R'"
+	End if
+	QStr = QStr & "   	GROUP BY EVRAKNO"
+	QStr = QStr & "   ) M10THMIN ON M10THMIN.EVRAKNO=T.EVRAKNO AND M10THMIN.SRNUM=T.SRNUM"
+	QStr = QStr & "   LEFT JOIN MMPS10E E ON E.EVRAKNO=T.EVRAKNO"
+	QStr = QStr & "   WHERE T.R_KAYNAKTYPE='H'"
+	if trim(MTable.ACIK_KAPALI) = "A" Then
+		QStr = QStr & " 	AND T.ACIK_KAPALI=' '"
+	Elseif trim(MTable.ACIK_KAPALI) = "K" Then
+		QStr = QStr & "   AND T.ACIK_KAPALI='K'"
+		QStr = QStr & "   	AND T.R_STATUS='R'"
+	End if
+	QStr = QStr & "   AND E.SF_TOPLAMMIKTAR > 0"
+	QStr = QStr & " ) M10TH ON M10TH.EVRAKNO=T.EVRAKNO AND M10TH.R_SIRANO=T.R_SIRANO"
+	QStr = QStr & " LEFT JOIN STOK00 SH ON SH.KOD=M10TH.R_KAYNAKKODU"
+	QStr = QStr & " LEFT JOIN ("
+	QStr = QStr & " 	SELECT S20T.JOBNO, MAX(RECTARIH1 || RECTIME1) SONOP_TARIHSAAT"
+	QStr = QStr & " 	FROM SFDC20T S20T"
+	QStr = QStr & " 	WHERE TRIM(S20T.JOBNO) IS NOT NULL"
+	QStr = QStr & " 	GROUP BY S20T.JOBNO"
+	QStr = QStr & " ) S20TSONOP ON S20TSONOP.JOBNO=T.JOBNO"
+	QStr = QStr & " LEFT JOIN ("
+	QStr = QStr & " 	SELECT EVRAKNO, CAST(LISTAGG(SUBSTR(C.AD,1,15), ', ') WITHIN GROUP (ORDER BY C.AD) AS CHAR(100)) MUSTERI, "
+	QStr = QStr & " 	CAST(LISTAGG(trim(TM.MUSTERISIPINO), ', ') WITHIN GROUP (ORDER BY TM.MUSTERISIPINO) AS CHAR(100)) MUSTERISIPINO,"
+	QStr = QStr & " 	CAST(LISTAGG(trim(TM.SNOT), ', ') WITHIN GROUP (ORDER BY TM.MUSTERISIPINO) AS CHAR(600)) SIP_NOTU"
+	QStr = QStr & " 	FROM ("
+	QStr = QStr & " 		SELECT M10TM.EVRAKNO, M10TM.MUSTERIKODU, M10TM.MUSTERISIPINO, KTA.SNOT"	
+	QStr = QStr & " 		FROM MMPS10TM M10TM"
+	QStr = QStr & " 		LEFT JOIN KTA_S40T KTA ON KTA.KTA_KEY=M10TM.MUSTERISIPIARTNO"
+	QStr = QStr & " 		WHERE 1=1"
+	if trim(MTable.ACIK_KAPALI) = "A" Then
+		QStr = QStr & " 		AND M10TM.ACIK_KAPALI=' '"
+	Elseif trim(MTable.ACIK_KAPALI) = "K" Then
+		QStr = QStr & "   	AND M10TM.ACIK_KAPALI='K'"
+		QStr = QStr & "   	AND M10TM.STATUS='R'"
+	End if
+	QStr = QStr & " 		GROUP BY  M10TM.EVRAKNO, M10TM.MUSTERIKODU, M10TM.MUSTERISIPINO, KTA.SNOT"
+	QStr = QStr & " 	) TM"
+	QStr = QStr & " 	LEFT JOIN CARI00 C ON C.KOD=TM.MUSTERIKODU"
+	QStr = QStr & " 	GROUP BY EVRAKNO"
+	QStr = QStr & " ) M10TM ON M10TM.EVRAKNO=T.EVRAKNO"
+	if trim(MTable.MUSTERIKODU) <> "" or trim(MTable.MUSTERIADI) <> "" Then
+		QStr = QStr & " INNER JOIN ("
+		QStr = QStr & " 	SELECT TM.EVRAKNO, TM.MUSTERIKODU"
+		QStr = QStr & " 	FROM MMPS10TM TM"
+		QStr = QStr & " 	INNER JOIN CARI00 C ON C.KOD=TM.MUSTERIKODU"
+		QStr = QStr & " 	WHERE 1=1"
+		if trim(MTable.ACIK_KAPALI) = "A" Then
+			QStr = QStr & " 	AND TM.ACIK_KAPALI=' '"
+		Elseif trim(MTable.ACIK_KAPALI) = "K" Then
+			QStr = QStr & "   AND TM.ACIK_KAPALI='K'"
+			QStr = QStr & "   AND TM.STATUS='R'"
+		End if
+		if trim(MTable.MUSTERIKODU) <> "" Then
+			QStr = QStr & " AND TM.MUSTERIKODU='" & MTable.MUSTERIKODU & "'"
+		End if
+		if trim(MTable.MUSTERIADI) <> "" Then
+			QStr = QStr & " AND UPPER(C.AD) LIKE '%" & UCase(trim(MTable.MUSTERIADI)) & "%'"
+		End if
+		QStr = QStr & " 	GROUP BY EVRAKNO, MUSTERIKODU"
+		QStr = QStr & " ) M10TM1 ON M10TM1.EVRAKNO=T.EVRAKNO"
+	End if
+	if trim(MTable.MUSTERISIPINO) <> "" or MTable.SIPNOVAR = "E" Then
+		QStr = QStr & " INNER JOIN ("
+		QStr = QStr & " 	SELECT EVRAKNO, MUSTERISIPINO"
+		QStr = QStr & " 	FROM MMPS10TM TM"
+		QStr = QStr & " 	WHERE 1=1"
+		if trim(MTable.ACIK_KAPALI) = "A" Then
+			QStr = QStr & " 	AND TM.ACIK_KAPALI=' '"
+		Elseif trim(MTable.ACIK_KAPALI) = "K" Then
+			QStr = QStr & "   AND TM.ACIK_KAPALI='K'"
+			QStr = QStr & "   AND TM.STATUS='R'"
+		End if
+		if MTable.SIPNOVAR = "E" Then
+			QStr = QStr & " 	AND TRIM(MUSTERISIPINO) IS NOT NULL"
+		End if
+		if trim(MTable.MUSTERISIPINO) <> "" Then
+			QStr = QStr & " AND MUSTERISIPINO='" & MTable.MUSTERISIPINO & "'"
+		End if
+		QStr = QStr & " 	GROUP BY EVRAKNO, MUSTERISIPINO"
+		QStr = QStr & " ) M10TM2 ON M10TM2.EVRAKNO=T.EVRAKNO"
+	End if
+	QStr = QStr & " WHERE 1=1"
+	if trim(MTable.ACIK_KAPALI) = "A" Then
+		QStr = QStr & " AND T.ACIK_KAPALI=' '"
+		QStr = QStr & " AND T.R_ACIK_KAPALI=' '"
+	Elseif trim(MTable.ACIK_KAPALI) = "K" Then
+		QStr = QStr & " AND T.ACIK_KAPALI='K'"
+		QStr = QStr & " AND T.R_ACIK_KAPALI='K'"
+		QStr = QStr & " AND T.R_STATUS='R'"
+	Else
+		QStr = QStr & " AND NOT (T.R_STATUS<>'R' AND T.ACIK_KAPALI='K')"
+	End if
+	QStr = QStr & " AND T.R_KAYNAKTYPE='I'"
+	QStr = QStr & " " & WhereStr
+	if trim(MTable.TEZGAH_GK_1) <> "" Then
+		QStr = QStr & " AND I00.GK_1='" & MTable.TEZGAH_GK_1 & "'"
+	End if
+	if BolumKisitlamasiVar(Doc.Getd7UserName) Then
+		QStr = QStr & " AND I00.GK_1 IN ("
+		QStr = QStr & " 	SELECT U12.OZEL_HAK_KODU"
+		QStr = QStr & " 	FROM UDEFT12 U12"
+		QStr = QStr & " 	INNER JOIN GECOUST G ON G.KOD=U12.OZEL_HAK_KODU AND G.EVRAKNO='I00GK1'"
+		QStr = QStr & " 	WHERE U12.KOD='" & Doc.Getd7UserName & "'"
+		QStr = QStr & " )"
+	End if
+
+	QStr = QStr & " AND T.R_MAMULKODU>='" & MTable.B_MAMULKODU & "'"
+	if trim(MTable.E_MAMULKODU) <> "" Then
+		QStr = QStr & " AND T.R_MAMULKODU<='" & MTable.E_MAMULKODU & "'"
+	End if
+
+	QStr = QStr & " AND T.R_KAYNAKKODU>='" & MTable.B_TEZGAH & "'"
+	if trim(MTable.E_TEZGAH) <> "" Then
+		QStr = QStr & " AND T.R_KAYNAKKODU<='" & MTable.E_TEZGAH & "'"
+	End if
+
+	QStr = QStr & " AND T.REVURETIMDENTESTARIH>='" & MTable.B_REVURETIMDENTESTARIH & "'"
+	if trim(MTable.E_REVURETIMDENTESTARIH) <> "" Then
+		QStr = QStr & " AND T.REVURETIMDENTESTARIH<='" & MTable.E_REVURETIMDENTESTARIH & "'"
+	End if
+
+	QStr = QStr & " AND T.R_OPERASYON>='" & MTable.B_OPERASYON & "'"
+	if trim(MTable.E_OPERASYON) <> "" Then
+		QStr = QStr & " AND T.R_OPERASYON<='" & MTable.E_OPERASYON & "'"
+	End if
+
+	InStr1 = ""
+	For i = 1 to 3
+		Statu = MTable.GetFieldValue("STATUS" & i, 1)
+		if trim(Statu) <> "" Then
+			if InStr1 <> "" Then InStr1 = InStr1 & ","
+			InStr1 = InStr1 & "'" & Statu & "'"
+		End if
+	Next
+	if InStr1 <> "" Then
+		QStr = QStr & " AND T.R_STATUS IN (" & InStr1 & ")"
+	End if
+	QStr = QStr & " ORDER BY T.EVRAKNO, T.SRNUM, KTT.EVRAKNO"
+
+	GetQStr = QStr
+End Function
+Function GetQStr2(WhereStr)
+	Set MTable = Doc.GetTableObject("MAKROTABLE")
+	QStr = "SELECT I.KOD, I.AD TEZGAH_ADI, ROUND(SUM(CASE WHEN T.R_STATUS='R' THEN COALESCE(SURE,0) ELSE 0 END),3) R_SURE,"
+	QStr = QStr & " ROUND(SUM(CASE WHEN T.R_STATUS='P' THEN COALESCE(SURE,0) ELSE 0 END),3) P_SURE,"
+	QStr = QStr & " ROUND(SUM(CASE WHEN T.R_STATUS='C' THEN COALESCE(SURE,0) ELSE 0 END),3) C_SURE"
+	QStr = QStr & " FROM IMLT00 I"
+	QStr = QStr & " LEFT JOIN ("
+	QStr = QStr & "   SELECT T.R_KAYNAKKODU, T.R_STATUS,"
+	QStr = QStr & "   (CASE WHEN T.R_TMYMAMULMIKTAR=0 OR T.R_YMAMULMIKTAR=0 THEN T.R_MIKTART ELSE T.R_BAKIYEYMAMULMIKTAR/T.R_YMAMULMIKTAR*T.R_MIKTAR0 END) SURE"
+	QStr = QStr & "   FROM MMPS10T T"
+	QStr = QStr & "   LEFT JOIN IMLT00 I ON I.KOD=T.R_KAYNAKKODU"
+	QStr = QStr & "   WHERE T.R_KAYNAKTYPE='I'"
+	QStr = QStr & "   AND T.ACIK_KAPALI=' '"
+	QStr = QStr & "   AND T.R_ACIK_KAPALI=' '"
+	if trim(MTable.TEZGAH_GK_1) <> "" Then
+		QStr = QStr & "   AND I.GK_1='" & MTable.TEZGAH_GK_1 & "'"
+	End if
+	QStr = QStr & " ) T ON T.R_KAYNAKKODU=I.KOD"
+	QStr = QStr & " WHERE 1=1 " & WhereStr
+	QStr = QStr & " GROUP BY I.KOD, I.AD"
+	QStr = QStr & " ORDER BY I.KOD"
+	GetQStr2 = QStr
+End Function
+Sub cmdOperasyonlarMain()
+	if Doc.IsBlank(ACIK_ISLER) Then Set ACIK_ISLER = Doc.GetTableObject("ACIK_ISLER")
+
+	QStr = "SELECT T.EVRAKNO, T.JOBNO, T.TRNUM, T.R_ACIK_KAPALI, T.R_KAYNAKKODU, I.AD TEZGAH_ADI, T.R_MIKTAR0, T.R_MIKTAR1, T.R_YMAMULMIKTAR, "
+	QStr = QStr & " T.R_TMYMAMULMIKTAR, T.R_BAKIYEYMAMULMIKTAR, S20T.RECTARIH1, S20T.RECTIME1, S20T.RECTARIH2, "
+	QStr = QStr & " S20T.RECTIME2, P.AD OPERATOR"
+	QStr = QStr & " FROM MMPS10T T"
+	QStr = QStr & " LEFT JOIN IMLT00 I ON I.KOD=T.R_KAYNAKKODU"
+	QStr = QStr & " LEFT JOIN ("
+	QStr = QStr & " 	SELECT S20T.JOBNO, SUBSTR(MAX(RECTARIH1 || RECTIME1 || EVRAKTYPE || EVRAKNO), 16) SONOP_EVRAK"
+	QStr = QStr & " 	FROM SFDC20T S20T"
+	QStr = QStr & " 	WHERE TRIM(S20T.JOBNO) IS NOT NULL"
+	QStr = QStr & " 	GROUP BY S20T.JOBNO"
+	QStr = QStr & " ) S20TSONOP ON S20TSONOP.JOBNO=T.JOBNO"
+	QStr = QStr & " LEFT JOIN SFDC20T S20T ON S20T.EVRAKTYPE || S20T.EVRAKNO = S20TSONOP.SONOP_EVRAK AND S20T.D7_ISLEM_KODU='U'"
+	QStr = QStr & " LEFT JOIN PERS00 P ON P.KOD=S20T.OPERATOR_1"
+	QStr = QStr & " WHERE T.R_KAYNAKTYPE='I'"
+	QStr = QStr & " AND T.EVRAKNO='" & Doc.RightJustify(trim(ACIK_ISLER.EVRAKNO), 10) & "'"
+	QStr = QStr & " ORDER BY T.SRNUM"
+	Set M10T = Doc.RunSQLQuery("ACIK_ISLER", QStr)
+
+	Call F2Degistir(M10T.GetAppName, "R_KAYNAKKODU", "IMLT00")
+	Call F2DegistirGeco(M10T.GetAppName, "R_ACIK_KAPALI", "|AKTYPE", "H")
+	M10T.SetRowAID 0,0,0
+	M10T.SetFieldToDate("RECTARIH1")
+	M10T.SetFieldToDate("RECTARIH2")
+
+	Set Par = Nothing
+	Doc.LoadSubForm_Dyn "ACIK_ISLER", SC_SCRIPTMODULEFILENAME,Par
+End Sub
+Sub F2Degistir(TabloStr, AlanAdi, ByVal BrwTable)
+	BrwTable = "'" & BrwTable & "'"
+	Set tbl=doc.GetRowsetObject(TabloStr)
+	Set fd=tbl.GetFieldDef_E(AlanAdi)
+	fd.F2Fnc="DO_BRW(" & Replace(BrwTable,"'", """") & ")"
+	tbl.SetFieldProperties1 AlanAdi,fd
+End Sub
+Sub F2DegistirGeco(TabloStr, AlanAdi, GrupKodu, KontrolOp)
+	Set Tbl = Doc.GetRowsetObject(TabloStr)
+	Set fd = Tbl.GetFieldDef_E(AlanAdi)
+	fd.GrupKodu = GrupKodu
+	fd.F2Fnc = "DO_SBRW_GECO(""" & GrupKodu & """)"
+	if trim(KontrolOp) = "E" Then
+		fd.FTFFnc = "G." & trim(GrupKodu) 'Çalýþmýyor
+	Else
+		fd.FTFFnc = ""
+	End if
+	Tbl.SetFieldProperties1 AlanAdi,fd
+End Sub
+Sub cmdTezgahDegistirMain()
+	if Doc.IsBlank(ACIK_ISLER) Then Set ACIK_ISLER = Doc.GetTableObject("ACIK_ISLER")
+	Set LST = Doc.Select2("ACIK_ISLER_SELECT_LIST", "ACIK_ISLER", "SELECTED='E'", "", -1)
+	if LST.GetRowCount() = 0 Then
+		Doc.d7MsgBox "Ýþ seçilmemiþ", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+
+	TezgahGK1 = Doc.GetDBFieldValue("IMLT00", "GK_1", LST.R_KAYNAKKODU(1), "")
+		
+	QStr = "SELECT I.KOD, I.AD, M10T.R_YUK, M10T.P_YUK, M10T.C_YUK"
+	QStr = QStr & " FROM IMLT00 I"
+	QStr = QStr & " LEFT JOIN ("	
+	QStr = QStr & " 	SELECT T.R_KAYNAKKODU, SUM(CASE WHEN T.R_STATUS='R' THEN YUK ELSE 0 END) R_YUK,"
+	QStr = QStr & " 	SUM(CASE WHEN T.R_STATUS='P' THEN YUK ELSE 0 END) P_YUK,"
+	QStr = QStr & " 	SUM(CASE WHEN T.R_STATUS='C' THEN YUK ELSE 0 END) C_YUK"
+	QStr = QStr & " 	FROM ("
+	QStr = QStr & " 		SELECT R_KAYNAKKODU, R_STATUS,"
+	QStr = QStr & " 		CASE WHEN R_TMYMAMULMIKTAR=0 THEN R_MIKTART ELSE R_BAKIYEYMAMULMIKTAR/R_YMAMULMIKTAR * R_MIKTAR0 END YUK"
+	QStr = QStr & " 		FROM MMPS10T"
+	QStr = QStr & " 		INNER JOIN IMLT00 I ON I.KOD=MMPS10T.R_KAYNAKKODU"	
+	QStr = QStr & " 		WHERE ACIK_KAPALI=' '"
+	QStr = QStr & " 		AND R_ACIK_KAPALI=' '"
+	QStr = QStr & " 		AND R_YMAMULMIKTAR>0"
+	QStr = QStr & " 		AND R_KAYNAKTYPE='I'"
+	QStr = QStr & " 		AND I.GK_1='" & TezgahGK1 & "'"
+	'QStr = QStr & " 		AND R_KAYNAKKODU<>'" & ACIK_ISLER.R_KAYNAKKODU & "'"
+	QStr = QStr & " 	) T"
+	QStr = QStr & " 	GROUP BY R_KAYNAKKODU"
+	QStr = QStr & " ) M10T ON M10T.R_KAYNAKKODU=I.KOD"
+	QStr = QStr & " WHERE I.GK_1='" & TezgahGK1 & "'"
+	'QStr = QStr & " AND I.KOD<>'" & ACIK_ISLER.R_KAYNAKKODU & "'"	
+	QStr = QStr & " ORDER BY I.KOD"
+	Set I00 = Doc.RunSQLQuery("ALT_TEZGAH_LIST1", QStr)
+	
+	Call F2Degistir(I00.GetAppName, "KOD", "IMLT00")
+	I00.SetRowAID 0,0,0
+	
+	Set Par = Nothing
+	Doc.LoadSubForm_Dyn "ALT_TEZGAH_LIST1", SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+Sub cmdTezgahDegistir()
+	Set ALT_TEZGAH_LIST1 = Doc.GetTableObject("ALT_TEZGAH_LIST1")
+	Set ACIK_ISLER = Doc.GetTableObject("ACIK_ISLER")
+
+	if trim(ALT_TEZGAH_LIST1.KOD) = "" Then
+		Doc.d7MsgBox "Tezgah Seçilmemiþ", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+	if trim(ACIK_ISLER.EVRAKNO) = "" or trim(ACIK_ISLER.TRNUM) = "" Then Exit Sub
+
+	if Doc.d7MsgBox("Seçilen iþlerdeki tezgahlar " & trim(ALT_TEZGAH_LIST1.KOD) & " ile deðiþtirilecek" & vbcrlf & "Onaylýyor musunuz?", "", MB_YESNO) <> 6 Then Exit Sub
+
+	QStr = "SELECT R_KAYNAKKODU FROM MMPS10T WHERE EVRAKNO='" & Doc.RightJustify(trim(ACIK_ISLER.EVRAKNO), 10) & "'"
+	QStr = QStr & " AND TRNUM='" & ACIK_ISLER.TRNUM & "'"
+	Set M10T = Doc.RunSQLQuery("sdfasdfa", QStr)
+	if M10T.GetRowCount() = 0 Then
+		Doc.d7MsgBox "MPS Bulunamadý, listeyi tekrar süzdürün", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+
+	Set Doc1 = Doc.CreateDocumentNoUI("MMPS10", "")
+	For i = 1 to ACIK_ISLER.GetRowCount()
+		if ACIK_ISLER.SELECTED(i) = "E" Then
+			if TezgahDegistir(Doc1, ACIK_ISLER.EVRAKNO(i), ACIK_ISLER.TRNUM(i), ALT_TEZGAH_LIST1.KOD) = 0 Then
+				ACIK_ISLER.R_KAYNAKKODU(i) = ALT_TEZGAH_LIST1.KOD
+				ACIK_ISLER.R_KAYNAKKODU_IMLT00_AD(i) = ALT_TEZGAH_LIST1.AD
+			End if
+		End if
+	Next
+End Sub
+Function TezgahDegistir(Doc1, MPSNo, TrNum, YeniTezgah)
+	TezgahDegistir = 0
+	Set M10E = Doc1.GetTableObject("MMPS10E")
+	Set M10T = Doc1.GetTableObject("MMPS10T")
+
+	Doc1.Load_Voucher MPSNo
+	if trim(M10E.STATUS) <> "R" Then
+		M10E.FIXEDRECETE = "E"
+		if trim(M10E.STATUS) <> "P" Then M10E.STATUS = "P"
+	End if
+
+	Set M10T1 = Doc1.Select2("asdasdfa", "MMPS10T", "TRNUM='" & TRNum & "'", "", -1)
+	if M10T1.GetRowCount() = 0 Then
+		Doc.d7MsgBox "MPS No : & " & trim(MPSNo) & ", TRNUM : " & TRNum & " bulunamadý", "Ýþlem Kesildi", MB_OK
+		Doc1.LoadEmpty_Voucher
+		TezgahDegistir = -1
+		Exit Function
+	End if
+
+	satirNo = Doc1.CDbl(M10T1.SRNUM(1))
+	M10T.SetCurrentRow(satirNo)
+	M10T.R_KAYNAKKODU(satirNo) = YeniTezgah
+	TezgahDegistir = Doc1.Save_Voucher
+	Doc1.LoadEmpty_Voucher
+End Function
+
+Sub cmdTezgahDegistirBLMain()
+	if Doc.IsBlank(ACIK_ISLER2) Then Set ACIK_ISLER2 = Doc.GetTableObject("ACIK_ISLER2")
+	Set LST = Doc.Select2("ACIK_ISLER2_SELECT_LIST", "ACIK_ISLER2", "SELECTED='E'", "", -1)
+	if LST.GetRowCount() = 0 Then
+		Doc.d7MsgBox "Ýþ seçilmemiþ", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+
+	Tire = InStr(LST.R_KAYNAKKODU(1), "-")
+	if Tire > 0 Then
+		GrupTezgah = Left(LST.R_KAYNAKKODU, Tire - 1)
+	Else
+		GrupTezgah = trim(LST.R_KAYNAKKODU)
+	End if
+		
+	QStr = "SELECT I.KOD, I.AD, M10T.R_YUK, M10T.P_YUK, M10T.C_YUK"
+	QStr = QStr & " FROM IMLT00 I"
+	QStr = QStr & " LEFT JOIN ("	
+	QStr = QStr & " 	SELECT T.R_KAYNAKKODU, SUM(CASE WHEN T.R_STATUS='R' THEN YUK ELSE 0 END) R_YUK,"
+	QStr = QStr & " 	SUM(CASE WHEN T.R_STATUS='P' THEN YUK ELSE 0 END) P_YUK,"
+	QStr = QStr & " 	SUM(CASE WHEN T.R_STATUS='C' THEN YUK ELSE 0 END) C_YUK"
+	QStr = QStr & " 	FROM ("
+	QStr = QStr & " 		SELECT R_KAYNAKKODU, R_STATUS,"
+	QStr = QStr & " 		CASE WHEN R_TMYMAMULMIKTAR=0 THEN R_MIKTART ELSE R_BAKIYEYMAMULMIKTAR/R_YMAMULMIKTAR * R_MIKTAR0 END YUK"
+	QStr = QStr & " 		FROM MMPS10T"
+	QStr = QStr & " 		WHERE ACIK_KAPALI=' '"
+	QStr = QStr & " 		AND R_ACIK_KAPALI=' '"
+	QStr = QStr & " 		AND R_YMAMULMIKTAR>0"
+	QStr = QStr & " 		AND R_KAYNAKTYPE='I'"
+	QStr = QStr & " 		AND R_KAYNAKKODU LIKE '" & trim(GrupTezgah) & "%'"
+	'QStr = QStr & " 		AND R_KAYNAKKODU<>'" & ACIK_ISLER2.R_KAYNAKKODU & "'"
+	QStr = QStr & " 	) T"
+	QStr = QStr & " 	GROUP BY R_KAYNAKKODU"
+	QStr = QStr & " ) M10T ON M10T.R_KAYNAKKODU=I.KOD"
+	QStr = QStr & " WHERE I.KOD LIKE '" & trim(GrupTezgah) & "%'"	
+	'QStr = QStr & " AND I.KOD<>'" & ACIK_ISLER2.R_KAYNAKKODU & "'"	
+	QStr = QStr & " ORDER BY I.KOD"
+	Set I00 = Doc.RunSQLQuery("ALT_TEZGAH_LIST1", QStr)
+	
+	Call F2Degistir(I00.GetAppName, "KOD", "IMLT00")
+	I00.SetRowAID 0,0,0
+	
+	Set Par = Nothing
+	Doc.LoadSubForm_Dyn "ALT_TEZGAH_LISTBL1", SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+Sub cmdTezgahDegistirBL()
+	Set ALT_TEZGAH_LIST1 = Doc.GetTableObject("ALT_TEZGAH_LIST1")
+	Set ACIK_ISLER2 = Doc.GetTableObject("ACIK_ISLER2")
+
+	if trim(ALT_TEZGAH_LIST1.KOD) = "" Then
+		Doc.d7MsgBox "Tezgah Seçilmemiþ", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+	if trim(ACIK_ISLER2.EVRAKNO) = "" or trim(ACIK_ISLER2.TRNUM) = "" Then Exit Sub
+
+	if Doc.d7MsgBox("Seçilen iþlerdeki tezgahlar " & trim(ALT_TEZGAH_LIST1.KOD) & " ile deðiþtirilecek" & vbcrlf & "Onaylýyor musunuz?", "", MB_YESNO) <> 6 Then Exit Sub
+
+	QStr = "SELECT R_KAYNAKKODU FROM MMPS10T WHERE EVRAKNO='" & Doc.RightJustify(trim(ACIK_ISLER2.EVRAKNO), 10) & "'"
+	QStr = QStr & " AND TRNUM='" & ACIK_ISLER2.TRNUM & "'"
+	Set M10T = Doc.RunSQLQuery("sdfasdfa", QStr)
+	if M10T.GetRowCount() = 0 Then
+		Doc.d7MsgBox "MPS Bulunamadý, listeyi tekrar süzdürün", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+
+	Set Doc1 = Doc.CreateDocumentNoUI("MMPS10", "")
+	For i = 1 to ACIK_ISLER2.GetRowCount()
+		if ACIK_ISLER2.SELECTED(i) = "E" Then
+			if TezgahDegistir(Doc1, ACIK_ISLER2.EVRAKNO(i), ACIK_ISLER2.TRNUM(i), ALT_TEZGAH_LIST1.KOD) = 0 Then
+				ACIK_ISLER2.R_KAYNAKKODU(i) = ALT_TEZGAH_LIST1.KOD
+				ACIK_ISLER2.R_KAYNAKKODU_IMLT00_AD(i) = ALT_TEZGAH_LIST1.AD
+			End if
+		End if
+	Next
+End Sub
+
+Sub cmdStatuDegistirMain()
+	Set TableT = Doc.Select2("sdfasfda", "ACIK_ISLER", "SELECTED='E'", "", -1)
+	if TableT.GetRowCount() = 0 Then
+		Doc.d7MsgBox "Satýrda seçim yapýlmamýþ", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+
+	Set MTable = Doc.CreateTableObject("MAKROTABLE2=STACK", "IO")
+	MTable.AddField2 "STATUS","CHAR",1,0,"L","","|MPSST"
+	
+	Set Par = Doc.CreateSObject("Parameters")
+	'Par.SetParameter "DENEME", "1"
+	Doc.LoadSubForm_Dyn "MPS_STATU", SC_SCRIPTMODULEFILENAME,Par	
+End Sub
+Sub cmdStatuDegistir()
+	Set MTable = Doc.GetTableObject("MAKROTABLE2")
+	Set ACIK_ISLER = Doc.GetTableObject("ACIK_ISLER")
+	Set TableT = Doc.Select2("sdfasfda", "ACIK_ISLER", "SELECTED='E'", "", -1)
+
+	if trim(MTable.STATUS) = "" Then
+		Doc.d7MsgBox "Statü Seçilmemiþ", "Ýþlem Kesildi", MB_OK
+		Exit Sub
+	End if
+	
+	Set Doc1 = Doc.CreateDocumentNoUI("MMPS10", "")
+	Set M10E = Doc1.GetTableObject("MMPS10E")
+	Degisen = 0
+	For i = 1 to TableT.GetRowCount()
+		Doc.StatusBarMessage "Ýþlem Yapýlýyor : " & i & " / " & TableT.GetRowCount()
+		Set M10E1 = Doc.RunSQLQuery("DSFGSDFGSD", "SELECT EVRAKNO FROM MMPS10E WHERE EVRAKNO='" & Doc.RightJustify(trim(TableT.EVRAKNO(i)), 10) & "'")
+		if M10E1.GetRowCount() = 0 Then
+			Doc.d7MsgBox trim(TableT.EVRAKNO(i)) & " no.lu MPS bulunamadý", "", MB_OK
+		Else
+			Doc1.Load_Voucher trim(TableT.EVRAKNO(i))
+			M10E.STATUS = MTable.STATUS
+			Doc1.Save_Voucher
+			Doc1.LoadEmpty_Voucher
+		End if
+	Next
+	Doc.RUN_APP_OK
+	Call cmdSuz()
+	ACIK_ISLER.Refresh
+End Sub
+
+Sub cmdStatuDegistirBLMain()
+	Set TableT = Doc.Select2("sdfasfda"
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : _GNPRGMPS3
+Bu Uygulama için Baþlangýç Ekran Formu : GNPRGMPS3
+Baþlangýçta Bu Makro Çalýþacak : Makro1
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM GNPRGMPS3 SCROLLBARS=NO CAPTIONTYPE=SYS 
+SET CAPTION="MPS Yönetim Panosu"
+SET DEFAULT_FSTYLE=2
+SET FIXEDPITCH_EDIT=0
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+D
+----------------------------------------------------------------
+

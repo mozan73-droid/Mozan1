@@ -1,0 +1,228 @@
+Makro Kaynak Kodu
+Firma Kodu : CR2013 / Uygulama : MAKR7S
+Makro Kodu : BORDROPNTJ
+Hangi Tablo için : BORDRO1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : TANKAUÇUK PUANTAJ MAKROSU
+Kod : 
+Glo_path="C:\tmp\01MAYIS06.XLS"
+Glo_satirsayisi = 250
+Sub Makro1()
+	on error resume next
+	dim strFpath,intSatirSayisi
+	Fpath = Glo_path
+	strFpath = inputbox("Excel dosyasýnýn yolunu giriniz","Puantaj dosyasýnýn yolu",Glo_path)
+	if trim(strFpath)="" Then 
+		msgbox("Boþ dosya adý olamaz.Makroyu tekrar çalýþtýrýn.")
+		exit Sub
+	End if
+	intSatirSayisi = inputbox("Excel dosyasýndan okunacak satýr sayýsý","Excel'deki satýr sayýsý",Glo_satirsayisi)
+	if not isNumeric(intSatirSayisi) Then 
+		msgbox("Boþ ya da yanlýþ satýr bildirimi.Makroyu tekrar çalýþtýrýn.")
+		exit Sub
+	End if
+	dim objExcel
+	Set objExcel = CreateObject("Excel.Application")
+
+	dim objWorkbooks
+	Set objWorkbooks = objExcel.Workbooks
+	objWorkbooks.Open(strFpath)
+	
+	dim objSheet1
+	Set objSheet1 = objWorkbooks(1).Worksheets(1)
+	dim c,strPersNo,dblNormalCalisma,dblHaftatatili,dblYillikizin,dblGenelTatil,dblucretliizin
+	dim dblstirahatGun,dblIstirahatSaat,dblucretsizGun,dblucretsizSaat,dbl100mesai,dbl50mesai
+
+	if err.number<>0 Then 
+		objWorkbooks(1).Close
+		objExcel.Quit
+		Set objExcel=Nothing
+		Set objWorkbooks=Nothing
+		Set objSheet1=Nothing
+		Exit Sub
+	End if	
+
+	For c=1 to BRDR1PBGIRIS.GetRecCount
+		Doc.StatusBarMessage "Puantaj Bilgileri Aktarýlýyor : " & c & " / " & BRDR1PBGIRIS.GetRecCount
+		strPersNo = BRDR1PBGIRIS.C_KOD(c)
+		Set xlsCell = objSheet1.Cells.Find(trim(strPersNo))
+		BRDR1PBGIRIS.SetCurrentRow(c)
+		if not (xlsCell is Nothing) Then
+			satir = xlsCell.Row
+			Sutun = xlsCell.Column
+			strPersNoExcel = objSheet1.Cells(satir,Sutun).Value
+			i = satir
+			if trim(strPersNoExcel) <> "" Then
+				if Trim(strPersNoExcel)=Trim(strPersNo) Then
+					'NORMAL ÇALIÞMA
+					if isnumeric(objSheet1.Cells(i,4).Value) Then
+						dblNormalCalisma=cdbl(objSheet1.Cells(i,4).Value)
+					Else
+						dblNormalCalisma=cdbl(0)
+					End if
+					'HAFTA TATÝLÝ
+					if isnumeric(objSheet1.Cells(i,5).Value) Then
+						dblHaftatatili=cdbl(objSheet1.Cells(i,5).Value)
+					Else
+						dblhaftatatili=cdbl(0)
+					End if
+					'GENEL TATÝL
+					if isnumeric(objSheet1.Cells(i,6).Value) Then
+						dblGenelTatil=cdbl(objSheet1.Cells(i,6).Value)
+					Else
+						dblGenelTatil=cdbl(0)
+					End if
+					'YILLIK IZIN
+					if isnumeric(objSheet1.Cells(i,7).Value) Then
+						dblYillikizin=cdbl(objSheet1.Cells(i,7).Value)
+					Else
+						dblYillikizin=cdbl(0)
+					End if
+					'ÜCRETLÝ ÝSTÝHARAT 
+					if isnumeric(objSheet1.Cells(i,8).Value) Then
+						dblucretliizin=cdbl(objSheet1.Cells(i,8).Value)
+					Else
+						dblucretliizin=cdbl(0)
+					End if
+					'ÝSTÝRAHAT GÜN
+					if isnumeric(objSheet1.Cells(i,9).Value) Then
+						dblstirahatGun=cdbl(objSheet1.Cells(i,9).Value)
+					Else
+						dblstirahatGun=cdbl(0)
+					End if
+					'ÝSTÝRAHAT SAAT
+					if isnumeric(objSheet1.Cells(i,10).Value) Then
+						dblstirahatSaat=cdbl(objSheet1.Cells(i,10).Value)
+					Else
+						dblstirahatSaat=cdbl(0)
+					End if
+ 					'ÜCRETSÝZ GÜN
+					if isnumeric(objSheet1.Cells(i,11).Value) Then
+						dblucretsizGun=cdbl(objSheet1.Cells(i,11).Value)
+					Else
+						dblucretsizGun=cdbl(0)
+					End if
+ 					'ÜCRETSÝZ SAAT
+					if isnumeric(objSheet1.Cells(i,12).Value) Then
+						dblucretsizSaat=cdbl(objSheet1.Cells(i,12).Value)
+					Else
+						dblucretsizSaat=cdbl(0)
+					End if
+					'%50 MESAI (SAAT)
+					if isnumeric(objSheet1.Cells(i,13).Value) Then
+						dbl50mesai=cdbl(objSheet1.Cells(i,13).Value)
+					Else
+						dbl50mesai=cdbl(0)
+					End if
+					'%100 MESAI(SAAT)
+					if isnumeric(objSheet1.Cells(i,14).Value) Then 
+						dbl100mesai=cdbl(objSheet1.Cells(i,14).Value)
+					Else
+						dbl100mesai=cdbl(0)
+					End if
+
+					BRDR1PBGIRIS.B_K_AG_KCG01(c) = dblNormalCalisma
+					BRDR1PBGIRIS.B_K_AG_KCG02(c) = dblHaftatatili
+					BRDR1PBGIRIS.B_K_AG_KCG03(c) = dblGenelTatil
+					BRDR1PBGIRIS.B_K_AG_KCG04(c) = dblYillikizin
+					BRDR1PBGIRIS.B_K_AG_KCG05(c) = dblucretliizin
+					BRDR1PBGIRIS.B_K_AG_KIG01(c) = dblstirahatGun
+					BRDR1PBGIRIS.B_K_AS_KIG01(c) = dblstirahatSaat
+					BRDR1PBGIRIS.B_K_AG_KIG02(c) = dblucretsizGun
+					BRDR1PBGIRIS.B_K_AS_KIG02(c) = dblucretsizSaat
+					BRDR1PBGIRIS.B_E_AS_E01(c) = dbl50mesai
+					BRDR1PBGIRIS.B_E_AS_E02(c) = dbl100mesai
+
+					ToplamCalismaGun = BRDR1PBGIRIS.B_K_AG_KCG01(c) + BRDR1PBGIRIS.B_K_AG_KCG02(c) + BRDR1PBGIRIS.B_K_AG_KCG03(c) + _
+						BRDR1PBGIRIS.B_K_AG_KCG04(c) + BRDR1PBGIRIS.B_K_AG_KCG05(c) + BRDR1PBGIRIS.B_K_AG_KIG01(c) + BRDR1PBGIRIS.B_K_AG_KIG02(c)
+					CalimaGunFark = ToplamCalismaGun - BRDR1PBGIRIS.C_GEREKEN_PUANTAJGUNU(c)
+					BRDR1PBGIRIS.B_K_AG_KCG01(c) = BRDR1PBGIRIS.B_K_AG_KCG01(c) - CalimaGunFark
+
+					ToplamSSKgun = BRDR1PBGIRIS.B_K_AP_KCG01(c) + BRDR1PBGIRIS.B_K_AP_KCG02(c) + BRDR1PBGIRIS.B_K_AP_KCG03(c) + _
+										BRDR1PBGIRIS.B_K_AP_KCG04(c) + BRDR1PBGIRIS.B_K_AP_KCG05(c) + BRDR1PBGIRIS.B_K_AP_KIG01(c) + + BRDR1PBGIRIS.B_K_AP_KIG02(c)
+
+					SSKGunFark = ToplamSSKgun - BRDR1PBGIRIS.C_GEREKEN_SSKPRIMGUNU(c)
+
+					BRDR1PBGIRIS.B_K_AP_KCG01(c) = BRDR1PBGIRIS.B_K_AP_KCG01(c) - SSKGunFark
+
+				End if
+			End if
+'			if err.number<>0 Then 
+			if False Then 
+				MSGBOX "Hata " & Err.Number & " " & Error()
+				objWorkbooks(1).Close
+				objExcel.Quit
+				Exit Sub
+				Set objExcel=Nothing
+				Set objWorkbooks=Nothing
+				Set objSheet1=Nothing
+			End if	
+		End if
+		if False Then 
+			objWorkbooks(1).Close
+			objExcel.Quit
+			Set objExcel=Nothing
+			Set objWorkbooks=Nothing
+			Set objSheet1=Nothing
+			Exit Sub
+		End if	
+	Next
+	
+	objWorkbooks(1).Close
+	objExcel.Quit
+
+	Set objExcel=Nothing
+	Set objWorkbooks=Nothing
+	Set objSheet1=Nothing
+	msgbox "Dosya aktarma iþlemi bitti."
+End Sub                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : CR2013 / Uygulama : MAKR7S
+Makro Kodu : W
+Hangi Tablo için : SRVB001
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	Call MailGonder()
+End Sub
+Sub MailGonder()
+	Set SM = Doc.GetTableObject("SEND_MAIL")
+	Set pe1 = doc.CreatePrintEngineOutput()
+	res = pe1.Open(1,"h",-1,-1,"")
+	'res = pe1.AddMailReceiver(SM.M_TO,1)
+	'res = pe1.AddMailReceiver(SM.M_CC,2)
+	'res = pe1.AddMailReceiver(SM.M_BCC,3)
+	'res = pe1.SetMailSubject(trim(SM.M_SUBJECT))
+	'res = pe1.SetMailText(trim(SM.M_MESSAGE))
+	'res = pe1.SetMailWithDialog(1)   'direkt gönderim için
+	'res = pe1.ClearMailAttachments()
+	res = pe1.Maildoc()
+	'res = pe1.Close()
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

@@ -1,0 +1,683 @@
+Makro Kaynak Kodu
+Firma Kodu : ILKE11 / Uygulama : MAKR7S
+Makro Kodu : ASN
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Ford sevk irsaliyesi (ASN) - Müþteri stok kodlu (Stok Kodu bazýnda birleþtirilmiþ)
+Kod : 
+Public S60
+Sub Makro1()
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	if trim(SeferNumarasi) = "" then
+		k = doc.d7msgbox("Kullanýcý tanýmlý alanlarda sefer numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+		exit sub
+	end if
+	PlakaNo = STOK60E.BOX1_3
+	if trim(PlakaNo) = "" then
+		k = doc.d7msgbox("Plaka Numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo", MB_OK)
+		exit sub
+	end if
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	Select case trim(SevkAdresKodu)
+		case "FORD26" 				'ÝNÖNÜ KAMYON
+			FabrikaKodu = "D1D4T"
+		case "FORD1"	 				'GÖLCÜK
+			FabrikaKodu = "D1D4F"
+		case "FORD34-1"					'KARTAL YP DEPO
+			FabrikaKodu = "AUF9A"
+		case "FORD34-2"					'KARTAL YP DEPO
+			FabrikaKodu = "CVR1B"
+		case "4" 				'KOCAELÝ YEDEK PARÇA
+			FabrikaKodu = "D1D4Y"
+		case else
+			y = Doc.d7msgbox("Sevk adresi girilmemiþ veya tanýmsýz" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+	End Select
+	if not AmbalajVarmi then
+		EH = Doc.d7msgbox("Hiç konteyner gönderilmemektedir" & vbcrlf & vbcrlf & "Onaylýyor musunuz.", "dinamo",MB_YESNO)
+		if EH <> 6 then 
+			z = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+		end if
+	End if
+	
+	Doc.CreateTableObject "ZZZ=STOK60T","TMPCOPY"		
+	Set S60 = Doc.GetTableObject("ZZZ")
+	Set ST60 = Doc.GetTableObject("STOK60T")
+	S60.CopyTable(ST60)
+	S60.GroupBy("KOD")
+
+	Set Fso = CreateObject("Scripting.FileSystemObject")
+	dosyaAdi = "c:\asn" & trim(STOK60E.EVRAKNO) & ".xml"
+	Set ASN = Fso.CreateTextFile(dosyaAdi,True)
+
+	Set xmlDoc = CreateObject("Microsoft.XMLDOM")
+	xmlDoc.async = False
+	
+	Doc.StatusBarMessage "XML Dosyasý oluþturuluyor"
+	Call Header(ASN)
+	Call SatirYaz(ASN)
+	Call Footer(ASN)
+
+	ASN.Close
+	xmlDoc.Load(dosyaAdi)
+	Set IE = CreateObject("InternetExplorer.Application")
+	IE.Navigate("file:\\" & dosyaAdi)
+	IE.TheaterMode = true
+	IE.Visible = true
+
+	EH = doc.d7Msgbox("Oluþturulan ASN uygun mu?","dinamo",MB_YESNO)
+	if EH <> 6 then 
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+
+	KullaniciAdi = trim(Doc.Customp_Gets("!ASNUSER"))
+	KullaniciSifre = trim(Doc.Customp_Gets("!ASNPWD"))
+
+	Doc.StatusBarMessage "ford.com.tr 'ye baðlanýlýyor"
+	k = Doc.HTTPRequest("<https://login.ford.com.tr/authenticate.asp?userid=" & KullaniciAdi & "password=" & KullaniciSifre)
+	Doc.StatusBarMessage "ASN gönderiliyor"
+
+	sonuc = sendData(xmlDoc)
+
+	Doc.StatusBarMessage "Baðlantý kesiliyor"
+	k = Doc.HTTPRequest("<https://fosn.ford.com.tr/exit.asp")
+
+	xmlDoc.LoadXML(sonuc)
+	ret = xmldoc.documentElement.selectSingleNode("RETURN").Text
+	if ret <> "0" or ret <> 0 then 
+		k = Doc.d7MsgBox("ASN Gönderilemedi , " & ret,"dinamo",MB_OK)
+		k = Doc.d7MsgBox(xmlDoc.xml,"dinamo",MB_OK)
+	else
+		k = Doc.d7MsgBox("Ýþlem Tamam","dinamo",MB_OK)
+	end if
+
+	Set Fso = Nothing
+	Set xmlDoc = Nothing
+'	STOK60E.XNITELIK0 = "ASN_OK"
+'	Doc.RunCommand("MT_SAVE")
+End Sub
+Sub Header(ASN)
+	IrsaliyeNo = "A " & cstr(right(string(10,"0") & trim(STOK60E.EVRAKNO(1)),6))
+	Sender = "AS4MA"
+	TransContNum = trim(Sender & IrsaliyeNo)
+	ShippedFrom = "AS4MA"
+
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	Select case trim(SevkAdresKodu)
+		case "FORD26" 				'ÝNÖNÜ KAMYON
+			FabrikaKodu = "D1D4T"
+		case "FORD1"	 				'GÖLCÜK
+			FabrikaKodu = "D1D4F"
+		case "FORD34-1"					'KARTAL YP DEPO
+			FabrikaKodu = "AUF9A"
+		case "FORD 34-2"					'KARTAL YP DEPO
+			FabrikaKodu = "CVR1B"
+		case "4" 				'KOCAELÝ YEDEK PARÇA
+			FabrikaKodu = "D1D4Y"
+		case else
+			k = Doc.d7msgbox("Sevk adresi girilmemiþ veya tanýmsýz" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+	End Select
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	ASNAmaci = "00"
+
+	IrsaliyeTarihi = replace(STOK60E.TARIH,"/","")
+	IrsaliyeTarihi = Mid(IrsaliyeTarihi,3)
+	IrsaliyeSaati = Doc.Saat(6)
+	TahminiVarisTarihi = IrsaliyeTarihi
+	TahminiVarisSaati = IrsaliyeSaati
+	NetAgirlik = NetAgirlikBul()
+	BrutAgirlik = BrutAgirlikBul()
+	TasimaSekli = "M"
+	PlakaNo = ucase(replace(STOK60E.BOX1_3," ",""))
+	ResmiIrsaliyeNo = IrsaliyeNo
+	NavlunFaturaNo = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"NAVLUN_FAT",0)
+	TasiyiciKodu = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"TASIYICI",0)
+
+	ASN.WriteLine("<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & """windows-1254""" & "?>")
+	ASN.WriteLine("<ASN>")
+	ASN.WriteLine(cTab(1) & "<HEADER>")
+	ASN.WriteLine(cTab(2) & "<TRANSACTION_CONTROL_NUMBER>" & TransContNum & "</TRANSACTION_CONTROL_NUMBER>")
+	ASN.WriteLine(cTab(2) & "<SENDER>" & Sender & "</SENDER>")
+	ASN.WriteLine(cTab(2) & "<RECEIVER>" & FabrikaKodu & "</RECEIVER>")
+	ASN.WriteLine(cTab(1) & "</HEADER>")
+	ASN.WriteLine(cTab(1) & "<ASN_NUMBER>" & trim(IrsaliyeNo) & "</ASN_NUMBER>")
+	ASN.WriteLine(cTab(1) & "<SHIPPED_FROM>" & Sender & "</SHIPPED_FROM>")
+	ASN.WriteLine(cTab(1) & "<SHIP_TO_PLANT>" & FabrikaKodu & "</SHIP_TO_PLANT>")
+	ASN.WriteLine(cTab(1) & "<INTERMEDIATE_CONSIGNEE></INTERMEDIATE_CONSIGNEE>")
+	ASN.WriteLine(cTab(1) & "<CONVEYANCE_NO>" & trim(SeferNumarasi) & "</CONVEYANCE_NO>")
+	ASN.WriteLine(cTab(1) & "<ASN_PURPOSE>" & ASNAmaci & "</ASN_PURPOSE>")
+	ASN.WriteLine(cTab(1) & "<DATE_CREATED>" & IrsaliyeTarihi & "</DATE_CREATED>")
+	ASN.WriteLine(cTab(1) & "<TIME_CREATED>" & IrsaliyeSaati & "</TIME_CREATED>")
+	ASN.WriteLine(cTab(1) & "<DATE_SHIPPED>" & IrsaliyeTarihi & "</DATE_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<TIME_SHIPPED>" & IrsaliyeSaati & "</TIME_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_DATE>" & TahminiVarisTarihi & "</EXPECTED_ARRIVAL_DATE>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_TIME>" & TahminiVarisSaati & "</EXPECTED_ARRIVAL_TIME>")
+	ASN.WriteLine(cTab(1) & "<NET_WEIGHT>" & NetAgirlik & "</NET_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<GROSS_WEIGHT>" & BrutAgirlik & "</GROSS_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<WEIGHT_UOM>KG</WEIGHT_UOM>")
+	ASN.WriteLine(cTab(1) & "<CARRIER1>" & TasiyiciKodu & "</CARRIER1>")
+	ASN.WriteLine(cTab(1) & "<MODE_OF_TRANSPORT>" & TasimaSekli & "</MODE_OF_TRANSPORT>")
+	ASN.WriteLine(cTab(1) & "<FREIGHT_BILL_NO>" & NavlunFaturaNo & "</FREIGHT_BILL_NO>")
+	ASN.WriteLine(cTab(1) & "<BILL_OF_LADING_NO>" & trim(PlakaNo) & "</BILL_OF_LADING_NO>")
+	ASN.WriteLine(cTab(1) & "<LICENCE_PLATE_NO>" & trim(PlakaNo) & "</LICENCE_PLATE_NO>")
+	ASN.WriteLine(cTab(1) & "<WAYBILL>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_NO>" & trim(ResmiIrsaliyeNo) & "</PACKING_SLIP_NO>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_DATE>" & IrsaliyeTarihi & "</PACKING_SLIP_DATE>")
+	ASN.WriteLine(cTab(2) & "<PARTS>")        
+End Sub
+Sub SatirYaz(ASN)
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	if trim(SevkAdresKodu) = "FORD 1" then 'GÖLCÜK
+		Birim = "EA"
+	else
+		Birim = "AD"
+	end if
+	CHKodu = STOK60E.CH_KODU
+	for i = 1 to S60.GetRecCount()
+		if trim(S60.KOD(i)) <> "" then
+			Ambalaj = S60.FATURASIZMI(i)
+			Kod = S60.KOD(i)
+			if trim(Ambalaj) = "E" then
+				StokKodu = Kod
+			else
+				StokKodu = trim(Doc.GetCHStokKodu(Kod,CHKodu))
+			end if
+			Miktar = S60.SF_MIKTAR(i)
+'			Birim = S60.SF_SF_UNIT(i)
+			PART_CUM_QTY = 0
+			PART_PRIOR_CUM_QTY = 0 
+			SiparisNo = S60.SIPNO(i)
+			MusteriSipNo = Doc.GetDBFieldValue("STOK40E","CHSIPNO",SiparisNo,"")
+			PART_PO_NO = trim(MusteriSipNo)
+			if trim(Ambalaj) <> "E" then
+				KontSayisi = S60.BRUTAGIRLIK(i)
+				ParcaTuru = "PP"
+				if trim(cstr(KontSayisi)) = "" or trim(cstr(KontSayisi)) = "0" then
+'					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_B_TECH_1",Kod,"")
+					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",Kod,"")
+					kontParcaSayisi = Doc.Round(kontParcaSayisi,0)
+					ParcaKontSayisi = Doc.Div(Miktar,kontParcaSayisi)
+					ParcaKontSayisi = Doc.Ceil(ParcaKontSayisi)
+				else
+					ParcaKontSayisi = Doc.CDbl(KontSayisi)
+					kontParcaSayisi = Doc.Div(Miktar,ParcaKontSayisi)
+					kontParcaSayisi = Doc.Ceil(kontParcaSayisi)
+				end if
+				KonteynerTipi = "BOX90"
+			else
+				ParcaTuru = "CT"
+				kontParcaSayisi = "0000"
+				ParcaKontSayisi = "0000"
+				KonteynerTipi = ""
+			end if
+			ASN.WriteLine(cTab(3) & "<PART>")        
+			ASN.WriteLine(cTab(4) & "<NO_PART>" & trim(StokKodu) & "</NO_PART>")
+			ASN.WriteLine(cTab(4) & "<PART_NO_TYPE>" & ParcaTuru & "</PART_NO_TYPE>")
+			ASN.WriteLine(cTab(4) & "<PART_QUANTITY>" & Miktar & "</PART_QUANTITY>")
+			ASN.WriteLine(cTab(4) & "<PART_UOM>" & Birim & "</PART_UOM>")
+			ASN.WriteLine(cTab(4) & "<PART_CUM_QTY>" & PART_CUM_QTY & "</PART_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PRIOR_CUM_QTY>" & PART_PRIOR_CUM_QTY & "</PART_PRIOR_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PO_NO>" & PART_PO_NO & "</PART_PO_NO>")
+			ASN.WriteLine(cTab(4) & "<CONTAINERS>")
+			ASN.WriteLine(cTab(5) & "<CONTAINER>")
+			ASN.WriteLine(cTab(6) & "<CONTAINER_TYPE_CODE>" & KonteynerTipi & "</CONTAINER_TYPE_CODE>")
+			ASN.WriteLine(cTab(6) & "<PARTS_PER_CONT>" & KontParcaSayisi & "</PARTS_PER_CONT>")
+			ASN.WriteLine(cTab(6) & "<CONTS_PER_PART>" & ParcaKontSayisi & "</CONTS_PER_PART>")
+			ASN.WriteLine(cTab(5) & "</CONTAINER>")
+			ASN.WriteLine(cTab(4) & "</CONTAINERS>")
+			ASN.WriteLine(cTab(3) & "</PART>")        
+		end if
+	Next
+End Sub
+Sub Footer(ASN)
+	ASN.WriteLine(cTab(2) & "</PARTS>")        
+	ASN.WriteLine(cTab(1) & "</WAYBILL>")
+	ASN.WriteLine("</ASN>")
+End Sub
+Function cTab(sayi)
+	for i = 1 to sayi
+		cTab = cTab & Chr(9)
+	Next
+End Function
+Function sendData(xmlDoc)
+	Set xmlhttp = CreateObject("Microsoft.XMLHTTP")
+	call xmlhttp.Open("POST", "https://fosn.ford.com.tr/asnposter/postxmlasn.asp", false)
+	call xmlhttp.Send(xmlDoc)
+	sendData = xmlhttp.responseText
+End Function
+Sub XMLHTTPStateChange(xmlhttp)
+	dim errText
+	if (xmlHTTP.readystate <> 4) then 	' 4: Bilgiler karþýya ulaþtý
+		msgbox "Tüm data Ford 'a ulaþmadý"
+		exit sub
+	end if
+	if(xmlHTTP.status <> 207)  then 		'207 : Server 'dan bilgi geri geldi
+		msgbox "Hata : " & CStr(xmlHTTP.status) & vbcrlf & xmlHTTP.statusText
+	else 
+		
+	end if
+End Sub
+Function AmbalajVarMi()
+	AmbalajVarMi = False
+	for i = 1 to STOK60T.GetRecCount()
+		Ambalaj = STOK60T.FATURASIZMI(i)
+		if trim(Ambalaj) = "E" then
+			AmbalajVarMi = True
+			Exit Function
+		end if
+	Next
+End Function
+Function NetAgirlikBul()
+	ToplamNet = 0
+	for i = 1 to S60.GetRecCount()
+		StokKodu = S60.KOD(i)
+		SevkMiktari = S60.SF_MIKTAR(i)
+
+		KasaNetAgirligi = Doc.GetDBFieldValue("STOK00","B_B_TECH_3",StokKodu,"")
+		KasaNetAgirligi = doc.Round(KasaNetAgirligi,0)
+		KasaIciMiktar = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",StokKodu,"")
+		KasaAdedi = Doc.Ceil(Doc.Div(SevkMiktari,KasaIciMiktar))
+		ToplamNet = ToplamNet + KasaAdedi * KasaNetAgirligi
+	Next
+	NetAgirlikBul = ToplamNet
+End Function
+Function BrutAgirlikBul()
+	ToplamBrut = 0
+	for i = 1 to S60.GetRecCount()
+		StokKodu = S60.KOD(i)
+		SevkMiktari = S60.SF_MIKTAR(i)
+
+		KasaBrutAgirligi = Doc.GetDBFieldValue("STOK00","B_B_TECH_4",StokKodu,"")
+		KasaBrutAgirligi = doc.Round(KasaBrutAgirligi,0)
+		KasaIciMiktar = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",StokKodu,"")
+		KasaAdedi = Doc.Ceil(Doc.Div(SevkMiktari,KasaIciMiktar))
+		ToplamBrut = ToplamBrut + KasaAdedi * KasaBrutAgirligi
+	Next
+	BrutAgirlikBul = ToplamBrut
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ILKE11 / Uygulama : MAKR7S
+Makro Kodu : TOFAS-ASN
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : TOFAÞ Elektronik Ýrsaliye
+Kod : 
+Public S60, FabrikaKodu, IrsaliyeKlasoru
+Public ImalatciKodu, DosyaTarihi, DosyaSaati
+
+Sub Makro1()
+	ImalatciKodu = "T175"
+	Set Fso = CreateObject("Scripting.FileSystemObject")
+
+'	IrsaliyeKlasoru = "C:\Program Files\Tofas Tedarikci Programi\Irsaliye\"
+	IrsaliyeKlasoru = "C:\Tofas Irsaliye\"
+
+	if not fso.FolderExists(IrsaliyeKlasoru) Then
+		k = Doc.d7MsgBox(IrsaliyeKlasoru & " klasörü bulunamadý." & vbcrlf & _
+									"Makrodaki IrsaliyeKlasoru alanýna TOFAÞ elektronik irsaliye programýnda" & vbcrlf & _ 
+									"tanýmlanmýþ olan klasörü girmelisiniz."  & vbcrlf & vbcrlf & _
+									"Ýþlem kesilmiþtir.", "Hata !", MB_OK+MB_ICONSTOP)
+		Exit Sub
+	End if
+	if right(trim(IrsaliyeKlasoru),1) <> "\" Then
+		IrsaliyeKlasoru = trim(IrsaliyeKlasoru) & "\"
+	End if
+	if trim(STOK60E.XNITELIK0) = "ASN_OK" then
+		k = doc.d7msgbox("Bu irsaliyenin ASN 'si daha önce gönderilmiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+		exit sub
+	end if
+'	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+'	if trim(SeferNumarasi) = "" then
+'		k = doc.d7msgbox("Kullanýcý tanýmlý alanlarda sefer numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+'		exit sub
+'	end if
+'	PlakaNo = STOK60E.BOX1_3
+'	if trim(PlakaNo) = "" then
+'		k = doc.d7msgbox("Plaka Numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo", MB_OK)
+'		exit sub
+'	end if
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	FabrikaKodu = Mid(trim(SevkAdresKodu),2,3)
+	Fabrikalar=Array("121","129","141","145","149","153","158","161","162","186","192","201","205","206","207","485","713","844","854","864")
+	Sonuc = Filter(Fabrikalar, FabrikaKodu)
+	if uBound(Sonuc) = -1 Then
+		k = Doc.d7MsgBox("Geçersiz fabrika kodu : " & FabrikaKodu & ". Sevk Adres Kodu TXXX (T129 gibi) olmalý." & vbcrlf & _
+							"Ýþlem kesilmiþtir", "!Hata", MB_OK)
+		Exit Sub
+	End if
+'	if not AmbalajVarmi then
+'		EH = Doc.d7msgbox("Hiç konteyner gönderilmemektedir" & vbcrlf & vbcrlf & "Onaylýyor musunuz.", "dinamo",MB_YESNO)
+'		if EH <> 6 then 
+'			k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+'			exit sub
+'		end if
+'	End if
+	KodDurumu = KodKontrol
+	if trim(KodDurumu) <> "" then
+		msgbox KodDurumu
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+
+	KodDurumu2 = KodKontrol2
+	if trim(KodDurumu2) <> "" then
+		msgbox KodDurumu2
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+
+	SandikDurumu = SandikAdediKontrol
+	if trim(SandikDurumu) <> "" then
+		msgbox SandikDurumu
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+	KoneynerKoduDurumu = KonteynerKoduKontrol
+	if trim(KoneynerKoduDurumu) <> "" then
+		msgbox KoneynerKoduDurumu
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+	
+	Doc.CreateTableObject "ZZZ=STOK60T","TMPCOPY"		
+	Set S60 = Doc.GetTableObject("ZZZ")
+	Set ST60 = Doc.GetTableObject("STOK60T")
+	S60.CopyTable(ST60)
+	S60.GroupBy2("KOD")
+
+	DosyaTarihi = Replace(Doc.StrToNorDate(Doc.Bugun),"/","") 
+	DosyaSaati = Doc.Saat(6) 
+	dosyaAdi = IrsaliyeKlasoru & "TFS" & ImalatciKodu & DosyaTarihi & DosyaSaati & ".xml"
+	TmpDoyaAdi = Fso.GetSpecialFolder(2) & "\TFS" & ImalatciKodu & DosyaTarihi & DosyaSaati & ".xml"
+
+	Set TempASN = Fso.CreateTextFile(TmpDoyaAdi,True)
+
+	Set xmlDoc = CreateObject("Microsoft.XMLDOM")
+	xmlDoc.async = False
+	
+	Doc.StatusBarMessage "XML Dosyasý oluþturuluyor"
+	Call Header(TempASN )
+	Call SatirYaz(TempASN )
+	Call Footer(TempASN )
+	TempASN.Close
+
+	Set IE = CreateObject("InternetExplorer.Application")
+	IE.Navigate("file:\\" & TmpDoyaAdi)
+	IE.TheaterMode = true
+	IE.Visible = true
+
+	EH = doc.d7Msgbox("Oluþturulan ASN uygun mu?","dinamo",MB_YESNO)
+	if EH <> 6 then 
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+
+	Set TempASN = Fso.OpenTextFile(TmpDoyaAdi,1)
+	ASNStr = TempASN.ReadAll
+	xmlDoc.Load(TmpDoyaAdi)
+	TempASN.Close
+
+	Set ASNFile = Fso.CreateTextFile(dosyaAdi,True)
+	ASNFile.WriteLine(ASNStr)
+	ASNFile.Close
+
+	STOK60E.XNITELIK0 = "ASN_OK"
+	Doc.RunCommand("MT_SAVE")
+	k = Doc.d7MsgBox("Ýþlem Tamam","dinamo",MB_OK)
+
+	Set Fso = Nothing
+	Set xmlDoc = Nothing
+End Sub
+Sub Header(ASN)
+	IrsaliyeNo = cstr(right(string(10,"0") & trim(STOK60E.EVRAKNO(1)),6))
+	TransContNum = trim(Sender & IrsaliyeNo)
+	ShippedFrom = ImalatciKodu
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	ASNAmaci = "00"
+
+	IrsaliyeTarihi = replace(Doc.StrToNorDate(STOK60E.TARIH),"/","")
+'	IrsaliyeTarihi = Mid(IrsaliyeTarihi,3)
+	IrsaliyeSaati = Doc.Saat(6)
+	TahminiVarisTarihi = IrsaliyeTarihi
+	TahminiVarisSaati = IrsaliyeSaati
+	NetAgirlik = "0.000"
+	BrutAgirlik = "0.000"
+	TasimaSekli = "M"
+	PlakaNo = ucase(replace(STOK60E.BOX1_3," ",""))
+	ResmiIrsaliyeNo = IrsaliyeNo
+	NavlunFaturaNo = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"NAVLUN_FAT",0)
+	TasiyiciKodu = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"TASIYICI",0)
+
+	ASN.WriteLine("<?xml version=" & chr(34) & "1.0" & chr(34) & " encoding=" & """windows-1254""" & "?>")
+	ASN.WriteLine("<ASN>")
+	ASN.WriteLine(cTab(1) & "<HEADER>")
+	ASN.WriteLine(cTab(2) & "<TRANSACTION_CONTROL_NUMBER>" & TransContNum & "</TRANSACTION_CONTROL_NUMBER>")
+	ASN.WriteLine(cTab(2) & "<SENDER>" & ImalatciKodu & "</SENDER>")
+	ASN.WriteLine(cTab(2) & "<RECEIVER>TOFAS</RECEIVER>")
+	ASN.WriteLine(cTab(1) & "</HEADER>")
+	ASN.WriteLine(cTab(1) & "<ASN_NUMBER>" & trim(IrsaliyeNo) & "</ASN_NUMBER>")
+	ASN.WriteLine(cTab(1) & "<SHIPPED_FROM>" & Sender & "</SHIPPED_FROM>")
+'	ASN.WriteLine(cTab(1) & "<SHIP_TO_PLANT>" & FabrikaKodu & "</SHIP_TO_PLANT>")
+	ASN.WriteLine(cTab(1) & "<SHIP_TO_PLANT>TOFAS</SHIP_TO_PLANT>")
+	ASN.WriteLine(cTab(1) & "<INTERMEDIATE_CONSIGNEE></INTERMEDIATE_CONSIGNEE>")
+	ASN.WriteLine(cTab(1) & "<CONVEYANCE_NO>" & trim(SeferNumarasi) & "</CONVEYANCE_NO>")
+	ASN.WriteLine(cTab(1) & "<ASN_PURPOSE>" & ASNAmaci & "</ASN_PURPOSE>")
+	ASN.WriteLine(cTab(1) & "<DATE_CREATED>" & DosyaTarihi & "</DATE_CREATED>")
+	ASN.WriteLine(cTab(1) & "<TIME_CREATED>" & DosyaSaati & "</TIME_CREATED>")
+	ASN.WriteLine(cTab(1) & "<DATE_SHIPPED></DATE_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<TIME_SHIPPED></TIME_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_DATE></EXPECTED_ARRIVAL_DATE>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_TIME></EXPECTED_ARRIVAL_TIME>")
+	ASN.WriteLine(cTab(1) & "<NET_WEIGHT></NET_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<GROSS_WEIGHT></GROSS_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<WEIGHT_UOM></WEIGHT_UOM>")
+	ASN.WriteLine(cTab(1) & "<CARRIER1></CARRIER1>")
+	ASN.WriteLine(cTab(1) & "<MODE_OF_TRANSPORT></MODE_OF_TRANSPORT>")
+	ASN.WriteLine(cTab(1) & "<FREIGHT_BILL_NO></FREIGHT_BILL_NO>")
+	ASN.WriteLine(cTab(1) & "<BILL_OF_LADING_NO></BILL_OF_LADING_NO>")
+	ASN.WriteLine(cTab(1) & "<LICENCE_PLATE_NO>" & trim(PlakaNo) & "</LICENCE_PLATE_NO>")
+	ASN.WriteLine(cTab(1) & "<WAYBILL>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_NO>" & trim(ResmiIrsaliyeNo) & "</PACKING_SLIP_NO>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_DATE>" & IrsaliyeTarihi & "</PACKING_SLIP_DATE>")
+	ASN.WriteLine(cTab(2) & "<PARTS>")        
+End Sub
+Sub SatirYaz(ASN)
+
+	CHKodu = STOK60E.CH_KODU
+	for i = 1 to S60.GetRecCount()
+		Ambalaj = S60.FATURASIZMI(i)
+		if trim(S60.KOD(i)) <> "" and trim(Ambalaj) <> "E" then
+			Kod = S60.KOD(i)
+			StokKodu = Kod
+			KonteynerTipi = trim(Doc.GetDBFieldValue("STOK00", "TEXT_TECH_1", Kod, ""))
+			Miktar = S60.SF_MIKTAR(i)
+			Birim = GetTofasBirim(S60.SF_SF_UNIT(i))
+			PART_CUM_QTY = ""
+			PART_PRIOR_CUM_QTY = ""
+'			SiparisNo = S60.SIPNO(i)
+'			MusteriSipNo = Doc.GetDBFieldValue("STOK40E","CHSIPNO",SiparisNo,"")
+			PART_PO_NO = trim(FabrikaKodu)
+'			if trim(Ambalaj) <> "E" then
+				KontSayisi = S60.BRUTAGIRLIK(i)
+				ParcaTuru = "S"
+				if trim(cstr(KontSayisi)) = "" or trim(cstr(KontSayisi)) = "0" then
+					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_B_TECH_1",Kod,"")
+'					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_MINPARTIBUYUKLUGU",Kod,"")
+					kontParcaSayisi = Doc.Round(kontParcaSayisi,0)
+					ParcaKontSayisi = Doc.Div(Miktar,kontParcaSayisi)
+					ParcaKontSayisi = Doc.Ceil(ParcaKontSayisi)
+				else
+					ParcaKontSayisi = Doc.CDbl(KontSayisi)
+					kontParcaSayisi = Doc.Div(Miktar,ParcaKontSayisi)
+					kontParcaSayisi = Doc.Ceil(kontParcaSayisi)
+				end if
+'			else
+'				ParcaTuru = "CT"
+'				kontParcaSayisi = "0000"
+'				ParcaKontSayisi = "0000"
+'				KonteynerTipi = ""
+'			end if
+			ASN.WriteLine(cTab(3) & "<PART>")        
+			ASN.WriteLine(cTab(4) & "<NO_PART>" & trim(StokKodu) & "</NO_PART>")
+			ASN.WriteLine(cTab(4) & "<PART_NO_TYPE>" & ParcaTuru & "</PART_NO_TYPE>")
+			ASN.WriteLine(cTab(4) & "<PART_QUANTITY>" & Miktar & "</PART_QUANTITY>")
+			ASN.WriteLine(cTab(4) & "<PART_UOM>" & Birim & "</PART_UOM>")
+			ASN.WriteLine(cTab(4) & "<PART_CUM_QTY>" & PART_CUM_QTY & "</PART_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PRIOR_CUM_QTY>" & PART_PRIOR_CUM_QTY & "</PART_PRIOR_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PO_NO>" & PART_PO_NO & "</PART_PO_NO>")
+			ASN.WriteLine(cTab(4) & "<CONTAINER_TYPE_CODE>" & KonteynerTipi & "</CONTAINER_TYPE_CODE>")
+			ASN.WriteLine(cTab(4) & "<PARTS_PER_CONT>" & KontParcaSayisi & "</PARTS_PER_CONT>")
+			ASN.WriteLine(cTab(4) & "<CONTS_PER_PART>" & ParcaKontSayisi & "</CONTS_PER_PART>")
+			ASN.WriteLine(cTab(3) & "</PART>")        
+		end if
+	Next
+End Sub
+Sub Footer(ASN)
+	ASN.WriteLine(cTab(2) & "</PARTS>")        
+	ASN.WriteLine(cTab(1) & "</WAYBILL>")
+	ASN.WriteLine("</ASN>")
+End Sub
+Function cTab(sayi)
+	for i = 1 to sayi
+		cTab = cTab & Chr(9)
+	Next
+End Function
+Function sendData(xmlDoc)
+	Set xmlhttp = CreateObject("Microsoft.XMLHTTP")
+	call xmlhttp.Open("POST", "https://fosn.ford.com.tr/asnposter/postxmlasn.asp", false)
+	call xmlhttp.Send(xmlDoc)
+	sendData = xmlhttp.responseText
+End Function
+Sub XMLHTTPStateChange(xmlhttp)
+	dim errText
+	if (xmlHTTP.readystate <> 4) then 	' 4: Bilgiler karþýya ulaþtý
+		msgbox "Tüm data Ford 'a ulaþmadý"
+		exit sub
+	end if
+	if(xmlHTTP.status <> 207)  then 		'207 : Server 'dan bilgi geri geldi
+		msgbox "Hata : " & CStr(xmlHTTP.status) & vbcrlf & xmlHTTP.statusText
+	else 
+		
+	end if
+End Sub
+Function AmbalajVarMi()
+	AmbalajVarMi = False
+	for i = 1 to STOK60T.GetRecCount()
+		Ambalaj = STOK60T.FATURASIZMI(i)
+		if trim(Ambalaj) = "E" then
+			AmbalajVarMi = True
+			Exit Function
+		end if
+	Next
+End Function
+Function KodKontrol()
+	for i = 1 to STOK60T.GetRecCount()
+		StokKodu = STOK60T.KOD(i)
+		if trim(StokKodu) <> "" then
+			CHKodu = STOK60E.CH_KODU
+			CHStokKodu = trim(StokKodu)
+			Ambalaj = STOK60T.FATURASIZMI(i)
+			if trim(CHStokKodu) = "" then
+				Hata = Hata & StokKodu & vbcrlf
+			end if
+		end if
+	Next
+	if Hata <> "" then
+		Hata = Hata & "Tofaþ stok kodu karþýlýðý girilmemiþ."
+	end if
+	KodKontrol = Hata
+End Function
+Function KodKontrol2()
+	for i = 1 to STOK60T.GetRecCount()
+		StokKodu = STOK60T.KOD(i)
+		if trim(StokKodu) <> "" then
+			CHKodu = STOK60E.CH_KODU
+			CHStokKodu = trim(StokKodu)
+			Ambalaj = STOK60T.FATURASIZMI(i)
+			if Len(trim(CHStokKodu)) <> 12 and Ambalaj <> "E" then
+				Hata = Hata & StokKodu & vbcrlf
+			end if
+		end if
+	Next
+	if Hata <> "" then
+		Hata = Hata & "Tofaþ stok kodlarý 12 haneli olmalýdýr."
+	end if
+	KodKontrol2 = Hata
+End Function
+
+Function SandikAdediKontrol()
+	for i = 1 to STOK60T.GetRecCount()
+		StokKodu = STOK60T.KOD(i)
+		if trim(StokKodu) <> "" then
+			kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_B_TECH_1",StokKodu,"")
+			Ambalaj = STOK60T.FATURASIZMI(i)
+			BrutAgirlik = STOK60T.BRUTAGIRLIK(i)
+			if trim(Ambalaj) = "" and kontParcaSayisi = 0 and trim(BrutAgirlik) = "" then
+				Hata = Hata & StokKodu & vbcrlf
+			end if
+		end if
+	Next
+	if Hata <> "" then
+		Hata = Hata & "Konteyner parça adedi girilmemiþ."
+	end if
+	SandikAdediKontrol = Hata
+End Function
+Function KonteynerKoduKontrol()
+	for i = 1 to STOK60T.GetRecCount()
+		StokKodu = STOK60T.KOD(i)
+		if trim(StokKodu) <> "" then
+			KonteynerKodu = Doc.GetDBFieldValue("STOK00","TEXT_TECH_1",StokKodu,"")
+			Ambalaj = STOK60T.FATURASIZMI(i)
+			if trim(Ambalaj) <> "E" and trim(KonteynerKodu) = "" then
+				Hata = Hata & StokKodu & vbcrlf
+			end if
+		end if
+	Next
+	if Hata <> "" then
+		Hata = Hata & "Stok Kartý Text-1 'e konteyner kodu girilmemiþ."
+	end if
+	KonteynerKoduKontrol = Hata
+End Function
+Function GetTofasBirim(Birim)
+	Birim = UCase(trim(Birim))
+	Birim = Replace(Birim, ".", "")
+	if Birim="KGR" or Birim="KILO" or Birim="KÝLO" or Birim="KILOGR" Then
+		Birim = "KG"
+	Elseif Birim="M" or Birim="METRE" or Birim="MTR" Then
+		Birim = "MT"
+	Elseif Birim="ADET" or Birim="ADT" Then
+		Birim = "AD"
+	Elseif Birim="GRAM" Then
+		Birim = "GR"
+	End if
+	GetTofasBirim = Birim
+End Function                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

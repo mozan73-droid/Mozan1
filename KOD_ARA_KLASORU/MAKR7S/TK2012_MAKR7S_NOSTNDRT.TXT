@@ -1,0 +1,1326 @@
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : BOM
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÜRÜN AÐAÇLARI TOPLU AKTARMA - TEKKAN
+Kod : 
+Sub Makro1()
+
+' ***** aþaðýdaki exel dosya ismine kendi excel dosya adýnýz ve yolunu yazmalýsýnýz
+	Dosya = "c:\temp\tk2.xlsx"
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(Dosya)
+	Set Sh1 = Wb.Sheets(1)
+
+' ***** aþaðýdaki 5065 rakamý exeldeki örnek yazýlmýþ son satýr numarasýdýr
+' ***** Siz kendi son satýr numaranýzý for/next döngüsüne ve altýndaki Doc.StatusBarMessage satýrýna yazacaksýnýz 
+
+	For I=2 To 1666
+		Doc.StatusBarMessage I & " / 1666"
+		MamulKodu = Sh1.Cells(I,1).value
+
+		If trim(MamulKodu) <> trim(EskiMamulKodu) Then
+			if I<>2 Then
+				nret = Doc.Save_Voucher()
+			end if
+			nret = Doc.New_Voucher()
+			'BOMU01E.MAMULCODE = TemizKod(MamulKodu)
+			BOMU01E.MAMULCODE = MamulKodu
+			Miktar = Sh1.Cells(I,5).value
+			BOMU01E.MAMULMIKTAR = Miktar
+		End If
+		
+		KaynakTipi = Sh1.Cells(I,2).value
+		KaynakKodu = Sh1.Cells(I,3).value
+		OperasyonKodu = Sh1.Cells(I,4).value
+		HMmiktari = Sh1.Cells(I,5).value
+
+'		msgbox "mamulkodu="&mamulkodu
+'		msgbox "miktar="&miktar
+'		msgbox "KaynakTipi =" &Sh1.Cells(I,2).value
+'		msgbox "KaynakKodu =" &Sh1.Cells(I,3).value
+'		msgbox "OperasyonKodu ="& Sh1.Cells(I,4).value
+'		msgbox "HMmiktari =" & Sh1.Cells(I,5).value
+'		exit sub
+
+		if Trim(KaynakTipi)<>"" and Trim(KaynakKodu)<>"" then
+			HMmiktari=HMmiktari&""
+			HMmiktari=Trim(HMmiktari)
+			if HMmiktari<>"" then
+				HMmiktari=Doc.CDBL(HMmiktari)
+			else
+				HMmiktari=0
+			end if
+
+			AltSure = Sh1.Cells(I,6).value
+
+			AltSure=AltSure&""
+			AltSure=Trim(AltSure)
+			if AltSure<>"" then
+				AltSure=Doc.CDBL(AltSure)
+			else
+				AltSure=0
+			end if
+
+			Altsurebirim = Sh1.Cells(I,7).value
+			PKno = Sh1.Cells(I,9).value
+			YariMamul = Sh1.Cells(I,8).value
+			YariMamulMik = Sh1.Cells(I,10).value
+		
+			BOMU01T.AddRow()
+			satirNo = BOMU01T.GetRecCount()
+			BOMU01T.BOMREC_INPUTTYPE(satirNo) = trim(Cstr(KaynakTipi))
+			BOMU01T.BOMREC_KAYNAKCODE(satirNo) = trim(Cstr(TemizKod(KaynakKodu)))
+			BOMU01T.BOMREC_OPERASYON(satirNo) = trim(Cstr(OperasyonKodu))
+			BOMU01T.BOMREC_KAYNAK0(satirNo) = HMmiktari
+			BOMU01T.BOMREC_KAYNAK0_BV(satirNo) = AltSure
+			BOMU01T.BOMREC_KAYNAK0_BU(satirNo) = trim(cstr(Altsurebirim))
+			BOMU01T.BOMREC_YMAMULPS(satirNo) = Cdbl(PKno)
+			BOMU01T.BOMREC_YMAMULCODE(satirNo)= trim(Cstr(YariMamul))
+			BOMU01T.BOMREC_YMAMULPM(satirNo) = Cdbl(YariMamulMik)
+		end if
+		EskiMamulKodu = MamulKodu
+	Next
+	nret = Doc.Save_Voucher()
+	nret = Doc.LoadEmpty_Voucher()
+	Excel.Quit
+End Sub
+
+Function TemizKod(Kod)
+	TemizKod = Replace(trim(Kod), " " , "-")
+End Function                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : BUTCE-01
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Yýllýk Öngörüleri Excel 'den Al
+Kod : 
+Sub Makro1()
+	DosyaAdi = OTOSP1E.FULLFILENAME1
+	if trim(DosyaAdi) = "" Then
+		Doc.d7MsgBox "Dosya Adý seçmelisiniz", "", MB_OK
+		Exit Sub
+	End if
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb1 = Excel.Workbooks.Open(trim(DosyaAdi), False, True)
+	Set Sh1 = Wb1.Sheets(1)
+	
+	OTOSP1L.Empty
+	For i = 2 to 65536
+		Doc.StatusBarMessage "Aktarýlýyor : " & i
+		if trim(Sh1.Cells(i,1).Value) = "" Then Exit For
+		StokKodu = Sh1.Cells(i,1).Value
+		for k = 2 to 13
+
+		tarih = Sh1.Cells(1,k).Value
+		TeslimTarihi = Doc.StrDate_Day(Sh1.Cells(1,k).Value) & "/" & Doc.StrDate_Month(Sh1.Cells(1,k).Value) & "/" & Doc.StrDate_Year(Sh1.Cells(1,k).Value)
+
+'**********
+		TeslimTarihi = Doc.Strdate_increment(TeslimTarihi,-1)
+'**********
+
+			Miktar = Doc.CDbl(Sh1.Cells(i,k).Value)
+			if Miktar > 0 Then
+				satirNo = OTOSP1L.AddRow
+				OTOSP1L.SetCurrentRow(satirNo)
+				OTOSP1L.KOD(satirNo) = StokKodu
+				OTOSP1L.SF_MIKTAR(satirNo) = Miktar
+				OTOSP1L.RTESTARIH(satirNo) = TeslimTarihi
+				OTOSP1L.ATTRIB(satirNo) = "A"
+			End if
+		Next
+	Next
+	Wb1.Close
+	Excel.Quit
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : BUTCE-02
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Aylýk Öngörüleri Excel 'den Al
+Kod : 
+Sub Makro1()
+	DosyaAdi = OTOSP1E.FULLFILENAME1
+	if trim(DosyaAdi) = "" Then
+		Doc.d7MsgBox "Dosya Adý seçmelisiniz", "", MB_OK
+		Exit Sub
+	End if
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb1 = Excel.Workbooks.Open(trim(DosyaAdi), False, True)
+	Set Sh1 = Wb1.Sheets(1)
+	
+	OTOSP1L.Empty
+	For i = 2 to 65536
+		Doc.StatusBarMessage "Aktarýlýyor : " & i
+		if trim(Sh1.Cells(i,1).Value) = "" Then Exit For
+		StokKodu = Sh1.Cells(i,1).Value
+		for k = 2 to 32
+
+		tarih = Sh1.Cells(1,k).Value
+		TeslimTarihi = Doc.StrDate_Day(Sh1.Cells(1,k).Value) & "/" & Doc.StrDate_Month(Sh1.Cells(1,k).Value) & "/" & Doc.StrDate_Year(Sh1.Cells(1,k).Value)
+
+'**********
+		TeslimTarihi = Doc.Strdate_increment(TeslimTarihi,-1)
+'**********
+
+			Miktar = Doc.CDbl(Sh1.Cells(i,k).Value)
+			if Miktar > 0 Then
+				satirNo = OTOSP1L.AddRow
+				OTOSP1L.SetCurrentRow(satirNo)
+				OTOSP1L.KOD(satirNo) = StokKodu
+				OTOSP1L.SF_MIKTAR(satirNo) = Miktar
+				OTOSP1L.RTESTARIH(satirNo) = TeslimTarihi
+				OTOSP1L.ATTRIB(satirNo) = "G"
+			End if
+		Next
+	Next
+	Wb1.Close
+	Excel.Quit
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : CMI
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Arçelik Öngörü Sipariþlerini Excel 'den Al
+Kod : 
+Sub Makro1()
+	DosyaAdi = OTOSP1E.FULLFILENAME1
+	if trim(DosyaAdi) = "" Then
+		Doc.d7MsgBox "Dosya Adý seçmelisiniz", "", MB_OK
+		Exit Sub
+	End if
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb1 = Excel.Workbooks.Open(trim(DosyaAdi), False, True)
+	Set Sh1 = Wb1.Sheets(1)
+	
+	OTOSP1L.Empty
+	For i = 4 to 65536
+		Doc.StatusBarMessage "Aktarýlýyor : " & i
+		if trim(Sh1.Cells(i,4).Value) = "" Then Exit For
+		StokKodu = Sh1.Cells(i,4).Value
+		tarih = Sh1.Cells(i,8).Value
+
+		if trim(Sh1.Cells(i,4).Value) <> "Toplam" Then
+			TeslimTarihi = Doc.StrDate_Day(Sh1.Cells(i,8).Value) & "/" & Doc.StrDate_Month(Sh1.Cells(i,8).Value) & "/" & Doc.StrDate_Year(Sh1.Cells(i,8).Value)
+'			Miktar = Doc.CDbl(Sh1.Cells(i,9).Value)
+			Miktar = Sh1.Cells(i,9).Value
+			Miktar = Replace(Miktar, ",", ".")
+			if trim(TeslimTarihi) = "" then msgbox StokKodu & " -- "&tarih 
+			if Miktar > 0 Then
+				satirNo = OTOSP1L.AddRow
+				OTOSP1L.SetCurrentRow(satirNo)
+				OTOSP1L.KOD(satirNo) = StokKodu
+				OTOSP1L.SF_MIKTAR(satirNo) = Miktar
+
+				OTOSP1L.RTESTARIH(satirNo) = TeslimTarihi
+				OTOSP1L.ATTRIB(satirNo) = "A"
+			End if
+		End if
+	Next
+
+	Wb1.Close
+	Excel.Quit
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : CMI-HES
+Hangi Tablo için : REP17S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : CMI HESAP
+Kod : 
+Public Excel, Wb, Sh1
+Sub Makro1()
+	
+	BalangicTarihi = Inputbox("Hesaplama Yapmak için Görmek istediðiniz Baþlangýç Tarihini Giriniz","Freedom")
+	Rap_CHKod = Inputbox("Ýncelem Ýstediðiniz Carinin Kodunu Giriniz","Freedom")
+	Rap_CHKod = Doc.LeftJustify(Rap_CHKod,16)
+
+	Cariadi = Doc.GetDBFieldValue("CARI00","AD",Rap_CHKod,"")
+
+Set ddd=Doc.CreateSObject("d7Date")
+k = ddd.GetDOW()
+
+	
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.WorkBooks.Add
+	Set Sh1 = Wb.Sheets(1)
+	
+	satirNo = 0
+	satirNo = satirNo + 1
+	
+	
+	Set S74T = Doc.Select1g("as1d2","STOK74T","TARIH >='"& BalangicTarihi &"' & CH_KODU = '"& Rap_CHKod &"'","","EVRAKNO + KOD",-1)
+	Set S70T = Doc.Select1G("0asd2","STOK70T","TARIH >='"& BalangicTarihi &"' & CH_KODU = '"& Rap_CHKod &"'","","EVRAKNO",-1)
+
+	satirNo74 = satirNo
+	satirNo70 = satirNo
+
+	if S74T.GetRecCount() Then
+	Call Baslik()
+	
+	satirNo = satirNo + 1
+
+		for i = 1 to S74T.GetRecCount()
+
+		Doc.StatusBarMessage "Satýnalma Faturalarý Excele Yazýlýyor : " & i & " / " & S74T.GetRowCount()
+			Sh1.Cells(satirNo74,2).Value = trim(S74T.TARIH(i))
+			Sh1.Cells(satirNo74,3).Value = trim(S74T.KOD(i))
+			stokadi = Doc.GetDBFieldValue("STOK00","AD",S74T.KOD(i),"")
+			Sh1.Cells(satirNo74,4).Value = trim(stokadi)
+			Sh1.Cells(satirNo74,5).Value = trim(S74T.EVRAKNO(i))
+			Sh1.Cells(satirNo74,6).Value = trim(S74T.OR_FIYAT(i))
+			Sh1.Cells(satirNo74,7).Value = trim(S74T.SF_MIKTAR(i))
+			Sh1.Cells(satirNo74,8).Value = trim(S74T.SF_SF_UNIT(i))
+			Sh1.Cells(satirNo74,9).Value = trim(S74T.OR_TUTAR(i))
+			satirNo74 = satirNo74 + 1
+		Next
+	End if
+	if S70T.GetRecCount() Then
+		for k = 1 to S70T.GetRecCount()
+		Doc.StatusBarMessage "Satýþ Faturalarý Excele Yazýlýyor : " & i & " / " & S74T.GetRowCount()
+			Sh1.Cells(satirNo70,11).Value = trim(S70T.TARIH(k))
+			Sh1.Cells(satirNo70,12).Value = trim(S70T.EVRAKNO(k))
+			Sh1.Cells(satirNo70,13).Value = trim(S70T.OR_TUTAR(k))
+			satirNo70 = satirNo70 + 1
+		Next
+	End if
+	Excel.Visible = True
+
+End Sub
+Sub Baslik()
+	Sh1.Cells(satirNo, 2).Value = "Sorgulama Tarihi"
+	Sh1.Cells(satirNo, 3).Value = "Sorgulama Tarihi"
+	Sh1.Cells(satirNo, 12).Value = "Sorgulama Tarihi"
+	Sh1.Cells(satirNo, 13).Value = "'" & Doc.StrToNorDate(Doc.Bugun())
+	
+	satirNo = satirNo + 1
+	Sh1.Cells(satirNo,2).Value = "ALIM FATURALARI"
+	Sh1.Cells(satirNo,11).Value = "SATIÞ FATURALARI"
+
+	satirNo = satirNo + 1
+	Sh1.Cells(satirNo,2).Value = "TARÝH"
+	Sh1.Cells(satirNo,3).Value = "MAMUL KODU"
+	Sh1.Cells(satirNo,4).Value = "MAMUL ADI"
+	Sh1.Cells(satirNo,5).Value = "BELGE NO"
+	Sh1.Cells(satirNo,6).Value = "BÝRÝM FÝYAT"
+	Sh1.Cells(satirNo,7).Value = "GELEN MÝKTAR"
+	Sh1.Cells(satirNo,8).Value = "GELEN BÝRÝM"
+	Sh1.Cells(satirNo,9).Value = "TUTAR"
+	Sh1.Cells(satirNo,10).Value = " "
+	Sh1.Cells(satirNo,11).Value = "TARÝH"
+	Sh1.Cells(satirNo,12).Value = "BELGE NO"
+	Sh1.Cells(satirNo,13).Value = "TUTAR"
+
+End Sub                                                                 
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : ETIKET
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Etiket Kartlarini Yarat - Silmeyin !!!!!!!!   ---> 19NSN115611 <-----
+Kod : 
+Sub Makro1()
+	Set d = GetEtiketTable("ETIKET_IDA")
+	MsgBox d.GetRowCount()
+End Sub
+Function GetEtiketTable(EtiketFormu)
+	if Doc.GetDocType = "STOK20" Then
+		Set GetEtiketTable = STOK20_EtiketYarat(EtiketFormu)
+	Elseif Doc.Get
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : KODDUZELT
+Hangi Tablo için : PFRM7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kod Düzelt
+Kod : 
+Sub Makro1()
+	Kod = PFRM7SE_B.SCRIPTTEXT
+	KodArray = Split(Kod, vbcrlf)
+	PFRM7SE_B.SCRIPTTEXT = ""
+	Girinti = 0
+	For i = 0 to uBound(KodArray)
+		Doc.StatusBarMessage i & " / " & uBound(KodArray)
+		satir = KodArray(i)
+		satir = Replace(satir, Chr(9), " ")
+		satir = trim(Satir)
+				
+		if uCase(Left(satir, 7)) = "ELSEIF " Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "ELSE" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "END SUB" Then
+			Girinti = 0
+		Elseif uCase(satir) = "END FUNCTION" Then
+			Girinti = 0
+		Elseif uCase(satir) = "END IF" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "NEXT" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "WEND" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "LOOP" Then
+			Girinti = Girinti - 1
+		Elseif uCase(Left(satir, 5)) = "CASE " Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "END SELECT" Then
+			Girinti = Girinti - 2
+		End if
+		YeniSatir = Girintilisatir(satir, Girinti)
+		
+		PFRM7SE_B.SCRIPTTEXT = trim(PFRM7SE_B.SCRIPTTEXT) & YeniSatir & vbcrlf
+		'  PFRM7SE_B.SCRIPTTEXT = YeniSatir
+		
+		if Ucase(Left(satir, 4)) = "SUB " Then
+			Girinti = 1
+		Elseif Ucase(Left(satir, 9)) = "FUNCTION " Then
+			Girinti = 1
+		Elseif uCase(Left(satir, 3)) = "IF " and Not TekSatirIf(satir) Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 5)) = "CASE " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 12)) = "SELECT CASE " Then
+			Girinti = Girinti  + 2
+		Elseif uCase(Left(satir, 7)) = "ELSEIF " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(satir) = "ELSE" Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 4)) = "FOR " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 6)) = "WHILE " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 3)) = "DO " or trim(uCase(satir)) = "DO" Then
+			Girinti = Girinti  + 1
+		End if
+	Next
+End Sub
+Function Girintilisatir(satir, Girinti)
+	Girintilisatir = satir
+	For i = 1 to Girinti
+		Girintilisatir = Chr(9) & Girintilisatir
+	Next
+End Function
+Function TekSatirIf(satir)
+	TekSatirIf = False
+	k = InStr(1, uCase(satir), "THEN ")
+	if k = 0 Then Exit Function
+	if trim(Mid(satir, k + 5)) <> "" Then
+		TekSatirIf = True
+	End if
+End Function
+Sub TabTrim(satir)
+	While Left(satir, 1) = Chr(9)
+		satir = Mid(satir, 2)
+	Wend
+	While Right(satir, 1) = Chr(9)
+		satir = Left(satir, Len(satir) - 1)
+	Wend
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : KODDUZELT1
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kod Düzelt
+Kod : 
+Sub Makro1()
+	Kod = MAKR7SE_B.SCRIPTTEXT
+	KodArray = Split(Kod, vbcrlf)
+	MAKR7SE_B.SCRIPTTEXT = ""
+	Girinti = 0
+	For i = 0 to uBound(KodArray)
+		Doc.StatusBarMessage i & " / " & uBound(KodArray)
+		satir = KodArray(i)
+		satir = Replace(satir, Chr(9), " ")
+		satir = trim(Satir)
+				
+		if uCase(Left(satir, 7)) = "ELSEIF " Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "ELSE" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "END SUB" Then
+			Girinti = 0
+		Elseif uCase(satir) = "END FUNCTION" Then
+			Girinti = 0
+		Elseif uCase(satir) = "END IF" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "NEXT" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "WEND" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "LOOP" Then
+			Girinti = Girinti - 1
+		Elseif uCase(Left(satir, 5)) = "CASE " Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "END SELECT" Then
+			Girinti = Girinti - 2
+		End if
+		YeniSatir = Girintilisatir(satir, Girinti)
+		
+		MAKR7SE_B.SCRIPTTEXT = trim(MAKR7SE_B.SCRIPTTEXT) & YeniSatir & vbcrlf
+		'  MAKR7SE_B.SCRIPTTEXT = YeniSatir
+		
+		if Ucase(Left(satir, 4)) = "SUB " Then
+			Girinti = 1
+		Elseif Ucase(Left(satir, 9)) = "FUNCTION " Then
+			Girinti = 1
+		Elseif uCase(Left(satir, 3)) = "IF " and Not TekSatirIf(satir) Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 5)) = "CASE " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 12)) = "SELECT CASE " Then
+			Girinti = Girinti  + 2
+		Elseif uCase(Left(satir, 7)) = "ELSEIF " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(satir) = "ELSE" Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 4)) = "FOR " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 6)) = "WHILE " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 3)) = "DO " or trim(uCase(satir)) = "DO" Then
+			Girinti = Girinti  + 1
+		End if
+	Next
+End Sub
+Function Girintilisatir(satir, Girinti)
+	Girintilisatir = satir
+	For i = 1 to Girinti
+		Girintilisatir = Chr(9) & Girintilisatir
+	Next
+End Function
+Function TekSatirIf(satir)
+	TekSatirIf = False
+	k = InStr(1, uCase(satir), "THEN ")
+	if k = 0 Then Exit Function
+	if trim(Mid(satir, k + 5)) <> "" Then
+		TekSatirIf = True
+	End if
+End Function
+Sub TabTrim(satir)
+	While Left(satir, 1) = Chr(9)
+		satir = Mid(satir, 2)
+	Wend
+	While Right(satir, 1) = Chr(9)
+		satir = Left(satir, Len(satir) - 1)
+	Wend
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : KODDUZELT2
+Hangi Tablo için : MAKR8S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Kod Düzelt
+Kod : 
+Sub Makro1()
+	Kod = MAKR8SE_B.SCRIPTTEXT
+	KodArray = Split(Kod, vbcrlf)
+	MAKR8SE_B.SCRIPTTEXT = ""
+	Girinti = 0
+	For i = 0 to uBound(KodArray)
+		Doc.StatusBarMessage i & " / " & uBound(KodArray)
+		satir = KodArray(i)
+		satir = Replace(satir, Chr(9), " ")
+		satir = trim(Satir)
+				
+		if uCase(Left(satir, 7)) = "ELSEIF " Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "ELSE" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "END SUB" Then
+			Girinti = 0
+		Elseif uCase(satir) = "END FUNCTION" Then
+			Girinti = 0
+		Elseif uCase(satir) = "END IF" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "NEXT" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "WEND" Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "LOOP" Then
+			Girinti = Girinti - 1
+		Elseif uCase(Left(satir, 5)) = "CASE " Then
+			Girinti = Girinti - 1
+		Elseif uCase(satir) = "END SELECT" Then
+			Girinti = Girinti - 2
+		End if
+		YeniSatir = Girintilisatir(satir, Girinti)
+		
+		MAKR8SE_B.SCRIPTTEXT = trim(MAKR8SE_B.SCRIPTTEXT) & YeniSatir & vbcrlf
+		'  MAKR8SE_B.SCRIPTTEXT = YeniSatir
+		
+		if Ucase(Left(satir, 4)) = "SUB " Then
+			Girinti = 1
+		Elseif Ucase(Left(satir, 9)) = "FUNCTION " Then
+			Girinti = 1
+		Elseif uCase(Left(satir, 3)) = "IF " and Not TekSatirIf(satir) Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 5)) = "CASE " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 12)) = "SELECT CASE " Then
+			Girinti = Girinti  + 2
+		Elseif uCase(Left(satir, 7)) = "ELSEIF " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(satir) = "ELSE" Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 4)) = "FOR " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 6)) = "WHILE " Then
+			Girinti = Girinti  + 1
+		Elseif uCase(Left(satir, 3)) = "DO " or trim(uCase(satir)) = "DO" Then
+			Girinti = Girinti  + 1
+		End if
+	Next
+End Sub
+Function Girintilisatir(satir, Girinti)
+	Girintilisatir = satir
+	For i = 1 to Girinti
+		Girintilisatir = Chr(9) & Girintilisatir
+	Next
+End Function
+Function TekSatirIf(satir)
+	TekSatirIf = False
+	k = InStr(1, uCase(satir), "THEN ")
+	if k = 0 Then Exit Function
+	if trim(Mid(satir, k + 5)) <> "" Then
+		TekSatirIf = True
+	End if
+End Function
+Sub TabTrim(satir)
+	While Left(satir, 1) = Chr(9)
+		satir = Mid(satir, 2)
+	Wend
+	While Right(satir, 1) = Chr(9)
+		satir = Left(satir, Len(satir) - 1)
+	Wend
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : LG-KI
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ARCELIK-LG Klima Öngörü Sipariþlerini Excel 'den Al
+Kod : 
+Sub Makro1()
+	DosyaAdi = OTOSP1E.FULLFILENAME1
+	if trim(DosyaAdi) = "" Then
+		Doc.d7MsgBox "Dosya Adý seçmelisiniz", "", MB_OK
+		Exit Sub
+	End if
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb1 = Excel.Workbooks.Open(trim(DosyaAdi), False, True)
+	Set Sh1 = Wb1.Sheets(1)
+	
+	OTOSP1L.Empty
+	For i = 20 to 65536
+		Doc.StatusBarMessage "Aktarýlýyor : " & i
+		if trim(Sh1.Cells(i,6).Value) = "" Then Exit For
+		StokKodu = Sh1.Cells(i,6).Value
+		tarih = Sh1.Cells(i,9).Value
+			TeslimTarihi = Doc.StrDate_Day(tarih) & "/" & Doc.StrDate_Month(tarih) & "/" & Doc.StrDate_Year(tarih)
+			Miktar = Doc.CDbl(Sh1.Cells(i,10).Value)
+			if trim(TeslimTarihi) = "" then msgbox StokKodu & " -- "&tarih 
+			if Miktar > 0 Then
+				satirNo = OTOSP1L.AddRow
+				OTOSP1L.SetCurrentRow(satirNo)
+				OTOSP1L.KOD(satirNo) = StokKodu
+				OTOSP1L.SF_MIKTAR(satirNo) = Miktar
+				OTOSP1L.RTESTARIH(satirNo) = TeslimTarihi
+				OTOSP1L.ATTRIB(satirNo) = "A"
+			End if
+	Next
+
+	Wb1.Close
+	Excel.Quit
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : OZDOKU
+Hangi Tablo için : STOK00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	Set Excel = CreateObject("Excel.Application")
+	Set WB = Excel.Workbooks.Add
+	Set Sh = WB.Sheets(1)
+
+	Excel.Visible = True
+
+	Set S00 = Doc.Select1("asda2","STOK00","GK_10= 'AYDIN1'","",-1)
+	if S00.GetRecCount() > 0 then
+
+	satirno = 2
+		for i = 1 to S00.GetRecCount()
+	
+		toplam_ND_stok = 0
+		ND_stok = 0
+		ZZKRT_stok = 0
+
+			if Right(trim(S00.KOD(i)),1) = "K" Then
+				ZZKRT_stok=Doc.Stok00c_SonMik(S00.KOD(i),"ZZKRT")
+
+				for ii = 1 to S00.GetRecCount()
+					if left(S00.KOD(ii),6) = left(S00.KOD(i),6) then
+						ND_stok=Doc.Stok00c_SonMik(S00.KOD(ii),"ND")
+						toplam_ND_stok =toplam_ND_stok + ND_stok
+					End if
+				Next
+
+				Sh.Cells(1,2) = "Stok Adý"
+				Sh.Cells(1,3) = "ZZKRT Stok"
+				Sh.Cells(1,4) = "ND Stok"
+
+				Sh.Cells(2,2) = S00.KOD(i)
+				Sh.Cells(2,3) = ZZKRT_stok
+				Sh.Cells(2,4) = toplam_ND_stok 
+
+	satirno = satirno + 1
+			End if
+		Next
+	End if
+End Sub                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : PERSONEL
+Hangi Tablo için : PERSM0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : TOPLU PERSONEL AKTARMA
+Kod : 
+Sub IseGirisBilgileriDoldur(ByVal ExcelSheet,ByVal Satir,ByVal PersonelNo)
+	Dim Tbl_PERSMBT2
+	Doc.RunCommand "CMD_CALISMA_UCRET_YENI_GIRIS_BASLA"
+	Set Tbl_PERSMBT2=Doc.GetTableObject("PERSM0BT2")
+
+	Dim AlanIsmi
+	Dim AlanDegeri
+	Dim Sutun
+	For Sutun=2 To 100
+		AlanIsmi=Trim(ExcelSheet.Cells(3, Sutun))
+		AlanDegeri=ExcelSheet.Cells(Satir, Sutun)
+		If AlanIsmi<>"" Then
+			Tbl_PERSMBT2.SetFieldValue AlanIsmi,0,AlanDegeri
+		End If
+	Next
+
+	Doc.RunCommand "CMD_CALISMA_UCRET_YENI_GIRIS_OK"
+End Sub
+
+
+Sub Makro1()
+	Dim myExcel
+	Dim mySheet
+	Set myExcel = CreateObject("Excel.Application")
+
+	myExcel.Workbooks.Open ("C:\CALISMA.XLS")
+	Set mySheet = myExcel.Workbooks("CALISMA.XLS").Worksheets("CALISMA")
+
+	Dim PersonelNo
+
+	Dim I		
+	For I=4 To 1000
+		PersonelNo=Trim(mySheet.Cells(I, 1))
+		If PersonelNo<>"" Then
+			PersonelNo=Doc.LeftJustify(PersonelNo,16)
+			Doc.Load_Voucher PersonelNo
+			If Trim(Doc.GetLoadedVoucher())=Trim(PersonelNo) Then
+				Call IseGirisBilgileriDoldur(mySheet,I,PersonelNo)
+				Doc.Save_Voucher
+			Else
+				MsgBox(Trim(PersonelNo) & " Nolu Personel Bulunamadý")
+			End If
+		End If
+	Next
+
+	myExcel.Quit
+
+	Doc.LoadEmpty_Voucher
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : SATIS
+Hangi Tablo için : STOK46
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÇMI, LG, EKI Dönemlik Dökümü
+Kod : 
+Dim chkodu, hesap_baslangic, hesap_bitis, satirNo1,Excel,Wb,Sh1,satinalma_tutar,satis_tutar
+Dim chkodu1, chkodu2, chkodu3
+Sub Makro1()
+	
+	hesap_baslangic = Inputbox("Hesaplamanýn Baþlangýç Gününü Giriniz","Freedom","2012/01/09")
+	hesap_bitis = Inputbox("Hesaplamanýn Bitiþ Gününü Giriniz","Freedom","2012/01/14")
+	
+	chkodu1 = "120 01 003"
+	chkodu2 = "120 01 004"
+	chkodu3 = "120 01 054"
+	
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.WorkBooks.Add
+	' Wb.Sheets.Delete
+	' Set Sh1 = Wb.Sheets(1)
+	
+	for i = 1 to 3
+		Set Sh1 = Wb.Sheets.Add
+		if i = 1 then
+			chkodu = chkodu1
+		elseif i = 2 then
+			chkodu = chkodu2
+		elseif i = 3 then
+			chkodu = chkodu3
+		End if
+		satirNo1 = 1
+		satinalma_tutar = 0
+		satis_tutar = 0
+
+		Sh1.Cells(1, 1).Value = "Hesaplama Tarihi"
+		Sh1.Cells(1, 3).Value = "'" & Doc.StrToNorDate(Doc.Bugun())
+		
+		Sh1.Columns("A").ColumnWidth = 10
+		Sh1.Columns("B").ColumnWidth = 12
+		Sh1.Columns("C").ColumnWidth = 34
+		Sh1.Columns("D:M").ColumnWidth = 11
+		Sh1.Columns("J").ColumnWidth = 25
+		
+		Call Satinalma()
+		satirNo1 = satirNo1 + 1
+		Sh1.Cells(SatirNo1,7).Value = satinalma_tutar
+		Sh1.Cells(2,7).Value = satinalma_tutar
+		
+		set range=Excel.Range(Sh1.Cells(4,7),Sh1.Cells(satirNo1,7))
+		range.Interior.Color = RGB(223,255,255)
+		
+		Call Satis()
+		satirNo1 = satirNo1 + 1
+		Sh1.Cells(SatirNo1,11).Value = satis_tutar
+		Sh1.Cells(2,11).Value = satis_tutar
+		
+		Sh1.Cells(2,12).Value = satis_tutar - satinalma_tutar
+		
+		set range=Excel.Range(Sh1.Cells(4,11),Sh1.Cells(satirNo1,11))
+		range.Interior.Color = RGB(223,255,255)
+		range.NumberFormat = "#,##0.00"
+		
+		set range=Excel.Range(Sh1.Cells(2,7),Sh1.Cells(2,12))
+		range.HorizontalAlignment = -4108
+		range.Font.Color = RGB(255,0,0)
+		range.NumberFormat = "#,##0.00"
+		range.Font.Bold = True
+		range.Font.Size = 12
+		
+		set range=Excel.Range(Sh1.Cells(5,1),Sh1.Cells(satirNo1,12))
+		range.Font.Bold = False
+		range.Font.Size = 9
+		
+		set range=Excel.Range(Sh1.Cells(4,7),Sh1.Cells(satirNo1,7))
+		range.Interior.Color = RGB(223,255,255)
+		range.NumberFormat = "#,##0.00"
+	Next
+	
+	Excel.Visible = True
+End Sub
+
+Sub Satinalma()
+	satirNo1 = satirNo1 + 3
+	Sh1.Cells(SatirNo1,1).Value = "Tarih"
+	Sh1.Cells(SatirNo1,2).Value = "Stok Kodu"
+	Sh1.Cells(SatirNo1,3).Value = "Stok Adý"
+	Sh1.Cells(SatirNo1,4).Value = "Ýrsaliye No"
+	Sh1.Cells(SatirNo1,5).Value = "Ýþbirim Fiyatý"
+	Sh1.Cells(SatirNo1,6).Value = "Ýþlem Miktarý"
+	Sh1.Cells(SatirNo1,7).Value = "Tutarý"
+	
+	set range=Excel.Range(Sh1.Cells(SatirNo1,1),Sh1.Cells(SatirNo1,12))
+	range.HorizontalAlignment = -4108
+	range.Font.Bold = True
+	range.Font.Size = 11
+	
+	Call Satinalmairsaliyesi()
+	Call SatinalmaFaturasi()
+End Sub
+
+Sub Satinalmairsaliyesi()
+	
+	msgbox chkodu
+	Set S29T = Doc.Select1g("55fhufr","STOK29T","TARIH >= '"& hesap_baslangic &"' & TARIH <= '"& hesap_bitis &"' & CARIHESAPCODE = '"& chkodu &"' & FATURALANMAOK <> 'E'","TARIH+EVRAKNO+KOD","TARIH+EVRAKNO+KOD", -1)
+	
+	if S29T.GetRecCount() > 0 then
+		
+		Chadi = Doc.GetDBFieldValue("CARI00","AD",S29T.CARIHESAPCODE(1),"")
+'		Sh1.Cells(3,1).Value = S29T.CARIHESAPCODE(1) &" "& Trim(Chadi)
+		Sh1.Cells(3,1).Value = Trim(Chadi)
+		
+		satirNo1 = satirNo1 + 1
+		
+		set range=Excel.Range(Sh1.Cells(3,1),Sh1.Cells(3,7))
+		range.merge
+		range.HorizontalAlignment = -4108
+		range.Font.Bold = True
+		range.Font.Size = 13
+		
+		for i = 1 to S29T.GetRecCount()
+			stokadi = Doc.GetDBFieldValue("STOK00","AD",S29T.KOD(i),"")
+			Sh1.Cells(SatirNo1,1).Value = S29T.TARIH(i)
+			Sh1.Cells(SatirNo1,2).Value = S29T.KOD(i)
+			Sh1.Cells(SatirNo1,3).Value = trim(stokadi)
+			Sh1.Cells(SatirNo1,4).Value = S29T.EVRAKNO(i)
+			Sh1.Cells(SatirNo1,5).Value = S29T.TL_FIYAT(i)
+			Sh1.Cells(SatirNo1,6).Value = S29T.SF_MIKTAR(i)
+			Sh1.Cells(SatirNo1,7).Value = S29T.TL_TUTAR(i)
+			satinalma_tutar = satinalma_tutar + S29T.TL_TUTAR(i)
+			satirNo1 = satirNo1 + 1
+		Next
+	End if
+End Sub
+Sub SatinalmaFaturasi()
+	Set S74T = Doc.Select1g("5asas2ufr","STOK74T","TARIH >= '"& hesap_baslangic &"' & TARIH <= '"& hesap_bitis &"' & CH_KODU = '"& chkodu &"' ","TARIH+EVRAKNO+KOD","TARIH+EVRAKNO+KOD", -1)
+	
+	if S74T.GetRecCount() > 0 then
+		for i = 1 to S74T.GetRecCount()
+			stokadi = Doc.GetDBFieldValue("STOK00","AD",S74T.KOD(i),"")
+			Sh1.Cells(SatirNo1,1).Value = S74T.TARIH(i)
+			Sh1.Cells(SatirNo1,2).Value = S74T.KOD(i)
+			Sh1.Cells(SatirNo1,3).Value = trim(stokadi)
+			Sh1.Cells(SatirNo1,4).Value = S74T.EVRAKNO(i)
+			Sh1.Cells(SatirNo1,5).Value = S74T.TL_FIYAT(i)
+			Sh1.Cells(SatirNo1,6).Value = S74T.SF_MIKTAR(i)
+			Sh1.Cells(SatirNo1,7).Value = S74T.TL_TUTAR(i)
+			satinalma_tutar = satinalma_tutar + S74T.TL_TUTAR(i)
+			satirNo1 = satirNo1 + 1
+		Next
+	End if
+End Sub
+
+Sub Satis()
+	satirNo1 = 4
+	Sh1.Cells(SatirNo1,9).Value = "Tarih"
+	Sh1.Cells(SatirNo1,10).Value = "Belge No"
+	Sh1.Cells(SatirNo1,11).Value = "Tutarý"
+	
+	set range=Excel.Range(Sh1.Cells(SatirNo1,1),Sh1.Cells(SatirNo1,7))
+	range.HorizontalAlignment = -4108
+	range.Font.Bold = True
+	range.Font.Size = 10
+	
+	Call Satisirsaliyesi()
+	Call SatisFaturasi()
+End Sub
+
+Sub Satisirsaliyesi()
+	
+	Set S60T = Doc.Select1g("55fhufr","STOK60T","TARIH >= '"& hesap_baslangic &"' & TARIH <= '"& hesap_bitis &"' & CH_KODU = '"& chkodu &"' & FATURALANMAOK <> 'E'","TARIH+EVRAKNO","TARIH+EVRAKNO", -1)
+	
+	Chadi = Doc.GetDBFieldValue("CARI00","AD",S60T.CH_KODU(1),"")
+'	Sh1.Cells(3,9).Value = S60T.CH_KODU(1) &" "& Trim(Chadi)
+	Sh1.Cells(3,9).Value = Trim(Chadi)
+	
+	set range=Excel.Range(Sh1.Cells(3,9),Sh1.Cells(3,11))
+	range.merge
+	range.HorizontalAlignment = -4108
+	range.Font.Bold = True
+	range.Font.Size = 13
+	
+	satirNo1 = satirNo1 + 1
+	if S60T.GetRecCount() > 0 then
+		for i = 1 to S60T.GetRecCount()
+			stokadi = Doc.GetDBFieldValue("STOK00","AD",S60T.KOD(i),"")
+			Sh1.Cells(SatirNo1,9).Value = S60T.TARIH(i)
+			Sh1.Cells(SatirNo1,10).Value = S60T.EVRAKNO(i)
+			Sh1.Cells(SatirNo1,11).Value = S60T.TL_TUTAR(i)
+			satis_tutar = satis_tutar + S60T.TL_TUTAR(i)
+			satirNo1 = satirNo1 + 1
+		Next
+	End if
+End Sub
+Sub SatisFaturasi()
+	Set S70T = Doc.Select1g("5asas2ufr","STOK70T","TARIH >= '"& hesap_baslangic &"' & TARIH <= '"& hesap_bitis &"' & CH_KODU = '"& chkodu &"' ","TARIH+EVRAKNO+KOD","TARIH+EVRAKNO+KOD", -1)
+	
+	if S70T.GetRecCount() > 0 then
+		for i = 1 to S70T.GetRecCount()
+			stokadi = Doc.GetDBFieldValue("STOK00","AD",S70T.KOD(i),"")
+			Sh1.Cells(SatirNo1,9).Value = S70T.TARIH(i)
+			Sh1.Cells(SatirNo1,10).Value = S70T.EVRAKNO(i)
+			Sh1.Cells(SatirNo1,11).Value = S70T.TL_TUTAR(i)
+			satis_tutar = satis_tutar + S70T.TL_TUTAR(i)
+			satirNo1 = satirNo1 + 1
+		Next
+	End if
+End Sub                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : SIPARIS
+Hangi Tablo için : OTOSP1
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Öngörü sipariþinin belirli tarih aralýðýný satýþ sipariþine aktarma
+Kod : 
+Sub Makro1()
+	if trim(OTOSP1E.KSN_TARIH1) = "" or trim(OTOSP1E.KSN_TARIH2) = "" Then
+		k = Doc.d7MsgBox("Kesin Sipariþ tarih aralýðý girmelisiniz", "Ýþlem Kesildi", MB_OK)
+		Exit Sub
+	End if
+	chkodu = OTOSP1E.CH_KODU
+	Set Doc1 = Doc.CreateDocumentNoUI("STOK40", "")
+	Set S40E = Doc1.GetTableObject("STOK40E")
+	Set S40T = Doc1.GetTableObject("STOK40T")
+	
+'	Call AcikSiparisleriKapat(chkodu)
+
+	Doc1.New_Voucher
+
+	chkodu = OTOSP1E.CH_KODU
+	S40E.MUSTERIKODU = OTOSP1E.CH_KODU
+	For i = 1 to OTOSP1L.GetRowCount()
+		Doc.StatusBarMessage "Sipariþe aktarýlýyor : (%" & Doc.Round(i /  OTOSP1L.GetRowCount() * 100,0) & ")"
+		if OTOSP1L.REV_RTESTARIH(i) >= OTOSP1E.KSN_TARIH1 and OTOSP1L.REV_RTESTARIH(i) <= OTOSP1E.KSN_TARIH2 Then
+			S40T.AddRow()
+			satirNo = S40T.GetRowCount()
+			S40T.SetCurrentRow(satirNo)
+			S40T.KOD(satirNo) = OTOSP1L.KOD(i)
+			S40T.SF_MIKTAR(satirNo) = OTOSP1L.SF_MIKTAR(i)
+			S40T.RTESTARIH(satirNo) = OTOSP1L.RTESTARIH(i)
+			S40T.REV_RTESTARIH(satirNo) = OTOSP1L.REV_RTESTARIH(i)
+			OTOSP1L.ACIKKAPALI2(i) = "K"
+		End if
+	Next
+
+	Doc1.Save_Voucher
+	Doc.Save_Voucher
+
+	k = Doc.d7MsgBox(trim(S40E.EVRAKNO) & " No.lu sipariþ oluþturuldu", "Ýþlem tamamlandý", MB_OK)
+	Doc1.LoadEmpty_Voucher()
+	Doc.DeleteDocumentNoUI "STOK40", ""
+End Sub
+
+Sub AcikSiparisleriKapat(chkodu)
+
+msgbox chkodu
+	Set S40T=Doc.Select1("SD12S","STOK40T","MUSTERIKODU ='"& chkodu &"' & ACIKKAPALI <>'K'","",-1)
+	for i=1  to S40T.GetRecCount()
+		retcode=Doc.Load_Voucher(S40T.EVRAKNO(i))
+		if retcode=0 then
+			Updated=FALSE
+			for k=1 to STOK40T.GetRecCount()
+				if STOK40T.ACIKKAPALI(k)<>"K" then
+					STOK40T.ACIKKAPALI(k)="K"
+					Updated=TRUE
+				end if
+			next
+			if Updated then
+				retcode=Doc.Save_Voucher()
+			end if
+		end if
+	next
+End Sub                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : STOK20
+Hangi Tablo için : STOK20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Liste Tabýndaki Üretim Fiþlerinin Hammaddelerini Hesapla
+Kod : 
+Sub Makro1()
+	For i = 1 to LISTET.GetRowCount()
+		Doc.Load_Voucher LISTET.EVRAKNO(i)
+		Doc.RunCommand "CMD_SIRALIK_ISLEM_002"
+		Doc.RunCommand "CMD_STOK01DEBULUNDUMU_BILGISATIRIE"
+		Doc.Save_Voucher
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : TK2012 / Uygulama : MAKR7S
+Makro Kodu : bom-01
+Hangi Tablo için : BOMU01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : ÜRÜN AÐAÇLARI TOPLU AKTARMA - TEKKAN
+Kod : 
+Sub Makro1()
+
+' ***** aþaðýdaki exel dosya ismine kendi excel dosya adýnýz ve yolunu yazmalýsýnýz
+	Dosya = "c:\mamulrev03.xlsx"
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(Dosya)
+	Set Sh1 = Wb.Sheets(1)
+
+' ***** aþaðýdaki 5065 rakamý exeldeki örnek yazýlmýþ son satýr numarasýdýr
+' ***** Siz kendi son satýr numaranýzý for/next döngüsüne ve altýndaki Doc.StatusBarMessage satýrýna yazacaksýnýz 
+
+	For I=2 To 10 '1749
+		Doc.StatusBarMessage I & " / 1749"
+		MamulKodu = Sh1.Cells(I,1).value
+		If trim(MamulKodu) <> trim(EskiMamulKodu) Then
+			if I<>2 Then
+				nret = Doc.Save_Voucher()
+			end if
+			nret = Doc.New_Voucher()
+			'BOMU01E.MAMULCODE = TemizKod(MamulKodu)
+			BOMU01E.MAMULCODE = MamulKodu
+			Miktar = Sh1.Cells(I,8).value
+			BOMU01E.MAMULMIKTAR = Miktar
+		End If
+		
+
+		'MSGBOX Miktar
+		'MSGBOX I 
+
+		KaynakTipi = Sh1.Cells(I,3).value
+		KaynakKodu = Sh1.Cells(I,4).value
+		OperasyonKodu = Sh1.Cells(I,6).value
+		HMmiktari = Sh1.Cells(I,8).value
+
+		if Trim(KaynakTipi)<>"" and Trim(KaynakKodu)<>"" then
+			HMmiktari=HMmiktari&""
+			HMmiktari=Trim(HMmiktari)
+			if HMmiktari<>"" then
+				HMmiktari=Doc.CDBL(HMmiktari)
+			else
+				HMmiktari=0
+			end if
+
+			AltSure = Sh1.Cells(I,10).value
+
+			AltSure=AltSure&""
+			AltSure=Trim(AltSure)
+			if AltSure<>"" then
+				AltSure=Doc.CDBL(AltSure)
+			else
+				AltSure=0
+			end if
+
+			Altsurebirim = Sh1.Cells(I,11).value
+			PKno = Sh1.Cells(I,13).value
+			YariMamul = Sh1.Cells(I,12).value
+			YariMamulMik = Sh1.Cells(I,14).value
+		
+			BOMU01T.AddRow()
+			satirNo = BOMU01T.GetRecCount()
+			BOMU01T.BOMREC_INPUTTYPE(satirNo) = trim(Cstr(KaynakTipi))
+			BOMU01T.BOMREC_KAYNAKCODE(satirNo) = trim(Cstr(TemizKod(KaynakKodu)))
+			BOMU01T.BOMREC_OPERASYON(satirNo) = trim(Cstr(OperasyonKodu))
+			BOMU01T.BOMREC_KAYNAK0(satirNo) = HMmiktari
+			BOMU01T.BOMREC_KAYNAK0_BV(satirNo) = AltSure
+			BOMU01T.BOMREC_KAYNAK0_BU(satirNo) = trim(cstr(Altsurebirim))
+			BOMU01T.BOMREC_YMAMULPS(satirNo) = Cdbl(PKno)
+			BOMU01T.BOMREC_YMAMULCODE(satirNo)= trim(Cstr(YariMamul))
+			BOMU01T.BOMREC_YMAMULPM(satirNo) = Cdbl(YariMamulMik)
+		end if
+		EskiMamulKodu = MamulKodu
+	Next
+	nret = Doc.Save_Voucher()
+	nret = Doc.LoadEmpty_Voucher()
+	Excel.Quit
+End Sub
+
+Function TemizKod(Kod)
+	TemizKod = Replace(trim(Kod), " " , "-")
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

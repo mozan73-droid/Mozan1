@@ -1,0 +1,1334 @@
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_CRM_E
+Hangi Tablo icin : 
+Filtre Tablosu : 
+Aciklama : 
+Tablo Adi : ZU_CRM Modülü Ana Tablosu
+Prosedur / Kod : 
+
+'#Option Explicit
+
+'Aþaðýdaki Metodlarda MsgBox Yerine Doc.MsgBox Kullanýlmalýdýr. MsgBox ve benzeri iþlemi durdurup bekletecek tüm 
+'iþlemlerden kaçýnýlmalýdýr. Yoksa veri tabanýný da duraklama bitinceye kadar kýsmi olarak kilitleyebilir
+
+'Sub CALCULATEROW_AFTERNEWROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = RowSet'e her yeni satýr eklenince çaðrýlýyor.
+'					Ana tablolarda yeni belge ile çaðrýlýyor
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr ekleniyor ki kullanýcý bilgi giriþi yapabilsin diye.
+'Kullaným Notlarý = Kullaným Örneði : Varsayýlan deðerlerin atanmasý.  
+'					APPDFV0 modülü ile de varsayýlan deðer atanabilir, ama düz deðer atamak yerine hesaplama ile varsayýlan deðerler '					atanacaksa bu metod kullanýlabilir.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTEREMPTY
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = CALCULATEROW_AFTERNEWROW benzeri
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki tablolar okunduktan sonra her bir satýr için çaðrýlýyor.
+'Kullaným Notlarý = User makrolardan da RS.Run_CALCULATEROW_AFTERFETCH ile çekirdek yazýlýmdaki hesaplamalar çaðrýlabilir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERBROWSEFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Sadece bir tablo F2 ile browse edilirken ekranda gösterilen her bir satýr için çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_AFTERROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif satýr yapýnca çaðrýlýyor. 
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr eklendikten sonra o satýr aktif satýr yapýlýrken de çaðrýlýyor.
+'Kullaným Notlarý = Kullaným Örneði : Yeni geçilen satýra ait bazý bilgilerin derlenip gösterilmesi gerekiyorsa bu metod kullanýlabilir. 
+'					T.GetCurrentRow() yeni geçilen satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_BEFOREROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif iken baþka satýra geçerken çaðrýlýyor.
+'Kullaným Notlarý = T.GetCurrentRow() çýkýlmakta olan satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERDELETEROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýr silince çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function CONTROLROWDATA_BEFORELOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüle yeni bir belge ( yeni veya olan ) yüklenirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CONTROLROWDATA_BEFOREDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüldeki bir belge silinirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub CALCULATEROW_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_ROUND2_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_BEFORESHRINK
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Tablolarda bir kaydýn dolu kabul edilebilecek bir kayýt olup olmadýðýnýn tanýmýna göre tümüyle boþ olan satýrlar yok '				ediliyorlar. Bir belgeden çýkarken, bir belge kaydedilirken veya silinirken bu þekilde boþ satýrlar eleniyor.  Bu iþlem '				kullanýcý makrolarýndan RS.SafePack() komutu ile de yapýlabiliyor. Bu iþleme baþlamadan belgedeki her tablonun her satýrý '				için ayrý ayrý bu metod çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function VALIDATEROWDATA_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND2_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya ""deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND3_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERSAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun her '				satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Kaydý kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýnda iþlem yapýlmasý gibi.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belgenin  silinme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun '				her satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Silinme kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýndaiþlem yapýlmasý gibi. 
+'		Dikkat : Bu aþamada rowsetler boþ olacaðý için belgenin eski haline veya belg numarasýna vs eriþmek için bir kurgu yapýlmalý '		(mesela belge silinirken CALCULATEROW_BEFORESAVEVOUCHER metodonda SetDocParameterValue veya benzer yöntemler ile saklanmasý istenen '		bilgiler saklanýp, bu metod içinde SetDocParameterValue ile geri elde edilerek iþlem yapýlabilir )
+'Return Deðeri = Yok
+'End Sub
+
+Kolon Tanimlari : 
+COLUMN_NAME=EVRAKNO	FW_DATA_TYPE=CHAR	LABEL1=ZU_CRM Modülü : Belge No	
+COLUMN_NAME=ELOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=ELOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=ELOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=ELOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=Son Kaydedilen Bilgisayar	
+COLUMN_NAME=ELOG_IMPORTMU	FW_DATA_TYPE=CHAR	LABEL1=@H Son Kayýt Toplu Veri Aktarma (Import) Ýle mi Yapýldý	
+COLUMN_NAME=ELOG_PROGID	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=ELOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=ELOG_APP	FW_DATA_TYPE=CHAR	LABEL1=Kaydeden Yazýlým Uygulama Modülü	
+COLUMN_NAME=ELOG_BAPP	FW_DATA_TYPE=CHAR	LABEL1=Kaydeden Üst Yazýlým Uygulama Modülü	
+COLUMN_NAME=BOWNER_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=BOWNER_PASSWORD	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+
+----------------------------------------------------------------
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_CRM_T
+Hangi Tablo icin : ZU_CRM_E
+Filtre Tablosu : 
+Aciklama : 
+Tablo Adi : ZU_CRM Modülü Ana Tablosu Tablosuna Baðlý Çok Satýrlý Tablo
+Prosedur / Kod : 
+
+Sub CH_AD_Calc()
+	T.CH_AD=Doc.GetDBFieldValue("CARI00","AD",T.CH_KODU," ")
+End Sub
+
+Kolon Tanimlari : 
+COLUMN_NAME=KOD	FW_DATA_TYPE=CHAR	LABEL1=ZU_CRM Modülü : Belge No	
+COLUMN_NAME=TRNUM	FW_DATA_TYPE=CHAR	LABEL1=Artikel No	
+COLUMN_NAME=SRNUM	FW_DATA_TYPE=CHAR	LABEL1=Satýr No	
+COLUMN_NAME=AP10	FW_DATA_TYPE=CHAR	LABEL1=Aktif Pasif (1/0)	
+COLUMN_NAME=CH_KODU	FW_DATA_TYPE=CHAR	LABEL1=C/H Kodu ( Geçerli Deðer Zorunlu )	
+COLUMN_NAME=YIL	FW_DATA_TYPE=CHAR	LABEL1=Yýl	
+COLUMN_NAME=HEDEF_SATIS	FW_DATA_TYPE=DOUBLE	LABEL1=Hedef Satýþ Rakamý	
+COLUMN_NAME=PARABIRIMI	FW_DATA_TYPE=CHAR	LABEL1=Para Birimi	
+COLUMN_NAME=REFDATE01	FW_DATA_TYPE=CDATE	LABEL1=Referans Tarih Deðeri 1	
+COLUMN_NAME=REFDATE02	FW_DATA_TYPE=CDATE	LABEL1=Referans Tarih Deðeri 2	
+COLUMN_NAME=REFDATE03	FW_DATA_TYPE=CDATE	LABEL1=Referans Tarih Deðeri 3	
+COLUMN_NAME=REFNUM01	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 1	
+COLUMN_NAME=REFNUM02	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 2	
+COLUMN_NAME=REFNUM03	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 3	
+COLUMN_NAME=REFTEXT01	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 1	
+COLUMN_NAME=REFTEXT02	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 2	
+COLUMN_NAME=REFTEXT03	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 3	
+COLUMN_NAME=TLOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=TLOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=TLOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=TLOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=TLOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=CH_AD	FW_DATA_TYPE=CHAR	LABEL1=C/H Ünvaný	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+DB_ISLEM_TURU=CREATE_UNIQUE_INDEX	COLUMNS=KOD,TRNUM	
+
+----------------------------------------------------------------
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_SCCHECKTP
+Hangi Tablo icin : SCCHECKE
+Filtre Tablosu : SCCHECKTP
+Aciklama : 
+Tablo Adi : Standart Maliyet Kontrol / Ýnceleme Konsolu ve Standart Maliyet Kütüphanesi : Ürün Listesi Tablosuna Baðlý Eklenti / Extension Tablosu
+Prosedur / Kod : 
+
+'#Option Explicit
+
+'************************************************************************************************************************************
+' Dikkat Alanlarýn Hesaplamasý Ýle Ýlgili Eventlerinin Tümü MAKR8S Modülünde SCCHECKTP Tablosu Event Makrosunda Yönetilmelidir:
+' Bunun için :
+' 1 ) *** ile belirtilen kýsma kadar olanlarý SCCHECKTP tablosunun event makrolarýna kopyalanmalý,
+' 2 ) Eðer SCCHECKTP Tablosu Event Makrosunda AfterLoad ve BeforeSave Eventleri Varsa, Aþaðýdaki Ssubroutine'lerin Ýçeriði SCCHECKTP Event Makrosundaki Sub larýn Ýçine Ýave Edilmelidir
+'
+'
+'
+'
+'
+'Sub ZU_SCCHECKTP_PERS00_ABC_PERS00_REC_Calc()
+'	Dim RS_SCCHECKTP
+'	Set RS_SCCHECKTP=Doc.GetTableObject("SCCHECKTP")
+'	Dim ret
+'	ret = Doc.ReadBinrec(ThisTableName, "ZU_SCCHECKTP_PERS00_ABC_PERS00_REC", -1, "PERS00", RS_SCCHECKTP.ZU_SCCHECKTP_PERS00_ABC, "")
+'End Sub
+
+'Sub ZU_SCCHECKTP_AREA_1_Calc()
+'	Dim RS_SCCHECKTP
+'	Set RS_SCCHECKTP=Doc.GetTableObject("SCCHECKTP")
+'	RS_SCCHECKTP.ZU_SCCHECKTP_AREA_1 = Doc.DRound(RS_SCCHECKTP.ZU_SCCHECKTP_WIDTH_1 * RS_SCCHECKTP.ZU_SCCHECKTP_LENGHT_1)
+'End Sub
+
+'Sub ZU_SCCHECKTP_ENTEGRATOR_ADI_Calc()
+'	Dim RS_SCCHECKTP
+'	Set RS_SCCHECKTP=Doc.GetTableObject("SCCHECKTP")
+'	RS_SCCHECKTP.ZU_SCCHECKTP_ENTEGRATOR_ADI=Doc.GetGecoValue("|EINVSNDP","AD",RS_SCCHECKTP.ZU_SCCHECKTP_ENTEGRATOR_KODU,-1)
+'End Sub
+
+'Sub ZU_SCCHECKTP_WIDTH_1_AfterValidate()
+'	Call ZU_SCCHECKTP_AREA_1_Calc()
+'End Sub
+
+'Sub ZU_SCCHECKTP_LENGHT_1_AfterValidate()
+'	Call ZU_SCCHECKTP_AREA_1_Calc()
+'End Sub
+
+'Sub ZU_SCCHECKTP_ENTEGRATOR_KODU_AfterValidate()
+'	Call ZU_SCCHECKTP_ENTEGRATOR_ADI_Calc()
+'End Sub
+
+'Sub ZU_SCCHECKTP_PERS00_ABC_AfterValidate()
+'	Call ZU_SCCHECKTP_PERS00_ABC_PERS00_REC_Calc()
+'End Sub
+
+'Sub AfterLoad
+'	Call ZU_SCCHECKTP_ENTEGRATOR_ADI_Calc()
+'	Call ZU_SCCHECKTP_PERS00_ABC_PERS00_REC_Calc()
+'End Sub
+
+'Sub BeforeSave
+'	Call ZU_SCCHECKTP_AREA_1_Calc()
+'End Sub
+
+'************************************************************************************************************************************
+
+Kolon Tanimlari : 
+COLUMN_NAME=VOUCHERNO	FW_DATA_TYPE=CHAR	LABEL1=Standart Maliyet Kontrol / Ýnceleme Konsolu ve Standart Maliyet Kütüphanesi Belge No	
+COLUMN_NAME=TRNUM	FW_DATA_TYPE=CHAR	LABEL1=Artikel No	
+COLUMN_NAME=OR_TRNUM	FW_DATA_TYPE=CHAR	LABEL1=Baðlý Olduðu Veri Tablosu Satýrýnýn Artikel Nosu	
+COLUMN_NAME=SUBSRNUM	FW_DATA_TYPE=CHAR	LABEL1=Satýr No	
+COLUMN_NAME=ALAN_TEXT1	FW_DATA_TYPE=CHAR	LABEL1=Alan Text 1	
+COLUMN_NAME=ALAN_TEXT2	FW_DATA_TYPE=CHAR	LABEL1=Alan Text 2	
+COLUMN_NAME=ALAN_TEXT3	FW_DATA_TYPE=CHAR	LABEL1=Alan Text  3	
+COLUMN_NAME=ALAN_TEXT4	FW_DATA_TYPE=CHAR	LABEL1=Alan Text  4	
+COLUMN_NAME=ALAN_TEXT5	FW_DATA_TYPE=CHAR	LABEL1=Alan Text  5	
+COLUMN_NAME=BAZFIYAT	FW_DATA_TYPE=DOUBLE	LABEL1=Baz Fiyat	
+COLUMN_NAME=ALAN_NUM1	FW_DATA_TYPE=DOUBLE	LABEL1=Alan Num 1	
+COLUMN_NAME=ALAN_NUM2	FW_DATA_TYPE=DOUBLE	LABEL1=Alan Num 2	
+COLUMN_NAME=ALAN_NUM3	FW_DATA_TYPE=DOUBLE	LABEL1=Alan Num 3	
+COLUMN_NAME=ALAN_NUM4	FW_DATA_TYPE=DOUBLE	LABEL1=Alan Num 4	
+COLUMN_NAME=ALAN_NUM5	FW_DATA_TYPE=DOUBLE	LABEL1=Alan Num 5	
+COLUMN_NAME=TLOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=TLOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=TLOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=TLOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=TLOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+DB_ISLEM_TURU=CREATE_UNIQUE_INDEX	COLUMNS=VOUCHERNO,TRNUM	
+DB_ISLEM_TURU=INSERT_EXTENSION_RECORDS	
+
+----------------------------------------------------------------
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_STOK00
+Hangi Tablo icin : STOK00
+Filtre Tablosu : 
+Aciklama : 
+Tablo Adi : Fason için Tüketilecek Kod ve Miktar Tanýmý
+Prosedur / Kod : 
+
+'#Option Explicit
+
+
+
+
+
+
+
+'Aþaðýdaki Metodlarda MsgBox Yerine Doc.MsgBox Kullanýlmalýdýr. MsgBox ve benzeri iþlemi durdurup bekletecek tüm 
+'iþlemlerden kaçýnýlmalýdýr. Yoksa veri tabanýný da duraklama bitinceye kadar kýsmi olarak kilitleyebilir
+
+
+'Sub CALCULATEROW_AFTERNEWROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = RowSet'e her yeni satýr eklenince çaðrýlýyor.
+'					Ana tablolarda yeni belge ile çaðrýlýyor
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr ekleniyor ki kullanýcý bilgi giriþi yapabilsin diye.
+'Kullaným Notlarý = Kullaným Örneði : Varsayýlan deðerlerin atanmasý.  
+'					APPDFV0 modülü ile de varsayýlan deðer atanabilir, ama düz deðer atamak yerine hesaplama ile varsayýlan deðerler '					atanacaksa bu metod kullanýlabilir.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTEREMPTY
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = CALCULATEROW_AFTERNEWROW benzeri
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki tablolar okunduktan sonra her bir satýr için çaðrýlýyor.
+'Kullaným Notlarý = User makrolardan da RS.Run_CALCULATEROW_AFTERFETCH ile çekirdek yazýlýmdaki hesaplamalar çaðrýlabilir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERBROWSEFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor =Sadece bir tablo F2 ile browse edilirken ekranda gösterilen her bir satýr için çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_AFTERROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif satýr yapýnca çaðrýlýyor. 
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr eklendikten sonra o satýr aktif satýr yapýlýrken de çaðrýlýyor.
+'Kullaným Notlarý = Kullaným Örneði : Yeni geçilen satýra ait bazý bilgilerin derlenip gösterilmesi gerekiyorsa bu metod kullanýlabilir. 
+'					T.GetCurrentRow() yeni geçilen satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_BEFOREROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif iken baþka satýra geçerken çaðrýlýyor.
+'Kullaným Notlarý = T.GetCurrentRow() çýkýlmakta olan satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERDELETEROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýr silince çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function CONTROLROWDATA_BEFORELOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüle yeni bir belge ( yeni veya olan ) yüklenirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CONTROLROWDATA_BEFOREDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüldeki bir belge silinirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub CALCULATEROW_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_ROUND2_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_BEFORESHRINK
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Tablolarda bir kaydýn dolu kabul edilebilecek bir kayýt olup olmadýðýnýn tanýmýna göre tümüyle boþ olan satýrlar yok '				ediliyorlar. Bir belgeden çýkarken, bir belge kaydedilirken veya silinirken bu þekilde boþ satýrlar eleniyor.  Bu iþlem '				kullanýcý makrolarýndan RS.SafePack() komutu ile de yapýlabiliyor. Bu iþleme baþlamadan belgedeki her tablonun her satýrý '				için ayrý ayrý bu metod çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function VALIDATEROWDATA_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND2_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirseve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND3_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERSAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun her '				satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Kaydý kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýnda iþlem yapýlmasý gibi.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belgenin  silinme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun '				her satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Silinme kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþkaveri tabanýnda iþlem yapýlmasý gibi. 
+'		Dikkat : Bu aþamada rowsetler boþ olacaðý için belgenin eski haline veya belg numarasýna vs eriþmek için bir kurgu yapýlmalý '		(mesela belge silinirken CALCULATEROW_BEFORESAVEVOUCHER metodonda SetDocParameterValue veya benzer yöntemler ile saklanmasý istenen '		bilgiler saklanýp, bu metod içinde SetDocParameterValue ile geri elde edilerek iþlem yapýlabilir )
+'Return Deðeri = Yok
+'End Sub
+
+Kolon Tanimlari : 
+COLUMN_NAME=KOD	FW_DATA_TYPE=CHAR	LABEL1=Stok Kart Kodu	
+COLUMN_NAME=TRNUM	FW_DATA_TYPE=CHAR	LABEL1=Artikel No	
+COLUMN_NAME=SRNUM	FW_DATA_TYPE=CHAR	LABEL1=Satýr No	
+COLUMN_NAME=HMSTKKOD	FW_DATA_TYPE=CHAR	LABEL1=Tüketilen Stok Kodu	
+COLUMN_NAME=MIKTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Birim Tüketim Miktarý	
+COLUMN_NAME=VARSAYILAN	FW_DATA_TYPE=CHAR	LABEL1=Varsayýlan	DEFAULT_VALUE_1=H	
+COLUMN_NAME=TLOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=TLOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=TLOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=TLOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=TLOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=HMSTKAD	FW_DATA_TYPE=CHAR	
+COLUMN_NAME=HMSTKBIRIM	FW_DATA_TYPE=CHAR	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+DB_ISLEM_TURU=CREATE_UNIQUE_INDEX	COLUMNS=KOD,TRNUM	
+
+----------------------------------------------------------------
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_STOK40E
+Hangi Tablo icin : STOK40E
+Filtre Tablosu : 
+Aciklama : 
+Tablo Adi : Satýþ Sipariþi : Belge Bilgileri Tablosuna Baðlý Ek Tablo
+Prosedur / Kod : 
+
+'#Option Explicit
+
+'Sub ABCKODU_STOK00_REC_Calc()
+'	Dim ret
+'	ret = Doc.ReadBinrec(ThisTableName, "ABCKODU_STOK00_REC", -1, "STOK00", T.ABCKODU, "")
+'End Sub
+
+'Sub CH_AD_Calc()
+'	T.CH_AD=Doc.GetDBFieldValue("CARI00","AD",T.CH_KODU," ")
+'End Sub
+
+'Sub MIKTAR_Calc()
+'	T.MIKTAR = Doc.DRound(T.MIKTAR_GIREN - T.MIKTAR_CIKAN)
+'End Sub
+
+'Sub GRUP_KODU_02_NAME_Calc()
+'	T.GRUP_KODU_02_NAME=Doc.GetGecoValue("CARGK1","AD",T.GRUP_KODU_02,-1)
+'End Sub
+
+'Sub ENTEGRATOR_ADI_Calc()
+'	T.ENTEGRATOR_ADI=Doc.GetGecoValue("|EINVSNDP","AD",T.ENTEGRATOR_KODU,-1)
+'End Sub
+
+'Sub STOK00_KOD_OnValidate()
+'	T.STOK00_KOD=Doc.Get0G0U(T.STOK00_KOD,"",SCAN_ORDER_0G0U,"")
+'	T.STOK00_KOD=Doc.GetKartValue("STOK00","KOD",T.STOK00_KOD,-1)
+'End Sub
+
+'Sub ABCKODU_OnValidate()
+'	T.ABCKODU=Doc.Get0G0U(T.ABCKODU,"",SCAN_ORDER_0G0U,"")
+'	T.ABCKODU=Doc.GetKartValue("STOK00","KOD",T.ABCKODU,-1)
+'End Sub
+
+'Sub CH_KODU_OnValidate()
+'	T.CH_KODU=Doc.GetKartValue("CARI00","KOD",T.CH_KODU,-1)
+'End Sub
+
+'Sub ABCKODU_AfterValidate()
+'	Call ABCKODU_STOK00_REC_Calc()
+'End Sub
+'Sub CH_KODU_AfterValidate()
+'	Call CH_AD_Calc()
+'End Sub
+
+'Sub MIKTAR_GIREN_AfterValidate()
+'	T.MIKTAR_CIKAN=0
+'	Call MIKTAR_Calc()
+'End Sub
+
+'Sub MIKTAR_CIKAN_AfterValidate()
+'	T.MIKTAR_GIREN=0
+'	Call MIKTAR_Calc()
+'End Sub
+
+'Sub GRUP_KODU_02_AfterValidate()
+'	Call GRUP_KODU_02_NAME_Calc()
+'End Sub
+
+'Sub ENTEGRATOR_KODU_AfterValidate()
+'	Call ENTEGRATOR_ADI_Calc()
+'End Sub
+
+
+'Sub CALCULATEROW_ROUND2_BEFORESAVEVOUCHER
+'	If Doc.IsBlank(T.TARIH_001) Then T.TARIH_001=Doc.Today()
+'End Sub
+
+'Sub CALCULATEROW_AFTERFETCH
+'	Call ABCKODU_STOK00_REC_Calc()
+'	Call CH_AD_Calc()
+'	Call MIKTAR_Calc()
+'	Call GRUP_KODU_02_NAME_Calc()
+'	Call ENTEGRATOR_ADI_Calc()
+'End Sub
+
+
+'Aþaðýdaki Metodlarda MsgBox Yerine Doc.MsgBox Kullanýlmalýdýr. MsgBox ve benzeri iþlemi durdurup bekletecek tüm 
+'iþlemlerden kaçýnýlmalýdýr. Yoksa veri tabanýný da duraklama bitinceye kadar kýsmi olarak kilitleyebilir
+
+'Sub CALCULATEROW_AFTERNEWROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = RowSet'e her yeni satýr eklenince çaðrýlýyor.
+'					Ana tablolarda yeni belge ile çaðrýlýyor
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr ekleniyor ki kullanýcý bilgi giriþi yapabilsin diye.
+'Kullaným Notlarý = Kullaným Örneði : Varsayýlan deðerlerin atanmasý.  
+'					APPDFV0 modülü ile de varsayýlan deðer atanabilir, ama düz deðer atamak yerine hesaplama ile varsayýlan deðerler '					atanacaksa bu metod kullanýlabilir.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTEREMPTY
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = CALCULATEROW_AFTERNEWROW benzeri
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki tablolar okunduktan sonra her bir satýr için çaðrýlýyor.
+'Kullaným Notlarý = User makrolardan da RS.Run_CALCULATEROW_AFTERFETCH ile çekirdek yazýlýmdaki hesaplamalar çaðrýlabilir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERBROWSEFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Sadece bir tablo F2 ile browse edilirken ekranda gösterilen her bir satýr için çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_AFTERROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif satýr yapýnca çaðrýlýyor. 
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr eklendikten sonra o satýr aktif satýr yapýlýrken de çaðrýlýyor.
+'Kullaným Notlarý = Kullaným Örneði : Yeni geçilen satýra ait bazý bilgilerin derlenip gösterilmesi gerekiyorsa bu metod kullanýlabilir. 
+'					T.GetCurrentRow() yeni geçilen satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_BEFOREROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif iken baþka satýra geçerken çaðrýlýyor.
+'Kullaným Notlarý = T.GetCurrentRow() çýkýlmakta olan satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERDELETEROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýr silince çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function CONTROLROWDATA_BEFORELOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüle yeni bir belge ( yeni veya olan ) yüklenirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CONTROLROWDATA_BEFOREDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüldeki bir belge silinirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub CALCULATEROW_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_ROUND2_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_BEFORESHRINK
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Tablolarda bir kaydýn dolu kabul edilebilecek bir kayýt olup olmadýðýnýn tanýmýna göre tümüyle boþ olan satýrlar yok '				ediliyorlar. Bir belgeden çýkarken, bir belge kaydedilirken veya silinirken bu þekilde boþ satýrlar eleniyor.  Bu iþlem '				kullanýcý makrolarýndan RS.SafePack() komutu ile de yapýlabiliyor. Bu iþleme baþlamadan belgedeki her tablonun her satýrý '				için ayrý ayrý bu metod çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function VALIDATEROWDATA_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND2_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND3_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERSAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun her '				satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Kaydý kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýnda iþlem yapýlmasý gibi.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belgenin  silinme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun '				her satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Silinme kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýnda iþlem yapýlmasý gibi. 
+'		Dikkat : Bu aþamada rowsetler boþ olacaðý için belgenin eski haline veya belg numarasýna vs eriþmek için bir kurgu yapýlmalý '		(mesela belge silinirken CALCULATEROW_BEFORESAVEVOUCHER metodonda SetDocParameterValue veya benzer yöntemler ile saklanmasý istenen '		bilgiler saklanýp, bu metod içinde SetDocParameterValue ile geri elde edilerek iþlem yapýlabilir )
+'Return Deðeri = Yok
+'End Sub
+
+Kolon Tanimlari : 
+COLUMN_NAME=EVRAKNO	FW_DATA_TYPE=CHAR	LABEL1=Satýþ Sipariþi No	
+COLUMN_NAME=KUTU_ONAY_1	FW_DATA_TYPE=CHAR	LABEL1=Onay için Ürün Grubu - Planlama	DEFAULT_VALUE_1=E	
+COLUMN_NAME=KUTU_ONAY_2	FW_DATA_TYPE=CHAR	LABEL1=Onay için Ürün Grubu - AGS	DEFAULT_VALUE_1=H	
+COLUMN_NAME=KUTU_ONAY_3	FW_DATA_TYPE=CHAR	LABEL1=Onay için Ürün Grubu - YGS	DEFAULT_VALUE_1=H	
+COLUMN_NAME=KUTU_ONAY_4	FW_DATA_TYPE=CHAR	LABEL1=Onay için Ürün Grubu - Özel YGS Ürünü	DEFAULT_VALUE_1=H	
+COLUMN_NAME=KUTU_ONAY_5	FW_DATA_TYPE=CHAR	LABEL1=Onay için Ürün Grubu - Özel YGS Ürünü	DEFAULT_VALUE_1=H	
+COLUMN_NAME=ONAYGRUPOK	FW_DATA_TYPE=CHAR	LABEL1=Onay için Ürün Grubu Seçimi OK	DEFAULT_VALUE_1=H	
+COLUMN_NAME=ONAY_KULLANICI_1	FW_DATA_TYPE=CHAR	LABEL1=Onay 1.Kullanýcý	
+COLUMN_NAME=ONAY_KULLANICI_2	FW_DATA_TYPE=CHAR	LABEL1=Onay 2.Kullanýcý	
+COLUMN_NAME=ONAY_KULLANICI_3	FW_DATA_TYPE=CHAR	LABEL1=Onay 3.Kullanýcý	
+COLUMN_NAME=ONAY_KULLANICI_4	FW_DATA_TYPE=CHAR	LABEL1=Onay 4.Kullanýcý	
+COLUMN_NAME=ONAY_KULLANICI_5	FW_DATA_TYPE=CHAR	LABEL1=Onay 1.Kullanýcý	
+COLUMN_NAME=ONAY_TARIH_1	FW_DATA_TYPE=CDATE	LABEL1=Onay 1.Tarih	
+COLUMN_NAME=ONAY_TARIH_2	FW_DATA_TYPE=CDATE	LABEL1=Onay 2.Tarih	
+COLUMN_NAME=ONAY_TARIH_3	FW_DATA_TYPE=CDATE	LABEL1=Onay 3.Tarih	
+COLUMN_NAME=ONAY_TARIH_4	FW_DATA_TYPE=CDATE	LABEL1=Onay 4.Tarih	
+COLUMN_NAME=ONAY_TARIH_5	FW_DATA_TYPE=CDATE	LABEL1=Onay 5.Tarih	
+COLUMN_NAME=ONAY_SAAT_1	FW_DATA_TYPE=CHAR	LABEL1=Onay 1.Saat	
+COLUMN_NAME=ONAY_SAAT_2	FW_DATA_TYPE=CHAR	LABEL1=Onay 2.Saat	
+COLUMN_NAME=ONAY_SAAT_3	FW_DATA_TYPE=CHAR	LABEL1=Onay 3.Saat	
+COLUMN_NAME=ONAY_SAAT_4	FW_DATA_TYPE=CHAR	LABEL1=Onay 4.Saat	
+COLUMN_NAME=ONAY_SAAT_5	FW_DATA_TYPE=CHAR	LABEL1=Onay 5.Saat	
+COLUMN_NAME=ELOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=ELOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=ELOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=ELOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=Son Kaydedilen Bilgisayar	
+COLUMN_NAME=ELOG_IMPORTMU	FW_DATA_TYPE=CHAR	LABEL1=@H Son Kayýt Toplu Veri Aktarma (Import) Ýle mi Yapýldý	
+COLUMN_NAME=ELOG_PROGID	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=ELOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=ELOG_APP	FW_DATA_TYPE=CHAR	LABEL1=Kaydeden Yazýlým Uygulama Modülü	
+COLUMN_NAME=ELOG_BAPP	FW_DATA_TYPE=CHAR	LABEL1=Kaydeden Üst Yazýlým Uygulama Modülü	
+COLUMN_NAME=BOWNER_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=BOWNER_PASSWORD	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+DB_ISLEM_TURU=CREATE_UNIQUE_INDEX	COLUMNS=EVRAKNO	
+DB_ISLEM_TURU=INSERT_EXTENSION_RECORDS	
+
+----------------------------------------------------------------
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_STOK68FM
+Hangi Tablo icin : STOK68E
+Filtre Tablosu : 
+Aciklama : 
+Tablo Adi : Fason Hammadde Maliyetlerinin Ürünlere Daðýlým Tablosu
+Prosedur / Kod : 
+
+
+
+Kolon Tanimlari : 
+COLUMN_NAME=EVRAKNO	FW_DATA_TYPE=CHAR	LABEL1=Fason Üretimden Geliþ Ýrsaliye No	
+COLUMN_NAME=TRNUM	FW_DATA_TYPE=CHAR	LABEL1=Artikel No	
+COLUMN_NAME=SRNUM	FW_DATA_TYPE=CHAR	LABEL1=Satýr No	
+COLUMN_NAME=FASONGELEN_KOD	FW_DATA_TYPE=CHAR	LABEL1=Fason Gelen Stok Kodu	
+COLUMN_NAME=FASONGELEN_AD	FW_DATA_TYPE=CHAR	LABEL1=Fason Gelen Stok Adý	
+COLUMN_NAME=FASONGELEN_SF_MIKTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Fason Gelen Miktarý	
+COLUMN_NAME=FASONGELEN_BIRIM	FW_DATA_TYPE=CHAR	LABEL1=Fason Gelen Stok Birimi	
+COLUMN_NAME=FASONGELEN_LAZERKESIMNO	FW_DATA_TYPE=CHAR	LABEL1=Fason Gelen Lazer Kesim No	
+COLUMN_NAME=TUKETILEN_KOD	FW_DATA_TYPE=CHAR	LABEL1=Tüketilen Stok Kodu	
+COLUMN_NAME=TUKETILEN_AD	FW_DATA_TYPE=CHAR	LABEL1=Tüketilen Stok Adý	
+COLUMN_NAME=TUKETILEN_BIRIM_MIKTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Tüketilen Birim Miktar	
+COLUMN_NAME=TUKETILEN_TOPLAM_MIKTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Tüketilen Toplam Miktar	
+COLUMN_NAME=TUKETILEN_BIRIM	FW_DATA_TYPE=CHAR	LABEL1=Tüketilen Stok Birimi	
+COLUMN_NAME=TUKETILEN_LAZERKESIMNO	FW_DATA_TYPE=CHAR	LABEL1=Tüketilen Lazer Kesim No	
+COLUMN_NAME=ACIKLAMA	FW_DATA_TYPE=CHAR	LABEL1=Açýklama	
+COLUMN_NAME=TUKETILEN_TL_FIYAT	FW_DATA_TYPE=DOUBLE	LABEL1=Son Satýnalma Birim TL_Fiyatý	
+COLUMN_NAME=TUKETILEN_REFTARIH	FW_DATA_TYPE=CDATE	LABEL1=Son Satýnalma TL Fiyat için Tarih	
+COLUMN_NAME=FASONGELEN_TL_BIRIMMALIYET	FW_DATA_TYPE=DOUBLE	LABEL1=Birim TL Maliyet	
+COLUMN_NAME=FASONGELEN_TL_TOPLAMMALIYET	FW_DATA_TYPE=DOUBLE	LABEL1=Maliyet Toplam TL_Tutar	
+COLUMN_NAME=TLOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=TLOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=TLOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=TLOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=TLOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+DB_ISLEM_TURU=CREATE_UNIQUE_INDEX	COLUMNS=EVRAKNO,TRNUM	
+
+----------------------------------------------------------------
+KTT Kaynak Kodu
+Firma Kodu : OZAK_2026 / Uygulama : RWSTDF
+Makro Kodu : ZU_TEKL40T
+Hangi Tablo icin : TEKL40E
+Filtre Tablosu : 
+Aciklama : 
+Tablo Adi : Satýþ Teklifindeki 7000-8000 Listesi
+Prosedur / Kod : 
+
+'#Option Explicit
+
+'Sub ABCKODU_STOK00_REC_Calc()
+'	Dim ret
+'	ret = Doc.ReadBinrec(ThisTableName, "ABCKODU_STOK00_REC", -1, "STOK00", T.ABCKODU, "")
+'End Sub
+
+'Sub CH_AD_Calc()
+'	T.CH_AD=Doc.GetDBFieldValue("CARI00","AD",T.CH_KODU," ")
+'End Sub
+
+'Sub MIKTAR_Calc()
+'	T.MIKTAR = Doc.DRound(T.MIKTAR_GIREN - T.MIKTAR_CIKAN)
+'End Sub
+
+'Sub GRUP_KODU_02_NAME_Calc()
+'	T.GRUP_KODU_02_NAME=Doc.GetGecoValue("CARGK1","AD",T.GRUP_KODU_02,-1)
+'End Sub
+
+'Sub ENTEGRATOR_ADI_Calc()
+'	T.ENTEGRATOR_ADI=Doc.GetGecoValue("|EINVSNDP","AD",T.ENTEGRATOR_KODU,-1)
+'End Sub
+'------------------------------------------
+Sub StokKartBilgileri
+	T.STOK00_KOD_STOK00_AD =  Doc.GetKartValue("STOK00","AD", T.KOD, -1)
+	T.STOK00_KOD_STOK00_IUNIT =  Doc.GetKartValue("STOK00","IUNIT", T.KOD, -1)
+End Sub
+'------------------------------------------
+Sub KOD_AfterValidate()
+	Call StokKartBilgileri
+End Sub
+
+'Sub ABCKODU_OnValidate()
+'	T.ABCKODU=Doc.Get0G0U(T.ABCKODU,"",SCAN_ORDER_0G0U,"")
+'	T.ABCKODU=Doc.GetKartValue("STOK00","KOD",T.ABCKODU,-1)
+'End Sub
+
+'Sub CH_KODU_OnValidate()
+'	T.CH_KODU=Doc.GetKartValue("CARI00","KOD",T.CH_KODU,-1)
+'End Sub
+
+
+
+'Sub ABCKODU_AfterValidate()
+'	Call ABCKODU_STOK00_REC_Calc()
+'End Sub
+
+'Sub CH_KODU_AfterValidate()
+'	Call CH_AD_Calc()
+'End Sub
+
+'Sub MIKTAR_GIREN_AfterValidate()
+'	T.MIKTAR_CIKAN=0
+'	Call MIKTAR_Calc()
+'End Sub
+
+'Sub MIKTAR_CIKAN_AfterValidate()
+'	T.MIKTAR_GIREN=0
+'	Call MIKTAR_Calc()
+'End Sub
+
+'Sub GRUP_KODU_02_AfterValidate()
+'	Call GRUP_KODU_02_NAME_Calc()
+'End Sub
+
+'Sub ENTEGRATOR_KODU_AfterValidate()
+'	Call ENTEGRATOR_ADI_Calc()
+'End Sub
+
+'Sub CALCULATEROW_ROUND2_BEFORESAVEVOUCHER
+'	If Doc.IsBlank(T.TARIH_001) Then T.TARIH_001=Doc.Today()
+'End Sub
+
+Sub CALCULATEROW_AFTERFETCH
+	Call StokKartBilgileri
+'	Call ABCKODU_STOK00_REC_Calc()
+'	Call CH_AD_Calc()
+'	Call MIKTAR_Calc()
+'	Call GRUP_KODU_02_NAME_Calc()
+'	Call ENTEGRATOR_ADI_Calc()
+End Sub
+
+
+
+'Aþaðýdaki Metodlarda MsgBox Yerine Doc.MsgBox Kullanýlmalýdýr. MsgBox ve benzeri iþlemi durdurup bekletecek tüm 
+'iþlemlerden kaçýnýlmalýdýr. Yoksa veri tabanýný da duraklama bitinceye kadar kýsmi olarak kilitleyebilir
+
+
+'Sub CALCULATEROW_AFTERNEWROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = RowSet'e her yeni satýr eklenince çaðrýlýyor.
+'					Ana tablolarda yeni belge ile çaðrýlýyor
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr ekleniyor ki kullanýcý bilgi giriþi yapabilsin diye.
+'Kullaným Notlarý = Kullaným Örneði : Varsayýlan deðerlerin atanmasý.  
+'					APPDFV0 modülü ile de varsayýlan deðer atanabilir, ama düz deðer atamak yerine hesaplama ile varsayýlan deðerler '					atanacaksa bu metod kullanýlabilir.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTEREMPTY
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = CALCULATEROW_AFTERNEWROW benzeri
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki tablolar okunduktan sonra her bir satýr için çaðrýlýyor.
+'Kullaným Notlarý = User makrolardan da RS.Run_CALCULATEROW_AFTERFETCH ile çekirdek yazýlýmdaki hesaplamalar çaðrýlabilir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERBROWSEFETCH
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Sadece bir tablo F2 ile browse edilirken ekranda gösterilen her bir satýr için çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_AFTERROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif satýr yapýnca çaðrýlýyor. 
+'					Dikkat : Modüle giriþte gridlere bir boþ satýr eklendikten sonra o satýr aktif satýr yapýlýrken de çaðrýlýyor.
+'Kullaným Notlarý = Kullaným Örneði : Yeni geçilen satýra ait bazý bilgilerin derlenip gösterilmesi gerekiyorsa bu metod kullanýlabilir. 
+'					T.GetCurrentRow() yeni geçilen satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_NOTIFICATION_BEFOREROWCHANGE
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýrý aktif iken baþka satýra geçerken çaðrýlýyor.
+'Kullaným Notlarý = T.GetCurrentRow() çýkýlmakta olan satýr nosunu verir
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_AFTERDELETEROW
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Hayýr
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Gridlerde bir satýr silince çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function CONTROLROWDATA_BEFORELOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüle yeni bir belge ( yeni veya olan ) yüklenirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CONTROLROWDATA_BEFOREDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Hayýr
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Hayýr
+'Ne zaman Çaðrýlýyor = Bir modüldeki bir belge silinirken çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub CALCULATEROW_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_ROUND2_AFTERLOADVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge yüklendikten sonra tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_AFTERLOADVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_AFTERLOADVOUCHER çaðrýlýyor
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub CALCULATEROW_BEFORESHRINK
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Tablolarda bir kaydýn dolu kabul edilebilecek bir kayýt olup olmadýðýnýn tanýmýna göre tümüyle boþ olan satýrlar yok '				ediliyorlar. Bir belgeden çýkarken, bir belge kaydedilirken veya silinirken bu þekilde boþ satýrlar eleniyor.  Bu iþlem '				kullanýcý makrolarýndan RS.SafePack() komutu ile de yapýlabiliyor. Bu iþleme baþlamadan belgedeki her tablonun her satýrý '				için ayrý ayrý bu metod çaðrýlýyor.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub / Function VALIDATEROWDATA_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse belge yükleme iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub / Function CALCULATEROW_ROUND2_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablolarýn her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / EndFunction
+
+
+'Sub / Function CALCULATEROW_ROUND3_BEFORESAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilmeden önce tablonun her bir satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Önce tüm tablolar için CALCULATEROW_BEFORESAVEVOUCHER, sonra yine tüm tablolar için CALCULATEROW_ROUND2_BEFORESAVEVOUCHER, , ve daha '		sonra yine tüm tablolar için CALCULATEROW_ROUND3_BEFORESAVEVOUCHER çaðrýlýyor
+'Return Deðeri = Deðer return edilirse ve, 0 veya "" deðilse kayýt iþlemi engelleniyor.
+'End Sub / End Function
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERSAVEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belge kaydedilme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun her '				satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Kaydý kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýnda iþlem yapýlmasý gibi.
+'Return Deðeri = Yok
+'End Sub
+
+
+'Sub PROCESSROW_AFTER_COMMIT_TRANSACTION_AFTERDELETEVOUCHER
+'Modülün Ana Tablosundan Çaðrýlýyor mu = Evet
+'Modülün Transaction ve Sub Transaction Tablolarýndan Çaðrýlýyor mu = Evet
+'Modülün Ana Tablosuna Eklenti Tablosundan Çaðrýlýyor mu = Evet
+'Ne zaman Çaðrýlýyor = Modüldeki belgenin  silinme iþlemi tamamen bitip veri tabanýna commit transaction yapýldýktan sonra her bir tablonun '				her satýrý için ayrý ayrý çaðrýlýyor.
+'Kullaným Notlarý = Silinme kesinleþmiþ belgelerin diðer dýþ iþlemlerinin yapýlabimesi için. 
+'		Örnek : e-posta gönderimi, veya bir baþka veri tabanýnda iþlem yapýlmasý gibi. 
+'		Dikkat : Bu aþamada rowsetler boþ olacaðý için belgenin eski haline veya belg numarasýna vs eriþmek için bir kurgu yapýlmalý '		(mesela belge silinirken CALCULATEROW_BEFORESAVEVOUCHER metodonda SetDocParameterValue veya benzer yöntemler ile saklanmasý istenen '		bilgiler saklanýp, bu metod içinde SetDocParameterValue ile geri elde edilerek iþlem yapýlabilir )
+'Return Deðeri = Yok
+'End Sub
+
+Kolon Tanimlari : 
+COLUMN_NAME=EVRAKNO	FW_DATA_TYPE=CHAR	LABEL1=Teklif No	
+COLUMN_NAME=TRNUM	FW_DATA_TYPE=CHAR	LABEL1=Artikel No	
+COLUMN_NAME=SRNUM	FW_DATA_TYPE=CHAR	LABEL1=Satýr No	
+COLUMN_NAME=KOD	FW_DATA_TYPE=CHAR	LABEL1=Stok Kodu	
+COLUMN_NAME=ARTIKEL_REF_NUM_1	FW_DATA_TYPE=DOUBLE	LABEL1=Loading Date	
+COLUMN_NAME=ARTIKEL_REF_REF_2	FW_DATA_TYPE=CHAR	LABEL1=Loading Date Description	
+COLUMN_NAME=SF_MIKTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Ýþlem Miktarý	
+COLUMN_NAME=OR_FIYAT	FW_DATA_TYPE=DOUBLE	LABEL1=Fiyat	
+COLUMN_NAME=OR_TUTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Tutar	
+COLUMN_NAME=PRICEUNIT	FW_DATA_TYPE=CHAR	LABEL1=Para Birimi	
+COLUMN_NAME=KUR	FW_DATA_TYPE=DOUBLE	LABEL1=Kur	
+COLUMN_NAME=RTESTARIH	FW_DATA_TYPE=CDATE	LABEL1=Teslim Tarihi	
+COLUMN_NAME=REV_RTESTARIH	FW_DATA_TYPE=CDATE	LABEL1=Revize Teslim Tarihi	
+COLUMN_NAME=ISKONTOTIPI_1	FW_DATA_TYPE=CHAR	LABEL1=1.Ýskonto Türü	
+COLUMN_NAME=YISKONTO_1	FW_DATA_TYPE=DOUBLE	LABEL1=1.Ýskonto%	
+COLUMN_NAME=OR_TISKONTO_1	FW_DATA_TYPE=DOUBLE	LABEL1=1.Ýskonto Tutarý	
+COLUMN_NAME=ISKONTOTIPI_2	FW_DATA_TYPE=CHAR	LABEL1=2.Ýskonto Türü	
+COLUMN_NAME=YISKONTO_2	FW_DATA_TYPE=DOUBLE	LABEL1=2.Ýskonto%	
+COLUMN_NAME=OR_TISKONTO_2	FW_DATA_TYPE=DOUBLE	LABEL1=2.Ýskonto Tutarý	
+COLUMN_NAME=ISKONTOTIPI_3	FW_DATA_TYPE=CHAR	LABEL1=3.Ýskonto Türü	
+COLUMN_NAME=YISKONTO_3	FW_DATA_TYPE=DOUBLE	LABEL1=3.Ýskonto%	
+COLUMN_NAME=OR_TISKONTO_3	FW_DATA_TYPE=DOUBLE	LABEL1=3.Ýskonto Tutarý	
+COLUMN_NAME=ISKONTOTIPI_4	FW_DATA_TYPE=CHAR	LABEL1=4.Ýskonto Türü	
+COLUMN_NAME=YISKONTO_4	FW_DATA_TYPE=DOUBLE	LABEL1=4.Ýskonto%	
+COLUMN_NAME=OR_TISKONTO_4	FW_DATA_TYPE=DOUBLE	LABEL1=4.Ýskonto Tutarý	
+COLUMN_NAME=VERARTTIPI_1	FW_DATA_TYPE=CHAR	LABEL1=ÖTV Türü	
+COLUMN_NAME=YVERART_1	FW_DATA_TYPE=DOUBLE	LABEL1=ÖTV%	
+COLUMN_NAME=OR_TVERART_1	FW_DATA_TYPE=DOUBLE	LABEL1=ÖTV Tutarý	
+COLUMN_NAME=ISKONTO_EFEKTIF	FW_DATA_TYPE=DOUBLE	LABEL1=Efektif Ýskonto	
+COLUMN_NAME=OR_XISKONTO_TUTARI	FW_DATA_TYPE=DOUBLE	LABEL1=Efektif Ýskonto Tutarý	
+COLUMN_NAME=OR_ISKONTOLU_TUTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Ýndirimli Tutar	
+COLUMN_NAME=OR_IVD_KH_TUTAR	FW_DATA_TYPE=DOUBLE	LABEL1=ÖTV Dahil Tutar	
+COLUMN_NAME=KDV_ORANI	FW_DATA_TYPE=DOUBLE	LABEL1=KDV%	
+COLUMN_NAME=OR_KDVTUT_EFEKTIF	FW_DATA_TYPE=DOUBLE	LABEL1=KDV Tutarý	
+COLUMN_NAME=OR_KDVDAHILTUTAR	FW_DATA_TYPE=DOUBLE	LABEL1=KDV Dahil Tutar	
+COLUMN_NAME=TAHVALORTARIH	FW_DATA_TYPE=CDATE	LABEL1=Ödeme Vadesi	
+COLUMN_NAME=REV_TAHVALORTARIH	FW_DATA_TYPE=CDATE	LABEL1=(Rev)	
+COLUMN_NAME=SGK_4	FW_DATA_TYPE=CHAR	LABEL1=Teklif Satýrý Grup Kodu - 4	
+COLUMN_NAME=SGK_3	FW_DATA_TYPE=CHAR	LABEL1=Teklif Satýrý Grup Kodu - 3	
+COLUMN_NAME=SGK_2	FW_DATA_TYPE=CHAR	LABEL1=Revizyon Nedeni	
+COLUMN_NAME=SGK_1	FW_DATA_TYPE=CHAR	LABEL1=Revizyon mu?	
+COLUMN_NAME=REFDATE01	FW_DATA_TYPE=CDATE	LABEL1=Referans Tarih Deðeri 1	
+COLUMN_NAME=REFDATE02	FW_DATA_TYPE=CDATE	LABEL1=Referans Tarih Deðeri 2	
+COLUMN_NAME=REFDATE03	FW_DATA_TYPE=CDATE	LABEL1=Referans Tarih Deðeri 3	
+COLUMN_NAME=REFNUM01	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 1	
+COLUMN_NAME=REFNUM02	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 2	
+COLUMN_NAME=REFNUM03	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 3	
+COLUMN_NAME=REFTEXT01	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 1	
+COLUMN_NAME=REFTEXT02	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 2	
+COLUMN_NAME=REFTEXT03	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 3	
+COLUMN_NAME=REFTEXT08	FW_DATA_TYPE=VARCHAR	LABEL1=Referans Text / Metin 6	
+COLUMN_NAME=ARTIKEL_REF_NUM_15	FW_DATA_TYPE=DOUBLE	LABEL1=Aktarýlan Satýrlarýn Deðeri (1)	
+COLUMN_NAME=ARTIKEL_REF_NUM_2	FW_DATA_TYPE=DOUBLE	LABEL1=Liste Fiyatý	
+COLUMN_NAME=NOTES	FW_DATA_TYPE=DOUBLE	LABEL1=Not	
+COLUMN_NAME=INCO_TUTARI	FW_DATA_TYPE=DOUBLE	LABEL1=Hesaplanan Incoterms'e Dayalý Maliyetlerin Tutarý (Maliyet Para Birimi)	
+COLUMN_NAME=NAKLIYE_TUTARI	FW_DATA_TYPE=DOUBLE	LABEL1=Hesaplanan Nakliye Tutarý	
+COLUMN_NAME=CHSIPANO	FW_DATA_TYPE=CHAR	LABEL1=Müþteri Sipariþ No	
+COLUMN_NAME=FOKOD	FW_DATA_TYPE=CHAR	LABEL1=FO/C	
+COLUMN_NAME=SF_VRI_VR_C	FW_DATA_TYPE=CHAR	LABEL1=Ölçü Varyantý / Beden Kodu	
+COLUMN_NAME=SF_VRI_RECETE	FW_DATA_TYPE=CHAR	LABEL1=Ürün Aðacý Aþama Kodu	
+COLUMN_NAME=SF_VRI_VR_R1	FW_DATA_TYPE=CHAR	LABEL1=Malzeme Varyantý 1	
+COLUMN_NAME=SF_VRI_VR_R2	FW_DATA_TYPE=CHAR	LABEL1=Malzeme Varyantý 2	
+COLUMN_NAME=SF_VRI_VR_R3	FW_DATA_TYPE=CHAR	LABEL1=Malzeme Varyantý 3	
+COLUMN_NAME=SF_VRI_NUM1	FW_DATA_TYPE=CHAR	LABEL1=Numerik Varyant 1	
+COLUMN_NAME=SF_VRI_NUM2	FW_DATA_TYPE=CHAR	LABEL1=Numerik Varyant 2	
+COLUMN_NAME=SF_AUTOCALC	FW_DATA_TYPE=CHAR	LABEL1=Auto	
+COLUMN_NAME=SF_STOK_MIKTAR	FW_DATA_TYPE=DOUBLE	LABEL1=Stok Miktarý	
+COLUMN_NAME=KOD_STOK00_IUNIT	FW_DATA_TYPE=CHAR	LABEL1=Stok Birimi	
+COLUMN_NAME=REFTEXT09	FW_DATA_TYPE=CHAR	LABEL1=Satýr Sýralama No	
+COLUMN_NAME=CHPROJENO	FW_DATA_TYPE=CHAR	LABEL1=Müþteri Proje Adý	
+COLUMN_NAME=ARTIKEL_REF_NUM_10	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 10	
+COLUMN_NAME=ARTIKEL_REF_NUM_11	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 11	
+COLUMN_NAME=ARTIKEL_REF_NUM_12	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 12	
+COLUMN_NAME=ARTIKEL_REF_NUM_13	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 13	
+COLUMN_NAME=ARTIKEL_REF_NUM_14	FW_DATA_TYPE=DOUBLE	LABEL1=Referans Sayýsal Deðer 14	
+COLUMN_NAME=TLOG_USERNAME	FW_DATA_TYPE=CHAR	LABEL1=En Son Kaydeden Kullanýcý	
+COLUMN_NAME=TLOG_LOGTARIH	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Tarihi	
+COLUMN_NAME=TLOG_LOGTIME	FW_DATA_TYPE=CHAR	LABEL1=Son Kayýt Saati	
+COLUMN_NAME=TLOG_PSTATION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=TLOG_TVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=D7ROWVERSION	FW_DATA_TYPE=CHAR	LABEL1=@H	
+COLUMN_NAME=STOK00_KOD_STOK00_AD	FW_DATA_TYPE=CHAR	LABEL1=Stok Adý	
+COLUMN_NAME=STOK00_KOD_STOK00_IUNIT	FW_DATA_TYPE=CHAR	LABEL1=Stok Birimi	
+COLUMN_NAME=URUNSTKKODU	FW_DATA_TYPE=CHAR	LABEL1=Ürün Stok Kodu	
+COLUMN_NAME=URUNSTKADI	FW_DATA_TYPE=CHAR	LABEL1=Ürün Stok Adý	
+
+Guncelleme Tanimlari : 
+DB_ISLEM_TURU=CREATE_TABLE	
+DB_ISLEM_TURU=CREATE_UNIQUE_INDEX	COLUMNS=EVRAKNO,TRNUM	
+DB_ISLEM_TURU=ALTER_COLUMN	COLUMNS=KOD	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ARTIKEL_REF_NUM_10	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ARTIKEL_REF_NUM_11	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ARTIKEL_REF_NUM_12	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ARTIKEL_REF_NUM_13	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ARTIKEL_REF_NUM_14	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=REFTEXT08	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=CHPROJENO	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ARTIKEL_REF_NUM_2	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=REFTEXT09	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ISKONTOTIPI_2	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=YISKONTO_2	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=OR_TISKONTO_2	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ISKONTOTIPI_3	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=YISKONTO_3	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=OR_TISKONTO_3	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=ISKONTOTIPI_4	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=YISKONTO_4	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=OR_TISKONTO_4	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=VERARTTIPI_1	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=YVERART_1	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=OR_TVERART_1	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=NOTES	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=INCO_TUTARI	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=NAKLIYE_TUTARI	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=CHSIPANO	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=FOKOD	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_VR_C	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_RECETE	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_VR_R1	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_VR_R2	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_VR_R3	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_NUM1	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_VRI_NUM2	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_AUTOCALC	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=SF_STOK_MIKTAR	
+DB_ISLEM_TURU=ADD_COLUMN	COLUMNS=KOD_STOK00_IUNIT	
+
+----------------------------------------------------------------

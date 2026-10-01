@@ -1,0 +1,2248 @@
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : AKTVT00
+Hangi Tablo için : AKTVT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : toplu export
+Kod : 
+Sub Makro1()
+	Dim docname
+	docname=Doc.GetDocType()
+	Set Doc1 = Doc.CreateDocumentNOUI(docname,"")
+
+	exportdosyaIsmi="C:\" + docname + ".xml"
+	Doc1.BatchExportBegin(exportdosyaIsmi)
+	Dim par1
+	Set par1 = Doc1.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT","MT_LOAD_OR_NEW"
+
+	For i = 1 to LISTET.GetRecCount()
+		EvrakNo = LISTET.EVRAKNO(i)
+		if trim(EvrakNo) <> "" then
+			Doc1.Load_Voucher(Doc.RightJustify(EvrakNo,10))
+			Doc1.BatchExport1 exportdosyaIsmi,par1
+		end if
+	Next
+
+	Doc1.LoadEmpty_Voucher()
+	Doc1.BatchExportEnd(exportdosyaIsmi)
+
+	Doc1.DeleteDocumentNoUI docname,""		
+	Set par1=Nothing
+	Set Doc1 = Nothing
+
+	MsgBox(exportdosyaIsmi & " Ýsimli dosyya Export Tamamlandý!")
+End Sub                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : AKTVT002
+Hangi Tablo için : AKTVT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Aktivite Update
+Kod : 
+Sub Makro1()
+	Dim WrkDir
+	Dim sv
+	Dim upflag
+	Dim Doc1
+	Dim LISTET
+	Dim AKTVT00
+
+	Set LISTET=Doc.GetTableObject("LISTET")
+	Set AKTVT00=Doc.GetTableObject("AKTVT00")
+
+	for i=1 to LISTET.GetRecCount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then			
+			retcode=Doc.Load_Voucher(evrakno)
+			if retcode=0 then
+				AKTVT00.TLF_BASLANGIC_TARIHI=AKTVT00.TARIH
+				AKTVT00.TLF_BITIS_TARIHI=AKTVT00.GERCEKLESEN_TARIH
+				retcode=Doc.Save_Voucher()
+				if retcode<>0 then
+					msgbox "Save Error"
+				end if
+				retcode=Doc.LoadEmpty_Voucher()
+			end if
+		end if
+	next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : ASN
+Hangi Tablo için : STOK60
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Ford sevk irsaliyesi (ASN) (ÞAHÝNKUL - son düzeltmeler yapýlmýþ 17-04-2007)
+Kod : 
+Public S60, FabrikaKodu, STOK60E, STOK60T
+
+' ---- GSDB KODU -------------
+Public Const Sender = "BPPQA"
+
+Sub ASNGonder()
+	Set STOK60E = Doc.GetTableObject("STOK60E")
+	Set STOK60T = Doc.GetTableObject("STOK60T")
+	Set MTable=Doc.GetTableObject("MAKROTABLE")
+	KullaniciAdi = trim(MTable.F1)
+	KullaniciSifre = trim(MTable.F2)
+	Doc.RUN_APP_CANCEL
+
+	if trim(KullaniciAdi) = "" or trim(KullaniciSifre) = "" Then
+		k = doc.d7msgbox("Kullanýcý adý ve þifre girmelisiniz." & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+		exit sub
+	End if
+	if Trim(STOK60E.XNITELIK0) = "ASN_OK" then
+		k = doc.d7msgbox("Bu irsaliyenin ASN 'si daha önce gönderilmiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+		exit sub
+	end if
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	if trim(SeferNumarasi) = "" then
+		k = doc.d7msgbox("Kullanýcý tanýmlý alanlarda sefer numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+		exit sub
+	end if
+	PlakaNo = STOK60E.BOX1_3
+	if trim(PlakaNo) = "" then
+		k = doc.d7msgbox("Plaka Numarasý girilmemiþ" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo", MB_OK)
+		exit sub
+	end if
+'	if trim(STOK60E.EXTERNALEVRAKNO) = "" Then
+'		k = doc.d7msgbox("Ýrsaliye numarasýný girmediniz." & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir", "dinamo",MB_OK)
+'		exit sub
+'	End if
+
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	Select case trim(SevkAdresKodu)
+		case "D1D4T" 				'ÝNÖNÜ KAMYON
+			FabrikaKodu = "D1D4T"
+		case "D1D4T-FR" 				'ÝNÖNÜ KAMYON FRP ATELYESÝ
+			FabrikaKodu = "D1D4T"
+		case "D1D4H" 				'ÝNÖNÜ MOTOR
+			FabrikaKodu = "D1D4H"
+		case "D1D4F"	 				'GÖLCÜK
+			FabrikaKodu = "D1D4F"
+		case "ARKOTO"	 				'GÖLCÜK
+			FabrikaKodu = "D1D4F"
+		case "AUF9A"					'KARTAL YP DEPO
+			FabrikaKodu = "AUF9A"
+		case "CVR1B"					'KARTAL YP DEPO
+			FabrikaKodu = "CVR1B"
+		case "D1D4Y" 				'KOCAELÝ YEDEK PARÇA
+			FabrikaKodu = "D1D4Y"
+		case else
+			k = Doc.d7msgbox("Sevk adresi girilmemiþ veya tanýmsýz" & vbcrlf & vbcrlf & "Ýþlem tamamlanmadan kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+	End Select
+	if not AmbalajVarmi then
+		EH = Doc.d7msgbox("Hiç konteyner gönderilmemektedir" & vbcrlf & vbcrlf & "Onaylýyor musunuz.", "dinamo",MB_YESNO)
+		if EH <> 6 then 
+			k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+			exit sub
+		end if
+	End if
+	KodDurumu = KodKontrol
+	if trim(KodDurumu) <> "" then
+		msgbox KodDurumu
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+	SandikDurumu = SandikAdediKontrol
+	if trim(SandikDurumu) <> "" then
+		msgbox SandikDurumu
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+	
+	Doc.CreateTableObject "ZZZ=STOK60T","TMPCOPY"		
+	Set S60 = Doc.GetTableObject("ZZZ")
+	Set ST60 = Doc.GetTableObject("STOK60T")
+	S60.CopyTable(ST60)
+	S60.GroupBy("KOD")
+
+	Set Fso = CreateObject("Scripting.FileSystemObject")
+	ASNFolder = trim(Doc.Getd7Directory_DataFirm) & "abdat"
+	if not fso.FolderExists(ASNFolder) Then
+		fso.CreateFolder ASNFolder
+	End if
+	dosyaAdi = ASNFolder & "\asn" & trim(STOK60E.EVRAKNO) & ".xml"
+	Set ASN = Fso.CreateTextFile(dosyaAdi,True)
+
+	Set xmlDoc = CreateObject("Microsoft.XMLDOM")
+	xmlDoc.async = False
+	
+	Doc.StatusBarMessage "XML Dosyasý oluþturuluyor"
+	Call Header(ASN)
+	Call SatirYaz(ASN)
+	Call Footer(ASN)
+
+	ASN.Close
+	xmlDoc.Load(dosyaAdi)
+	Set IE = CreateObject("InternetExplorer.Application")
+	IE.Navigate("file:\\" & dosyaAdi)
+	IE.TheaterMode = true
+	IE.Visible = true
+
+	EH = doc.d7Msgbox("Oluþturulan ASN uygun mu?","dinamo",MB_YESNO)
+	if EH <> 6 then 
+		k = doc.d7Msgbox("Ýþlem kesilmiþtir.", "dinamo",MB_OK)
+		exit sub
+	end if
+
+	Doc.StatusBarMessage "ford.com.tr 'ye baðlanýlýyor"
+	cookieStr = FOSNConnect(KullaniciAdi, KullaniciSifre)
+	if trim(cookieStr) = "" Then
+		k = Doc.d7MsgBox("FOSN 'e baðlanýlamadý", "Hata!", MB_OK)
+		Exit Sub
+	End if
+
+	Doc.StatusBarMessage "ASN gönderiliyor"
+	sonuc = sendData(xmlDoc, cookieStr, dosyaAdi)
+
+	xmlDoc.LoadXML(sonuc)
+	if trim(xmldoc.xml) = "" Then
+		k = Doc.d7MsgBox("ASN Gönderilemedi , " & ret,"dinamo",MB_OK)
+	else
+		ret = xmldoc.documentElement.selectSingleNode("RETURN").Text
+		if ret <> "0" or ret <> 0 then 
+			k = Doc.d7MsgBox("ASN Gönderilemedi , " & ret,"dinamo",MB_OK)
+			k = Doc.d7MsgBox(xmlDoc.xml,"dinamo",MB_OK)
+		else
+			k = Doc.d7MsgBox("Ýþlem Tamam","dinamo",MB_OK)
+			STOK60E.XNITELIK0 = "ASN_OK"
+			Doc.RunCommand("MT_SAVE")
+		end if
+	end if
+	Set Fso = Nothing
+	Set xmlDoc = Nothing
+
+	Call GetASNPage(KullaniciAdi, KullaniciSifre)
+End Sub
+Sub Header(ASN)
+	IrsaliyeNo = "A " & cstr(right(string(10,"0") & trim(STOK60E.EVRAKNO(1)),6))
+	'IrsaliyeNo = "A " & cstr(right(string(10,"0") & trim(STOK60E.EXTERNALEVRAKNO),6))
+	TransContNum = trim(Sender & IrsaliyeNo)
+	ShippedFrom = Sender
+	SeferNumarasi = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"SEFER_NO",0)
+	ASNAmaci = "00"
+
+	IrsaliyeTarihi = replace(STOK60E.TARIH,"/","")
+	IrsaliyeTarihi = Mid(IrsaliyeTarihi,3)
+	IrsaliyeSaati = Doc.Saat(6)
+	TahminiVarisTarihi = IrsaliyeTarihi
+	TahminiVarisSaati = IrsaliyeSaati
+	NetAgirlik = "0.000"
+	BrutAgirlik = "0.000"
+	TasimaSekli = "M"
+	PlakaNo = ucase(replace(STOK60E.BOX1_3," ",""))
+	ResmiIrsaliyeNo = IrsaliyeNo
+	NavlunFaturaNo = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"NAVLUN_FAT",0)
+	TasiyiciKodu = Doc.GetUDFValue("RI",STOK60E.EVRAKNO,"TASIYICI",0)
+
+	ASN.WriteLine("<?xml version=""1.0"" encoding=""windows-1254""?>")
+'	ASN.WriteLine("<?xml-stylesheet type=""text/xsl"" href=""http://www.diyalog.com/asn.xsl""?>")
+	ASN.WriteLine("<?xml-stylesheet type=""text/xsl"" href=""http://www.temelyazilim.com/download/asn.xsl""?>")
+	
+	ASN.WriteLine("<ASN>")
+	ASN.WriteLine(cTab(1) & "<HEADER>")
+	ASN.WriteLine(cTab(2) & "<TRANSACTION_CONTROL_NUMBER>" & TransContNum & "</TRANSACTION_CONTROL_NUMBER>")
+	ASN.WriteLine(cTab(2) & "<SENDER>" & trim(Sender) & "</SENDER>")
+	ASN.WriteLine(cTab(2) & "<RECEIVER>" & trim(FabrikaKodu) & "</RECEIVER>")
+	ASN.WriteLine(cTab(1) & "</HEADER>")
+	ASN.WriteLine(cTab(1) & "<ASN_NUMBER>" & trim(IrsaliyeNo) & "</ASN_NUMBER>")
+	ASN.WriteLine(cTab(1) & "<SHIPPED_FROM>" & trim(Sender) & "</SHIPPED_FROM>")
+	ASN.WriteLine(cTab(1) & "<SHIP_TO_PLANT>" & trim(FabrikaKodu) & "</SHIP_TO_PLANT>")
+	ASN.WriteLine(cTab(1) & "<INTERMEDIATE_CONSIGNEE></INTERMEDIATE_CONSIGNEE>")
+	ASN.WriteLine(cTab(1) & "<CONVEYANCE_NO>" & trim(SeferNumarasi) & "</CONVEYANCE_NO>")
+	ASN.WriteLine(cTab(1) & "<ASN_PURPOSE>" & ASNAmaci & "</ASN_PURPOSE>")
+	ASN.WriteLine(cTab(1) & "<DATE_CREATED>" & IrsaliyeTarihi & "</DATE_CREATED>")
+	ASN.WriteLine(cTab(1) & "<TIME_CREATED>" & IrsaliyeSaati & "</TIME_CREATED>")
+	ASN.WriteLine(cTab(1) & "<DATE_SHIPPED>" & IrsaliyeTarihi & "</DATE_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<TIME_SHIPPED>" & IrsaliyeSaati & "</TIME_SHIPPED>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_DATE>" & TahminiVarisTarihi & "</EXPECTED_ARRIVAL_DATE>")
+	ASN.WriteLine(cTab(1) & "<EXPECTED_ARRIVAL_TIME>" & TahminiVarisSaati & "</EXPECTED_ARRIVAL_TIME>")
+	ASN.WriteLine(cTab(1) & "<NET_WEIGHT>" & NetAgirlik & "</NET_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<GROSS_WEIGHT>" & BrutAgirlik & "</GROSS_WEIGHT>")
+	ASN.WriteLine(cTab(1) & "<WEIGHT_UOM>KG</WEIGHT_UOM>")
+	ASN.WriteLine(cTab(1) & "<CARRIER1>" & trim(TasiyiciKodu) & "</CARRIER1>")
+	ASN.WriteLine(cTab(1) & "<MODE_OF_TRANSPORT>" & trim(TasimaSekli) & "</MODE_OF_TRANSPORT>")
+	ASN.WriteLine(cTab(1) & "<FREIGHT_BILL_NO>" & trim(NavlunFaturaNo) & "</FREIGHT_BILL_NO>")
+	ASN.WriteLine(cTab(1) & "<BILL_OF_LADING_NO>" & trim(PlakaNo) & "</BILL_OF_LADING_NO>")
+	ASN.WriteLine(cTab(1) & "<LICENCE_PLATE_NO>" & trim(PlakaNo) & "</LICENCE_PLATE_NO>")
+	ASN.WriteLine(cTab(1) & "<WAYBILL>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_NO>" & trim(ResmiIrsaliyeNo) & "</PACKING_SLIP_NO>")
+	ASN.WriteLine(cTab(2) & "<PACKING_SLIP_DATE>" & IrsaliyeTarihi & "</PACKING_SLIP_DATE>")
+	ASN.WriteLine(cTab(2) & "<PARTS>")        
+End Sub
+Sub SatirYaz(ASN)
+	SevkAdresKodu = STOK60E.SHIPTOCODE
+	if trim(SevkAdresKodu) = "D1D4F" then 'GÖLCÜK
+		Birim = "EA"
+	else
+		Birim = "AD"
+	end if
+	CHKodu = STOK60E.CH_KODU
+	for i = 1 to S60.GetRecCount()
+		if trim(S60.KOD(i)) <> "" then
+			Ambalaj = S60.FATURASIZMI(i)
+			Kod = S60.KOD(i)
+'			if trim(Ambalaj) = "E" then
+'				StokKodu = Kod
+'			else
+				StokKodu = trim(Doc.GetCHStokKodu(Kod,CHKodu))
+'			end if
+			Miktar = S60.SF_MIKTAR(i)
+'			Birim = S60.SF_SF_UNIT(i)
+			PART_CUM_QTY = 0
+			PART_PRIOR_CUM_QTY = 0 
+			SiparisNo = S60.SIPNO(i)
+			MusteriSipNo = Doc.GetDBFieldValue("STOK40E","CHSIPNO",SiparisNo,"")
+			PART_PO_NO = trim(MusteriSipNo)
+			if trim(Ambalaj) <> "E" then
+				KontSayisi = S60.BRUTAGIRLIK(i)
+				ParcaTuru = "PP"
+				ParcaKodu = trim(StokKodu)
+				if trim(cstr(KontSayisi)) = "" or trim(cstr(KontSayisi)) = "0" then
+					kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_B_TECH_1",Kod,"")
+					kontParcaSayisi = Doc.Round(kontParcaSayisi,0)
+					ParcaKontSayisi = Doc.Div(Miktar,kontParcaSayisi)
+					ParcaKontSayisi = Doc.Ceil(ParcaKontSayisi)
+				else
+					ParcaKontSayisi = Doc.CDbl(KontSayisi)
+					kontParcaSayisi = Doc.Div(Miktar,ParcaKontSayisi)
+					kontParcaSayisi = Doc.Ceil(kontParcaSayisi)
+				end if
+				KonteynerTipi = "BOX90"
+			else
+				ParcaTuru = "CT"
+				ParcaKodu = " " & trim(StokKodu)
+				kontParcaSayisi = "0000"
+				ParcaKontSayisi = "0000"
+				KonteynerTipi = ""
+			end if
+			ASN.WriteLine(cTab(3) & "<PART>")
+			ASN.WriteLine(cTab(4) & "<NO_PART>" & ParcaKodu & "</NO_PART>")
+			ASN.WriteLine(cTab(4) & "<PART_NO_TYPE>" & ParcaTuru & "</PART_NO_TYPE>")
+			ASN.WriteLine(cTab(4) & "<PART_QUANTITY>" & Miktar & "</PART_QUANTITY>")
+			ASN.WriteLine(cTab(4) & "<PART_UOM>" & Birim & "</PART_UOM>")
+			ASN.WriteLine(cTab(4) & "<PART_CUM_QTY>" & PART_CUM_QTY & "</PART_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PRIOR_CUM_QTY>" & PART_PRIOR_CUM_QTY & "</PART_PRIOR_CUM_QTY>")
+			ASN.WriteLine(cTab(4) & "<PART_PO_NO>" & PART_PO_NO & "</PART_PO_NO>")
+			ASN.WriteLine(cTab(4) & "<CONTAINERS>")
+			ASN.WriteLine(cTab(5) & "<CONTAINER>")
+			ASN.WriteLine(cTab(6) & "<CONTAINER_TYPE_CODE>" & KonteynerTipi & "</CONTAINER_TYPE_CODE>")
+			ASN.WriteLine(cTab(6) & "<PARTS_PER_CONT>" & KontParcaSayisi & "</PARTS_PER_CONT>")
+			ASN.WriteLine(cTab(6) & "<CONTS_PER_PART>" & ParcaKontSayisi & "</CONTS_PER_PART>")
+			ASN.WriteLine(cTab(5) & "</CONTAINER>")
+			ASN.WriteLine(cTab(4) & "</CONTAINERS>")
+			ASN.WriteLine(cTab(3) & "</PART>")        
+		end if
+	Next
+End Sub
+Sub Footer(ASN)
+	ASN.WriteLine(cTab(2) & "</PARTS>")        
+	ASN.WriteLine(cTab(1) & "</WAYBILL>")
+	ASN.WriteLine("</ASN>")
+End Sub
+Function cTab(sayi)
+	for i = 1 to sayi
+		cTab = cTab & Chr(9)
+	Next
+End Function
+Function sendData(xmlDoc, cookieStr, xmlFile)
+	Set xmlHTTP = CreateObject("MSXML2.XMLHTTP.6.0")
+	if Doc.Bugun <= "2007/02/27" Then
+		postURL = "https://fosnapp.ford.com.tr/asnposter/postxmlasn.asp"
+	Else
+		postURL = "https://fosnapp.ford.com.tr/postxmlasn.aspx"
+	End if
+
+	xmlHTTP.Open "POST", postURL, false
+	xmlHTTP.setRequestHeader "Cookie", cookieStr
+	xmlHTTP.setRequestHeader "Content-Type", "text/xml"
+	xmlHTTP.setRequestHeader "Content-Length", Len(xmlFile)
+
+	xmlhttp.Send xmlDoc
+
+	sendData = xmlHTTP.responseText
+
+	Doc.StatusBarMessage "Baðlantý kesiliyor"
+	xmlHTTP.Open "POST", "https://login.ford.com.tr/logout.aspx", false
+	xmlHTTP.Send
+End Function
+Function AmbalajVarMi()
+	AmbalajVarMi = False
+	for i = 1 to STOK60T.GetRecCount()
+		Ambalaj = STOK60T.FATURASIZMI(i)
+		if trim(Ambalaj) = "E" then
+			AmbalajVarMi = True
+			Exit Function
+		end if
+	Next
+End Function
+Function KodKontrol()
+	for i = 1 to STOK60T.GetRecCount()
+		StokKodu = STOK60T.KOD(i)
+		if trim(StokKodu) <> "" then
+			CHKodu = STOK60E.CH_KODU
+			CHStokKodu = trim(Doc.GetCHStokKodu(StokKodu,CHKodu))
+			Ambalaj = STOK60T.FATURASIZMI(i)
+			if trim(CHStokKodu) = "" then
+				Hata = Hata & StokKodu & vbcrlf
+			end if
+		end if
+	Next
+	if Hata <> "" then
+		Hata = Hata & "Ford stok kodu karþýlýðý girilmemiþ."
+	end if
+	KodKontrol = Hata
+End Function
+Function SandikAdediKontrol()
+	for i = 1 to STOK60T.GetRecCount()
+		StokKodu = STOK60T.KOD(i)
+		if trim(StokKodu) <> "" then
+			kontParcaSayisi = Doc.GetDBFieldValue("STOK00","B_B_TECH_1",StokKodu,"")
+			Ambalaj = STOK60T.FATURASIZMI(i)
+			BrutAgirlik = STOK60T.BRUTAGIRLIK(i)
+			if trim(Ambalaj) = "" and kontParcaSayisi = 0 and trim(BrutAgirlik) = "" then
+				Hata = Hata & StokKodu & vbcrlf
+			end if
+		end if
+	Next
+	if Hata <> "" then
+		Hata = Hata & "Konteyner parça adedi girilmemiþ."
+	end if
+	SandikAdediKontrol = Hata
+End Function
+Sub GetASNPage1()
+	Set MTable=Doc.GetTableObject("MAKROTABLE")
+	KullaniciAdi = trim(MTable.F1)
+	KullaniciSifre = trim(MTable.F2)
+	Call GetASNPage(KullaniciAdi, KullaniciSifre)
+End Sub
+Sub GetASNPage(KullaniciAdi, KullaniciSifre)
+	Doc.StatusBarMessage "FOSN 'e baðlanýlýyor"
+  Set MyIA = CreateObject("InternetExplorer.Application")
+  ConnUrl = "https://login.ford.com.tr/authenticate4outprg.aspx?userid=" & KullaniciAdi & "&password=" & KullaniciSifre
+  
+  NRetcode = IEGoto(MyIA, ConnUrl)
+  NRetcode = IEWaitReady(MyIA)
+  Call my_delay(1000)
+  HTMLTxt = MyIA.Document.Body.InnerHtml
+   
+	Doc.StatusBarMessage "ASN 'ler ekrana getiriliyor."
+	ASNUrl = "https://fosnapp.ford.com.tr/Page_asn_journal.aspx"
+	NRetcode = IEGoto(MyIA, ASNUrl)
+	NRetcode = IEWaitReady(MyIA)
+	Call my_delay(1000)
+  
+	MyIA.Visible = True
+End Sub
+Function IEWaitReady(ByVal IEObj)
+	IEWaitReady = 0
+	While IEObj.Busy or IEObj.ReadyState <> 4
+	Wend
+End Function
+Function IEGoto(ByVal IEObj, ByVal URL)
+	IEObj.Navigate (URL)
+	IEWaitReady (IEObj)
+	IEGoto = 0
+End Function
+Sub my_delay(delay_value)
+	Dim i
+	For i = 0 To delay_value
+'		DoEvents
+		k = k + 1
+	Next
+End Sub
+Sub Makro1()
+'Bir Tablo ve alanlar yarat
+	Dim MTable
+	Set MTable = Doc.CreateTableObject("MAKROTABLE=STACK","IO")
+	MTable.Addfield2 "F1","CHAR",30,0,"L","",""
+	MTable.Addfield2 "F2","CHAR",30,0,"L","",""
+
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "MAKROFORMU1",SC_SCRIPTMODULEFILENAME,Par
+End Sub
+Function FOSNConnect(KullaniciAdi, KullaniciSifre)
+	Dim urlx, XMLHTTP
+	urlx = "https://login.ford.com.tr/authenticate4OutPrg.aspx?userid=" & KullaniciAdi & "&password=" & KullaniciSifre
+
+	Set XMLHTTP = CreateObject("MSXML2.XMLHTTP.6.0")
+	XMLHTTP.Open "POST", urlx, False
+	XMLHTTP.Send
+	FOSNConnect = XMLHTTP.getAllResponseHeaders
+End Function                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM MAKROFORMU1 HEIGHT=160P WIDTH=520P SCROLLBARS=NO CAPTIONTYPE=SYS
+SET CAPTION="Ford Otosan ASN"
+
+MENUDEF
+	POPUP TEXT=" & Dosya"
+	MENUITEM TEXT="Ýþlem Yapmadan Çý & kýþ" ID=ID_APP_CANCEL KEY=ESCAPE
+	ENDPOPUP
+ENDMENUDEF
+
+LOCATE TOP=0
+RTEXT W=13 LEFT=30p TOP=+1 T="FOSN Kullanýcý Adý :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F1
+RTEXT W=13 LEFT=30p TOP=+1 T="Þifre :"
+EDITTEXT LEFT=E+1 TOP=+0 D=MAKROTABLE.F2 PASSWORD=YES
+BUTTON LEFT=13 TOP=+30p WIDTH=10 HEIGHT=2 CAPTION="ASN Gönder" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','ASNGonder')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=20 HEIGHT=2 CAPTION="FOSN 'deki ASN 'leri Göster" ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','GetASNPage1')"
+BUTTON LEFT=E+3 TOP=+0 WIDTH=10 HEIGHT=2 CAPTION="Vazgeç" ID=ID_APP_CANCEL
+ENDFORM                                                                                                                                                                                                                 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : C001
+Hangi Tablo için : CARI00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Hatalý Fakslarý Ýþaretle
+Kod : 
+Sub Makro1()
+	dosyaAdi = "d:\Savego_Savego010_Protokoll_0000454966.csv"
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	Set TFile = fso.OpenTextFile(dosyaAdi, 1, True)
+
+	fileLine = TFile.ReadLine
+	While Not TFile.AtEndOfStream
+		satirNo = satirNo + 1
+		Doc.StatusBarMessage satirNo
+		fileLine = TFile.ReadLine
+		lineArr = Split(fileLine, ";")
+		Durum = lineArr(0)
+		if Durum <> "Basarili" and Durum <> "Mesgul" Then
+			FaksNo = Mid(lineArr(7), 4)
+			Set C00S = Doc.Select2("CEEE", "LISTET", "FAXNO='"+FaksNo+"'", "", -1)
+			For i = 1 to C00S.GetRowCount()
+				Doc.Load_Voucher C00S.KOD(i)
+				CARI00.FAXNO = "XXXXXXXXXX"
+				Doc.Save_Voucher
+				'Exit Sub
+			Next
+		End if
+	Wend
+	Doc.LoadEmpty_Voucher
+End Sub                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : C0101
+Hangi Tablo için : CARI001
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Faks numarlarýný düzelt
+Kod : 
+Sub Makro1()
+	For i = 1 to LISTET.GetRowCount()
+		LISTET.FAXNO(i) = GetStdFaksNo(LISTET.FAXNO(i))
+	Next
+End Sub
+Function GetStdFaksNo(FaksNo)
+	FaksNo = trim(FaksNo)
+	FaksNo = Replace(FaksNo, " ", "")
+	FaksNo = Replace(FaksNo, ".", "")
+	FaksNo = Replace(FaksNo, ",", "")
+	FaksNo = Replace(FaksNo, "(", "")
+	FaksNo = Replace(FaksNo, ")", "")
+	FaksNo = Replace(FaksNo, "-", "")
+	if Len(FaksNo) = 7 Then
+		FaksNo = "0212" & FaksNo
+	End if
+	if Len(FaksNo) = 10 Then
+		FaksNo = "0" & FaksNo
+	End if
+	GetStdFaksNo = FaksNo
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : CRHDST03
+Hangi Tablo için : CRHESL
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Function CRHDSTDenCHKodu(ByVal EVRAKTYPE,ByVal EVRAKNO,ByVal OR_TRNUM)
+	CRHDSTDenCHKodu=""
+	Dim KriterString
+	KriterString=""
+	KriterString = KriterString & "EVRAKTYPE='" & EVRAKTYPE & "'" 
+	KriterString = KriterString & " & "
+	KriterString = KriterString & "EVRAKNO='" & EVRAKNO & "'" 
+	KriterString = KriterString & " & "
+	KriterString = KriterString & "OR_TRNUM='" & OR_TRNUM & "'" 
+	
+	Dim Tbl1
+	Set Tbl1=Doc.Select1G_Cached("","CRHDST",KriterString,"","",-1,"EVRAKTYPE=&EVRAKNO=&OR_TRNUM=")
+	If Tbl1.GetRowCount=1 Then CRHDSTDenCHKodu=Tbl1.KOD
+End Function
+
+Function CHFarklSatirVarsaSil(Tbl_CRHESLT)
+	CHFarklSatirVarsaSil=0
+	Dim I
+	For I=Tbl_CRHESLT.GetRowCount To 1 Step -1
+		Dim B_CH
+		Dim A_CH
+		B_CH=CRHDSTDenCHKodu(Tbl_CRHESLT.B_EVRAKTYPE(I),Tbl_CRHESLT.B_EVRAKNO(I),Tbl_CRHESLT.B_OR_TRNUM(I))
+		A_CH=CRHDSTDenCHKodu(Tbl_CRHESLT.A_EVRAKTYPE(I),Tbl_CRHESLT.A_EVRAKNO(I),Tbl_CRHESLT.A_OR_TRNUM(I))
+		If Trim(Tbl_CRHESLT.KOD(I))<>Trim(B_CH) Or Trim(Tbl_CRHESLT.KOD(I))<>Trim(A_CH) Then
+			Tbl_CRHESLT.DeleteRow_NOUI(I)
+			CHFarklSatirVarsaSil=CHFarklSatirVarsaSil+1
+		End If		
+	Next
+End Function
+
+Sub Makro1()
+	Dim Tbl_CRHESLT
+	Set Tbl_CRHESLT=Doc.GetTableObject("CRHESLT")
+	Dim Tbl_CRHESLE
+	Set Tbl_CRHESLE=Doc.GetTableObject("CRHESLE")
+	Dim obe
+	Set obe=Doc.CreateSObject("BatchErrorMode")
+	Dim nret
+	nret=Doc.LoadEmpty_Voucher()
+	nret = Doc.LoadFirst_Voucher()
+	While nret=0 
+		Dim SilinenSatirSayisi
+		Dim ToplamSatirSayisi
+		ToplamSatirSayisi=Tbl_CRHESLT.GetRowCount
+		SilinenSatirSayisi=CHFarklSatirVarsaSil(Tbl_CRHESLT)
+
+
+		If SilinenSatirSayisi>0 Then
+			If SilinenSatirSayisi=ToplamSatirSayisi Then
+				Doc.d7MsgBox Tbl_CRHESLE.EVRAKNO & " Fiþinden " & CStr(SilinenSatirSayisi) & " Satýr ve (Baþka Satýr Kalmadýðýndan) Fiþin Kendisi Silindi, ", "",-1
+				Doc.Delete_Voucher
+			Else
+				Doc.d7MsgBox Tbl_CRHESLE.EVRAKNO & " Fiþinden " & CStr(SilinenSatirSayisi) & " Satýr Silindi", "",-1
+				Doc.Save_Voucher()
+			End If
+		End If
+		nret = Doc.LoadNext_Voucher()
+	Wend
+	nret=Doc.LoadEmpty_Voucher()
+
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : DEPOLAR
+Hangi Tablo için : STOKY01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro()
+	Dim i
+	dim tbl
+	dim sayac
+	Dim depolar(50)
+	set tbl=Doc.GetTableObject("GLOBAL_STACK")   
+	for i=1 to 50
+		depolar(i)="   "
+  next
+
+	depolar(1)="DN"
+	depolar(2)="EB"
+
+	sayac=1
+	for i=1 to 50
+		if Trim(depolar(i))<>"" then
+			FLDNAME="AMBARKODU" & sayac
+			Doc.SetFieldValue "STACK_STACK",FLDNAME,0,depolar(i)
+			sayac=sayac+1
+		end if
+	next
+  
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : DUYURU
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru\","/download/dinamo/duyuru/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : FRST00E
+Hangi Tablo için : FRST00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Toplu Export
+Kod : 
+Sub Makro1()
+	Dim docname
+	docname=Doc.GetDocType()
+	Set Doc1 = Doc.CreateDocumentNOUI(docname,"")
+
+	exportdosyaIsmi="C:\" + docname + ".xml"
+	Doc1.BatchExportBegin(exportdosyaIsmi)
+	Dim par1
+	Set par1 = Doc1.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT","MT_LOAD_OR_NEW"
+
+	For i = 1 to LISTET.GetRecCount()
+		EvrakNo = LISTET.EVRAKNO(i)
+		if trim(EvrakNo) <> "" then
+			Doc1.Load_Voucher(Doc.RightJustify(EvrakNo,10))
+			Doc1.BatchExport1 exportdosyaIsmi,par1
+		end if
+	Next
+
+	Doc1.LoadEmpty_Voucher()
+	Doc1.BatchExportEnd(exportdosyaIsmi)
+
+	Doc1.DeleteDocumentNoUI docname,""		
+	Set par1=Nothing
+	Set Doc1 = Nothing
+
+	MsgBox(exportdosyaIsmi & " Ýsimli dosyya Export Tamamlandý!")
+End Sub                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : GRUPLAMA
+Hangi Tablo için : CNTACT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Yahoo ve benzerlerini gruplama
+Kod : 
+Sub Makro1()
+	basla = Timer
+
+	Dim Doc1
+	Set Doc1 = Doc.CreateDocumentNOUI("CNTACT00","")
+	If Doc1 Is Nothing Then
+		MsgBox "Hata"
+		Exit Sub
+	End If
+  
+	Dim T_CNTACT00, R_CNTACT00
+	Dim nretcode
+	Dim KontaktKodu
+	set T_CNTACT00 = Doc1.GetTableObject("CNTACT00")
+
+	HedefListe = Array("hotmail.com","yahoo.com","mynet.com","veezy.com","superonline.com","turk.net")
+
+
+	BaslangicNo = InputBox("Baþlangýç Evrak No?")
+	BitisNo = InputBox("Bitiþ Evrak No?")
+	
+	BaslangicNo = Doc.RightJustify(trim(BaslangicNo),10)
+	BitisNo	 = Doc.RightJustify(trim(BitisNo),10)
+
+	Set R_CNTACT00 = Doc.CreateRowSetObject("XXX=CNTACT00", "REPORT") 
+	Set Kriterler = Doc.CreateSObject("Query")
+
+	Kriterler.UseTable "CNTACT00"
+	Kriterler.AddAndCriteria R_CNTACT00, "EVRAKNO", ">=", BaslangicNo
+	Kriterler.AddAndCriteria R_CNTACT00, "EVRAKNO", "<=", BitisNo
+	k = R_CNTACT00.RunQuery(Kriterler)
+
+	satirSayisi = R_CNTACT00.GetRecCount()
+	for i = 1 to satirSayisi
+		eMail = R_CNTACT00.SIRKET_EMAIL_1(i)
+'		if i = 1 then msgbox eMail
+		If HedefDomain(eMail, HedefListe) Then
+			KontaktKodu = R_CNTACT00.EVRAKNO(i)
+			nretcode = Doc1.Load_Voucher(KontaktKodu)
+			If nretcode <> 0 Then
+				MsgBox ("Load Error = " & CStr(nretcode) & "-" & email)
+				Exit Sub
+			End If
+			T_CNTACT00.GK_2 = "TEK"
+' save....
+			nretcode = Doc1.Save_Voucher()
+			If nretcode <> 0 Then
+				MsgBox ("Save Error= " & CStr(nretcode) & "-" & i)
+				Exit Sub
+			End If
+			Duzeltme = Duzeltme + 1
+		End If
+		k = k + 1
+		Doc.StatusBarMessage "Düzeltilen : " & Duzeltme & " - " & k & " / " & satirSayisi
+	Next
+	bitis = Timer
+	MsgBox (Duzeltme & " adet kontakt düzeltildi." & vbCrLf & bitis - basla & " s")
+	Doc.DeleteDocumentNOUI "CNTACT00",""
+End Sub
+Function HedefDomain(MailAddres, HedefListe)
+	HedefDomain = False
+	intAt = instr(1,MailAddres,"@")
+	Domain = trim(Mid(MailAddres,intAt+1))
+	for each x in HedefListe
+		if ucase(trim(x)) = ucase(trim(Domain)) then
+			HedefDomain = True
+			exit function
+		end if
+	next                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : HATALILAR
+Hangi Tablo için : CNTACT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Hatalý e-mailleri kapatma
+Kod : 
+Sub Makro1()
+  basla = Timer
+	Set fso = CreateObject("Scripting.FileSystemObject")
+	WrkDir = fso.GetAbsolutePathName(".")
+  Dim Doc1
+  Set Doc1 = Doc.CreateDocumentNOUI("CNTACT00","")
+  If Doc1 Is Nothing Then
+    MsgBox "Hata"
+    Exit Sub
+  End If
+  
+  Dim T_CNTACT00
+  Dim nretcode
+  Dim KontaktKodu
+  
+	Set T_CNTACT00 = Doc1.GetTableObject("CNTACT00")
+	DosyaAdi = wrkdir & "\hatalar.txt"
+	Set HFile = Fso.OpenTextFile(DosyaAdi,1,0)
+	If HFile Is Nothing Then
+		Msgbox "Dosya Açýlamýyor"
+		Set T_CNTACT00 = Nothing
+		Exit Sub
+	End If
+	Doc.StatusBarMessage "Text dosyasý açýlýyor"
+	While Not HFile.AtEndOfStream
+		HFile.SkipLine
+		satirSayisi = satirSayisi + 1
+		Doc.StatusBarMessage satirSayisi
+	Wend 
+	HFile.Close
+
+	Set HFile = Fso.OpenTextFile(DosyaAdi,1,0)    
+	While Not HFile.AtEndOfStream
+		email = Temizle(HFile.ReadLine)
+		email = Doc1.LeftJustify(email,50)
+		cRows = Doc1.SelectEQ("CNTACT00", "SIRKET_EMAIL_1", email)
+		If cRows = 1 Then
+			Set CN00 = Doc1.GetTableObject("AU_CNTACT00_SELECT")
+			KontaktKodu = CN00.EVRAKNO(1)
+			nretcode = Doc1.Load_Voucher(KontaktKodu)
+			If nretcode <> 0 Then
+				MsgBox ("Load Error = " & CStr(nretcode) & "-" & email)
+				Exit Sub
+			End If
+			T_CNTACT00.EMAIL_GONDERME = "X"
+' save....
+			nretcode = Doc1.Save_Voucher()
+			If nretcode <> 0 Then
+				MsgBox ("Save Error= " & CStr(nretcode) & "-" & i)
+				Exit Sub
+			End If
+			Duzeltme = Duzeltme + 1
+		End If
+		k = k + 1
+		Doc.StatusBarMessage "Düzeltilen : " & Duzeltme & " - " & k & " / " & satirSayisi
+	Wend
+	bitis = Timer
+	MsgBox (Duzeltme & " adet kontaktýn email adresi düzeltildi." & vbCrLf & bitis - basla & " s")
+	HFile.Close
+
+End Sub
+Function Temizle(Yazi)
+	Yazi = trim(Yazi)
+	Bosluk = instr(1,Yazi," ")
+	if Bosluk > 0 then
+		Yazi = Left(Yazi,Bosluk-1)
+	end if
+	for i = 1 to 10
+		Yazi = replace(Yazi,"..","")
+		Yazi = replace(Yazi,",","")
+	Next
+	Temizle = Yazi
+End Function                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : INCARI00
+Hangi Tablo için : CNTACT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Cari Kart Giriþi
+Kod : 
+Sub Makro1()
+	Dim sv
+	Dim upflag
+	Dim Doc1
+	Dim CARI00
+	Dim LISTET
+	Dim CNTACT00
+	sv=110819	
+	sv=sv+1
+	Set Doc1 = Doc.CreateDocumentNOUI("CARI00","")
+	If Doc1 Is Nothing Then
+		MsgBox "Hata Cari00"
+		Exit Sub
+	End If
+	Set CARI00=Doc1.GetTableObject("CARI00")
+	Set LISTET=Doc.GetTableObject("LISTET")
+	Set CNTACT00=Doc.GetTableObject("CNTACT00")
+
+	for i=1 to LISTET.GetRecCount()
+		evrakno=LISTET.EVRAKNO(i)
+		chkod=LISTET.SIRKET_CH_KODU(i)
+		if Trim(chkod)="" then			
+			vc=sv & " "
+			retcode=Doc1.Load_Voucher(Trim(vc))
+			if retcode=0 then
+				upflag=0
+				if Trim(LISTET.SIRKET_UNVAN1(i))<>"" then
+					CARI00.AD=LISTET.SIRKET_UNVAN1(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_UNVAN2(i))<>"" then
+					CARI00.NAME2=LISTET.SIRKET_UNVAN2(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_ADR_1(i))<>"" then
+					CARI00.ADRES_1=LISTET.SIRKET_ADR_1(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_ADR_2(i))<>"" then
+					CARI00.ADRES_2=LISTET.SIRKET_ADR_2(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_ADR_3(i))<>"" then
+					CARI00.ADRES_3=LISTET.SIRKET_ADR_3(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_POSTAKODU(i))<>"" then
+					CARI00.POSTAKODU=LISTET.SIRKET_POSTAKODU(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_SEHIR_KODU(i))<>"" then
+					CARI00.SEHIRKODU=LISTET.SIRKET_SEHIR_KODU(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.IS_TELEFONU(i))<>"" then
+					CARI00.TELEFONNO_1=LISTET.IS_TELEFONU(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_FAX(i))<>"" then
+					CARI00.FAXNO=LISTET.SIRKET_FAX(i)
+					upflag=upflag+1
+				end if
+				if upflag>0 then
+					retcode=Doc1.Save_Voucher()
+					if retcode<>0 then
+						msgbox "Save Error"
+					end if
+					retcode=Doc.Load_Voucher(evrakno)					
+					CNTACT00.SIRKET_CH_KODU=vc
+					retcode=Doc.Save_Voucher()
+					if retcode<>0 then
+						msgbox "Save me"
+					end if
+					retcode=Doc.LoadEmpty_Voucher()
+					sv=sv+1					
+				end if				
+				retcode=Doc1.LoadEmpty_Voucher()
+			end if
+		end if
+	next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : KONTAKT
+Hangi Tablo için : CNTACT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Excel 'den e-mail aktarma
+Kod : 
+Sub Makro1()
+	k = Doc.d7Msgbox("Bu makronun çalýþmasý için ;" & vbcrlf & _
+								"Kontaktlar, firma klasörünün altýnda kontakt.xls adýnda bir dosya olmalý" & vbcrlf & _
+								"email adresleri kontakt.xls 'in ilk sayfasýnýn 1. sütununda olmalý" & vbcrlf & _
+								"email adresleri 1. satýrdan baþlamalý ve aralarýnda boþ satýr olmamalý"  & vbcrlf & vbcrlf & _
+								"devam etmek istiyor musunuz?","uyarý",MB_YESNO)
+	if k = 7 then exit sub
+
+
+	basla = Timer
+	Dim MyObj1
+
+	Set Fso = CreateObject("Scripting.FileSystemObject")
+	WrkDir = Fso.GetAbsolutePathName(".")
+
+	Set MyObj1 = CreateObject("d7ebcom1.DocCreator")
+	If Not IsObject(MyObj1) Then Exit Sub
+
+	MyObj1.SetWorkDirectory (WrkDir)
+	Set Excel = CreateObject("Excel.Application")
+	Set Wb = Excel.Workbooks.Open(wrkdir & "\kontakt.xls")
+	Set Sh = Wb.Sheets(1)
+
+'  MyObj1.SetWorkDirectory ("d:\d24\@xkablo\")
+
+	Dim Doc1
+	Set Doc1 = MyObj1.CreateDocument("CNTACT00")
+	If Doc1 Is Nothing Then
+		MsgBox "Hata"
+		Set MyObj1 = Nothing
+		Exit Sub
+	End If
+  
+	Dim T_CNTACT00
+	Dim nretcode
+	Dim KontaktKodu
+  
+	Set T_CNTACT00 = Doc1.GetTableObject("CNTACT00")
+	i = 1
+	While trim(Sh.Cells(i,1)) <> ""
+		i = i + 1
+	wend
+	satirSayisi = i - 1
+    
+	For i = 1 To satirSayisi
+		email = Doc.LeftJustify(Trim(Sh.Cells(i, 1)), 50)
+		cRows = Doc.SelectEQ("CNTACT00", "SIRKET_EMAIL_1", email)
+		If cRows = 0 Then
+			nretcode = Doc1.New_Voucher()
+			If nretcode <> 0 Then
+				MsgBox ("New Error = " & CStr(nretcode) & "-" & i)
+				Set MyObj1 = Nothing
+				Exit Sub
+			End If
+			GrupKodu = Sh.Cells(i, 2)
+			T_CNTACT00.SIRKET_EMAIL_1 = email
+			T_CNTACT00.AKTIF_IZLEMEDE = "E"
+			T_CNTACT00.EMAIL_GONDERME = "E"
+			T_CNTACT00.ARANMAYACAK = "E"
+			T_CNTACT00.GK_1 = GrupKodu
+' save....
+			nretcode = Doc1.Save_Voucher()
+			If nretcode <> 0 Then
+				MsgBox ("Save Error= " & CStr(nretcode) & "-" & i)
+				Set MyObj1 = Nothing
+				Exit Sub
+			End If
+			Eklenen = Eklenen + 1
+		End If
+		Doc.StatusBarMessage "Eklenen : " & Eklenen & " - " & "Eklenmeyen : " & _
+        i - Eklenen & " / " & satirSayisi
+	Next
+
+	Wb.Close
+	Excel.Quit()
+	Set MyObj1 = Nothing
+	bitis = Timer
+	MsgBox (Eklenen & " adet kontakt eklendi." & vbCrLf & bitis - basla & " s")
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : KONTAKT0
+Hangi Tablo için : KONTAKT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Toplu Kontakt Export
+Kod : 
+Sub Makro1()
+	Dim docname
+	docname=Doc.GetDocType()
+	Set Doc1 = Doc.CreateDocumentNOUI(docname,"")
+
+	exportdosyaIsmi="C:\" + docname + ".xml"
+	Doc1.BatchExportBegin(exportdosyaIsmi)
+	Dim par1
+	Set par1 = Doc1.CreateSObject("Parameters")
+	par1.SetParameter "BATCHOPT","MT_LOAD_OR_NEW"
+
+	For i = 1 to LISTET.GetRecCount()
+		EvrakNo = LISTET.EVRAKNO(i)
+		if trim(EvrakNo) <> "" then
+			Doc1.Load_Voucher(Doc.RightJustify(EvrakNo,10))
+			Doc1.BatchExport1 exportdosyaIsmi,par1
+		end if
+	Next
+
+	Doc1.LoadEmpty_Voucher()
+	Doc1.BatchExportEnd(exportdosyaIsmi)
+
+	Doc1.DeleteDocumentNoUI docname,""		
+	Set par1=Nothing
+	Set Doc1 = Nothing
+
+	MsgBox(exportdosyaIsmi & " Ýsimli dosyya Export Tamamlandý!")
+End Sub                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : MAILGONDER
+Hangi Tablo için : CNTACT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Option Explicit
+Sub Send_One_Mail(SDW,ouapp,m_subject,m_from,m_to,m_cc,m_bcc,message_type,message,m_attach)
+	Dim oumailitem
+    Set oumailitem = ouapp.CreateItem(0)
+
+	oumailitem.ExpiryTime = Date + 30
+    oumailitem.ReadReceiptRequested = False
+    oumailitem.Subject = m_subject
+	oumailitem.SentOnBehalfOfName=m_from
+    oumailitem.To = m_to
+    oumailitem.Cc = m_cc
+    oumailitem.Bcc = m_bcc
+	If message_type="H" Then
+		If Left(ouapp.version,1)>"9" Then oumailitem.Body=""
+'		oumailitem.BodyFormat=2
+		oumailitem.HtmlBody = "<!DOCTYPE HTML PUBLIC "" -//W3C//DTD HTML 4.0 Transitional//EN"">" + message
+	Else
+		oumailitem.Body = message
+	End If
+	If Len(m_attach)>0 Then
+		Dim Attachments
+		Set Attachments=oumailitem.Attachments
+		Attachments.Add m_attach
+	End If
+
+	If SDW="W" Then
+		oumailitem.Save
+	ElseIf SDW="D" Then
+		oumailitem.Display
+	ElseIf SDW="S" Then
+		oumailitem.Send
+	End If
+End Sub
+Sub Makro1()
+	Dim TBL_e
+	Dim TBL_t
+	Set TBL_e = Doc.GettableObject("SEND_MAIL")
+	If TBL_e.GetRecCount()<=0 Then 		
+		Exit Sub
+	End If
+	Set TBL_t = Doc.GettableObject("LISTET")
+	If TBL_t.GetRecCount()<=0 Then 		
+		Exit Sub
+	End If
+
+	Dim dokuman
+	Dim message
+	dokuman=Trim(TBL_e.M_DOKUMAN)
+	message=Trim(TBL_e.M_MESSAGE)
+	If Len(dokuman)>0  And Len(message)>0 Then		
+		Doc.d7MsgBox "Hem Yazý Ýle Mesaj, Hem de Mesajýn Alýnacaðý Döküman Dosyasý Belirtmiþsiniz, Lütfen Sadece Birini Belirtin","",-1
+		Exit Sub
+	End If
+	If Len(dokuman)=0  And Len(message)=0 Then		
+		Doc.d7MsgBox "Yazý Ýle Mesaj ya da Mesajýn Alýnacaðý Döküman Dosyasýný Belirtmelisiniz","",-1
+		Exit Sub
+	End If
+
+	Dim send_list
+	send_list=Trim(TBL_e.SEND_LIST)
+	If send_list<>"1" And send_list<>"L" And send_list<>"H" Then
+		Doc.d7MsgBox "Kimlere Gönderilecek Seçeneði Hatalý","",-1
+		Exit Sub
+	End If
+
+	If Len(dokuman)>0 Then
+		message=Trim(Doc.ReadAllFile(dokuman))
+		If Len(message)=0 Then
+			Doc.d7MsgBox "Belirttiðiniz Döküman Dosyasý Açýlamýyor veya Boþ","",-1
+			Exit Sub
+		End If
+	End If
+
+	Dim message_type
+	message_type=Trim(TBL_e.MESSAGE_TYPE)
+	If message_type<>"H" Then message_type="T"
+
+    Dim ouapp
+    Set ouapp = CreateObject("Outlook.Application")
+    Dim Namespace
+    Set Namespace = ouapp.GetNamespace("MAPI")
+    Namespace.Logon
+
+	Dim SDW
+	SDW=Trim(TBL_e.SEND_TYPE)
+	If SDW<>"S" And SDW<>"D" And SDW<>"W" Then
+		Doc.d7MsgBox "Gönderim Þekli Geçersiz","",-1
+		Exit Sub
+	End If
+
+	Dim m_from
+	Dim m_subject
+	Dim m_attach
+	m_from=Trim(TBL_e.M_FROM)
+	m_subject=Trim(TBL_e.M_SUBJECT)
+	m_attach=Trim(TBL_e.M_ATTACH)
+	If send_list="1" Then
+		Dim m_to
+		Dim m_cc
+		Dim m_bcc
+		m_to=Trim(TBL_e.M_TO)
+		m_cc=Trim(TBL_e.M_CC)
+		m_bcc=Trim(TBL_e.M_BCC)
+		
+		If Len(m_to)>0 Or Len(m_cc)>0 Or Len(m_bcc)>0 Then
+			Send_One_Mail SDW,ouapp,m_subject,m_from,m_to,m_cc,m_bcc,message_type,message,m_attach
+		Else
+			Doc.d7MsgBox "Mesajýn Gönderileceði Adresler Belirtilmelidir","",-1
+		End If
+	End If
+	Dim I
+	If send_list="L" Then
+		For I=1 To TBL_t.GetRecCount()		
+			If TBL_t.SELECTED(I)=1 Then			
+				m_to=Trim(TBL_t.SIRKET_EMAIL_1(I))
+				If Len(m_to)>0 Then
+					Send_One_Mail SDW,ouapp,m_subject,m_from,m_to,"","",message_type,message,m_attach
+				End If
+			End If
+		Next 
+	End If
+	If send_list="H" Then
+		m_to=""
+		Dim SendCount
+		SendCount=0
+		For I=1 To TBL_t.GetRecCount()		
+			If TBL_t.SELECTED(I)=1 Then			
+				If Len(Trim(TBL_t.SIRKET_EMAIL_1(I)))>0 Then
+					If SendCount=0 Then
+						m_to=Trim(TBL_t.SIRKET_EMAIL_1(I))
+					Else
+						m_to=m_to&";"&Trim(TBL_t.SIRKET_EMAIL_1(I))
+					End If
+					SendCount=SendCount+1
+				End If
+				If SendCount>=100 Then
+					Send_One_Mail SDW,ouapp,m_subject,m_from,"","",m_to,message_type,message,m_attach
+					SendCount=0
+					m_to=""
+				End If
+			End If
+		Next 
+		If SendCount>0 Then
+			Send_One_Mail SDW,ouapp,m_subject,m_from,"","",m_to,message_type,message,m_attach
+		End If
+	End If
+End Sub                                           
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : MAK002
+Hangi Tablo için : CARI20
+Ýlave Hangi Uygulamalar için : STOK70,STOK74,NAKT10,CKSN20,CKSN22,CKSN23,CKSN24,CKSN25,CKSN26
+Açýklama : Cari Hesap Açýk Hesap ve Risk Limitleri Göstergeleri
+Kod : 
+Sub RECALC_CARI00(ByVal CHKodu,ByRef Unvan,ByRef AH_Limit,ByRef R_Limit)
+	R_Limit=Doc.GetDbFieldValue("CARI00","B_RISKLIMITI",Doc.LeftJustify(CHKodu,16),"KOD")
+	AH_Limit=Doc.GetDbFieldValue("CARI00","B_ACIKHESAPLIMITI",Doc.LeftJustify(CHKodu,16),"KOD")
+	Unvan=Doc.GetDbFieldValue("CARI00","AD",Doc.LeftJustify(CHKodu,16),"KOD")
+End Sub
+Sub RECALC_ALANLARIHESAPLA(MTable)
+	MTable.F_RISK=Doc.CSRisk_Toplam("",MTable.CHKODU,"","")
+	MTable.F_ACIKHESAP=Doc.CariHesapToplamlariBA(MTable.CHKODU,"BB")
+	MTable.F_RISK=MTable.F_RISK+MTable.F_ACIKHESAP
+	If MTable.F_ACIKHESAP<0 Then 
+		MTable.F_ACIKHESAP=0
+	End If
+	MTable.T1="Açýk Hesap = "& Trim(Doc.NumFormat(MTable.F_ACIKHESAP, 20,0)) &" "& Doc.DefaultPB
+	MTable.T2="Risk = "& Trim(Doc.NumFormat(MTable.F_RISK, 20,0)) &" "& Doc.DefaultPB
+End Sub
+Sub RECALC_EKRANTAZELE(AH_Limit,R_Limit)
+	Doc.SetFormControlProperty "","G1","UNIT",Doc.LocalPb
+	Doc.SetFormControlProperty "","G1","MINIMUM",0
+	Doc.SetFormControlProperty "","G1","MAXIMUM",AH_Limit*1.2
+	Doc.SetFormControlProperty "","G1","GAUGEBCK_COLOR_1",RGB(255,227,113)
+	Doc.SetFormControlProperty "","G1","GAUGEBCK_COLOR_2",RGB(255,227,113)
+	Doc.SetFormControlProperty "","G1","GAUGEBCK_COLOR_3",RGB(255,227,113)
+	Doc.SetFormControlProperty "","G1","R1_MINIMUM",0
+	Doc.SetFormControlProperty "","G1","R1_MAXIMUM",AH_Limit*0.8
+	Doc.SetFormControlProperty "","G1","R2_MINIMUM",AH_Limit*0.8
+	Doc.SetFormControlProperty "","G1","R2_MAXIMUM",AH_Limit
+	Doc.SetFormControlProperty "","G1","R3_MINIMUM",AH_Limit
+	Doc.SetFormControlProperty "","G1","R3_MAXIMUM",AH_Limit*1.2
+	Doc.SetFormControlProperty "","G1","R1_MINIMUM_COLOR",RGB(0,255,0)
+	Doc.SetFormControlProperty "","G1","R1_MAXIMUM_COLOR",RGB(0,255,0)
+	Doc.SetFormControlProperty "","G1","R1_ENABLE",1
+	Doc.SetFormControlProperty "","G1","R2_MINIMUM_COLOR",RGB(255,255,0)
+	Doc.SetFormControlProperty "","G1","R2_MAXIMUM_COLOR",RGB(255,255,0)
+	Doc.SetFormControlProperty "","G1","R2_ENABLE",1
+	Doc.SetFormControlProperty "","G1","R3_MINIMUM_COLOR",RGB(255,0,0)
+	Doc.SetFormControlProperty "","G1","R3_MAXIMUM_COLOR",RGB(255,0,0)
+	Doc.SetFormControlProperty "","G1","R3_ENABLE",1
+
+	Doc.SetFormControlProperty "","G2","UNIT",Doc.LocalPb
+	Doc.SetFormControlProperty "","G2","MINIMUM",0
+	Doc.SetFormControlProperty "","G2","MAXIMUM",R_Limit*1.2
+	Doc.SetFormControlProperty "","G2","GAUGEBCK_COLOR_1",RGB(255,227,113)
+	Doc.SetFormControlProperty "","G2","GAUGEBCK_COLOR_2",RGB(255,227,113)
+	Doc.SetFormControlProperty "","G2","GAUGEBCK_COLOR_3",RGB(255,227,113)
+	Doc.SetFormControlProperty "","G2","R1_MINIMUM",0
+	Doc.SetFormControlProperty "","G2","R1_MAXIMUM",R_Limit*0.8
+	Doc.SetFormControlProperty "","G2","R2_MINIMUM",R_Limit*0.8
+	Doc.SetFormControlProperty "","G2","R2_MAXIMUM",R_Limit
+	Doc.SetFormControlProperty "","G2","R3_MINIMUM",R_Limit
+	Doc.SetFormControlProperty "","G2","R3_MAXIMUM",R_Limit*1.2
+	Doc.SetFormControlProperty "","G2","R1_MINIMUM_COLOR",RGB(0,255,0)
+	Doc.SetFormControlProperty "","G2","R1_MAXIMUM_COLOR",RGB(0,255,0)
+	Doc.SetFormControlProperty "","G2","R1_ENABLE",1
+	Doc.SetFormControlProperty "","G2","R2_MINIMUM_COLOR",RGB(255,255,0)
+	Doc.SetFormControlProperty "","G2","R2_MAXIMUM_COLOR",RGB(255,255,0)
+	Doc.SetFormControlProperty "","G2","R2_ENABLE",1
+	Doc.SetFormControlProperty "","G2","R3_MINIMUM_COLOR",RGB(255,0,0)
+	Doc.SetFormControlProperty "","G2","R3_MAXIMUM_COLOR",RGB(255,0,0)
+	Doc.SetFormControlProperty "","G2","R3_ENABLE",1
+End Sub
+
+Sub Ekran1(CHKodu)
+	Dim MTable
+	Set MTable=Doc.CreateTableObject("MAKROTABLE=STACK","IO")
+	MTable.Addfield2 "F_RISK","DOUBLE",10,2,"R","",""
+	MTable.Addfield2 "F_ACIKHESAP","DOUBLE",10,2,"R","",""
+	MTable.Addfield2 "CHKODU","CHAR",16,0,"L","",""
+	MTable.Addfield2 "UNVAN","CHAR",50,0,"L","",""
+	MTable.Addfield2 "T1","CHAR",50,0,"L","",""
+	MTable.Addfield2 "T2","CHAR",50,0,"L","",""
+
+	MTable.CHKODU=CHKodu
+	Dim R_Limit
+	Dim AH_Limit
+	Dim Unvan
+	Call RECALC_CARI00(MTable.CHKODU,Unvan,AH_Limit,R_Limit)
+	MTable.UNVAN=Unvan
+
+	Call RECALC_ALANLARIHESAPLA(MTable)
+
+	Dim FormText
+	FormText=""
+	FormText=FormText&"FORM MAKROFORMU1 HEIGHT=380P WIDTH=620P SCROLLBARS=NO CAPTIONTYPE=SYS"&vbcrlf
+	FormText=FormText&"SET CAPTION='C/H Açýk Hesap ve Risk Göstergeleri'"&vbcrlf
+	FormText=FormText&"MENUDEF"&vbcrlf
+	FormText=FormText&"POPUP TEXT=""&Dosya"""&vbcrlf
+	FormText=FormText&"MENUITEM TEXT=""Ýþlem Yapmadan Çý&kýþ"" ID=ID_APP_CANCEL KEY=ESCAPE"&vbcrlf
+	FormText=FormText&"ENDPOPUP"&vbcrlf
+	FormText=FormText&"ENDMENUDEF"&vbcrlf
+	FormText=FormText&"CTEXT LEFT=1P W=620P TOP=10P T='"&Trim(MTable.UNVAN)&"' FONT=ARIALBOLD15"&vbcrlf
+	FormText=FormText&"CTEXT LEFT=35P W=250P TOP=2 D=MAKROTABLE.T1"&vbcrlf
+	FormText=FormText&"GAUGE GAUGETYPE=ANGULAR2 LEFT=35P TOP=+20P HEIGHT=250P W=250P D=MAKROTABLE.F_ACIKHESAP TXTCOL=RGB_000_000_000  NAME=G1"&vbcrlf
+	FormText=FormText&"LOCATE TOP=1"&vbcrlf
+	FormText=FormText&"CTEXT LEFT=320P W=250P TOP=2 D=MAKROTABLE.T2"&vbcrlf
+	FormText=FormText&"GAUGE GAUGETYPE=ANGULAR2 LEFT=320P TOP=+20P HEIGHT=250P W=250P D=MAKROTABLE.F_RISK TXTCOL=RGB_000_000_000  NAME=G2"&vbcrlf
+	FormText=FormText&"BUTTON LEFT=520P TOP=E+0 WIDTH=10 HEIGHT=1 CAPTION=""Tazele"" ID=""MT_RUNMACRO_AFTERCALC('MAKR7S.MAK002','RECALC')"""&vbcrlf
+	FormText=FormText&"ENDFORM"&vbcrlf
+	Dim Par
+	Set Par=Nothing
+	Doc.LoadSubForm_Dyn "MAKROFORMU1",FormText,Par
+
+	Call RECALC_EKRANTAZELE(AH_Limit,R_Limit)
+End Sub
+
+Sub RECALC
+	Dim MTable
+	Set MTable=Doc.GetTableObject("MAKROTABLE")
+	Dim R_Limit
+	Dim AH_Limit
+	Dim Unvan
+	Call RECALC_CARI00(MTable.CHKODU,Unvan,AH_Limit,R_Limit)
+	MTable.UNVAN=Unvan
+	Call RECALC_ALANLARIHESAPLA(MTable)
+	Call RECALC_EKRANTAZELE(AH_Limit,R_Limit)
+End Sub
+
+Sub Makro1()
+	Dim Tbl
+	If vapp("STOK70")=0 Then
+		Set Tbl=Doc.GetTableObject("STOK70E")
+		Ekran1 Tbl.CH_KODU
+	ElseIf vapp("STOK74")=0 Then
+		Set Tbl=Doc.GetTableObject("STOK74E")
+		Ekran1 Tbl.CH_KODU
+	ElseIf vapp("CARI20")=0 Then
+		Set Tbl=Doc.GetTableObject("CARI20T")
+		Ekran1 Tbl.KOD
+	ElseIf vapp("NAKT10")=0 Then
+		Set Tbl=Doc.GetTableObject("NAKT10T")
+		Ekran1 Tbl.CARICODE
+	ElseIf	vapp("CKSN20")=0 Or vapp("CKSN21")=0 Or vapp("CKSN22")=0 Or vapp("CKSN23")=0 Or vapp("CKSN24")=0 Or vapp("CKSN25")=0 Or vapp("CKSN26")=0 Or vapp("CKSN27")=0 Or vapp("CKSN28")=0 Or _ 
+				vapp("CKSN30")=0 Or vapp("CKSN31")=0 Or vapp("CKSN32")=0 Or vapp("CKSN33")=0 Or vapp("CKSN34")=0 Or vapp("CKSN35")=0 Or vapp("CKSN36")=0 Or vapp("CKSN37")=0 Or vapp("CKSN38")=0 Then
+		Set Tbl=Doc.GetTableObject("CKSN10E")
+		If Trim(Tbl.GIRISTYPE)="C" Then 
+			Ekran1 Tbl.GIRISCODE
+		ElseIf Trim(Tbl.CIKISTYPE)="C" Then
+			Ekran1 Tbl.CIKISCODE
+		End If		
+	End if
+End Sub                                                                                                                                                                                                                                                                                                                             
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : MODULLER
+Hangi Tablo için : DY0001
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Dikkat.! Modül Tablosunu Boþaltýp Tüm Lisanslarý Ekler
+Kod : 
+Sub Makro1()
+'	Set DY0001T2=Doc.GetTableObject("DY0001T2")
+	Set GECOSST=Doc.Select1("_13123123","GECOSST","EVRAKNO='|D7LIC'","SRNUM",-1)
+	DY0001T2.Empty()
+	for i=1 to GECOSST.GetRecCount()
+		RecNo=DY0001T2.AddRow()
+		DY0001T2.SetCurrentRow(RecNo)
+		DY0001T2.MODUL(RecNo)=GECOSST.KOD(i)
+	next
+	DY0001T2.SetCurrentRow(1)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : NKONTAKT0
+Hangi Tablo için : KONTAKT0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Baþka Firmaya Gönder
+Kod : 
+Sub Makro1()
+	Dim WrkDir
+	Dim sv
+	Dim upflag
+	Dim Doc1
+	Dim KONTAKT0
+	Dim LISTET
+
+	WrkDir="K:\D24\@YEMEK\"
+	'Set Doc1 = Doc.CreateDocumentNOUI("KONTAKT0","")
+	Set Doc1 = Doc.CreateDocumentNOUI2("KONTAKT0","",WrkDir)
+	If Doc1 Is Nothing Then
+		MsgBox "Hata KOTANKT0"
+		Exit Sub
+	End If
+	Set KONTAKT0=Doc1.GetTableObject("KONTAKT0")
+	Set LISTET=Doc.GetTableObject("LISTET")
+	for i=1 to LISTET.GetRecCount()
+		evrakno=LISTET.EVRAKNO(i)
+		if Trim(evrakno)<>"" then			
+			retcode=Doc1.Load_Voucher(evrakno)
+			if retcode=0 then				
+				retcode=Doc1.Save_Voucher()
+				if retcode<>0 then
+					msgbox "Save Error"
+				end if
+				retcode=Doc1.LoadEmpty_Voucher()
+			end if
+		end if
+	next
+End Sub                                                                                                                                                                                                                                                                                           
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SETFOCUS
+Hangi Tablo için : TEST01
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	Doc.SetFocus("CNT_APP")
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SRVM00
+Hangi Tablo için : SRVM00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub makro1()
+	if trim(SRVM00T.RECTIME1(1))="" Then
+		SRVM00T.RECTIME1(1)=SRVM00E.SAAT
+	end if
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SRVM00GN01
+Hangi Tablo için : SRVM00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Gönder 1
+Kod : 
+Sub Makro1()	
+	Doc.RunMacro0 "PFRM7S.SERVIS-1","PrintForm_MailPDF"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SRVM00GN02
+Hangi Tablo için : SRVM00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Gönder 2
+Kod : 
+Sub Makro1()	
+	Doc.RunMacro0 "PFRM7S.SERVIS-1","PrintForm_MailPDF2"
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SRVM00T
+Hangi Tablo için : SRVM00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : 
+Kod : 
+Sub Makro1()
+	Dim PROBLEMISTEK(20,2)
+	PROBLEMISTEK(0,0)="DEMO"
+	PROBLEMISTEK(1,0)="DEVÝR"	
+	PROBLEMISTEK(2,0)="EGITIM"
+	PROBLEMISTEK(3,0)="Eðitim"
+	PROBLEMISTEK(4,0)="FORM"
+	PROBLEMISTEK(5,0)="HATA"
+	PROBLEMISTEK(6,0)="ISTEK"
+	PROBLEMISTEK(7,0)="KURULUS"
+	PROBLEMISTEK(8,0)="MAKRO"
+	PROBLEMISTEK(9,0)="RAPOR"	
+	PROBLEMISTEK(10,0)="TEKNIK"
+	PROBLEMISTEK(11,0)="TOPLANTI"
+	PROBLEMISTEK(12,0)="ÇAÐRI"
+
+	PROBLEMISTEK(0,1)="DEMO"
+	PROBLEMISTEK(1,1)="DEVÝR"
+	PROBLEMISTEK(2,1)="EÐÝTÝM"
+	PROBLEMISTEK(3,1)="EÐÝTÝM"
+	PROBLEMISTEK(4,1)="FORM"
+	PROBLEMISTEK(5,1)="ÇAÐRI"	
+	PROBLEMISTEK(6,1)="ÇAÐRI"
+	PROBLEMISTEK(7,1)="ÝLKKURULUÞ"
+	PROBLEMISTEK(8,1)="MAKRO"	
+	PROBLEMISTEK(9,1)="RAPOR"
+	PROBLEMISTEK(10,1)="SERVÝS"
+	PROBLEMISTEK(11,1)="TOPLANTI"
+	PROBLEMISTEK(12,1)="ÇAÐRI"
+
+	Dim YAPILANISLEM(20,2)
+	YAPILANISLEM(0,0)="ARGE"
+	YAPILANISLEM(1,0)="BAGLANTI"
+	YAPILANISLEM(2,0)="DEMO"
+	YAPILANISLEM(3,0)="DEVÝR"
+	YAPILANISLEM(4,0)="EGITIM"
+	YAPILANISLEM(5,0)="FORM"
+	YAPILANISLEM(6,0)="GORUSME"
+	YAPILANISLEM(7,0)="ISTEK"
+	YAPILANISLEM(8,0)="KURULUS"
+	YAPILANISLEM(9,0)="MAIL"
+	YAPILANISLEM(10,0)="MAKRO"
+	YAPILANISLEM(11,0)="RAPOR"
+	YAPILANISLEM(12,0)="SATIS"
+	YAPILANISLEM(13,0)="TOPLANTI"
+	YAPILANISLEM(14,0)="UPGRADE"
+	YAPILANISLEM(15,0)="YENÝ SET"
+	YAPILANISLEM(16,0)="ÝPTAL"
+
+	YAPILANISLEM(0,1)="ARGE"
+	YAPILANISLEM(1,1)="BAÐLANTI"
+	YAPILANISLEM(2,1)="DEMO"
+	YAPILANISLEM(3,1)="DEVÝR"
+	YAPILANISLEM(4,1)="EÐÝTÝM"
+	YAPILANISLEM(5,1)="FORM"
+	YAPILANISLEM(6,1)="TOPLANTI"
+	YAPILANISLEM(7,1)="ÇAÐRI"
+	YAPILANISLEM(8,1)="ÝLKKURULUÞ"
+	YAPILANISLEM(9,1)="SERVÝS"
+	YAPILANISLEM(10,1)="MAKRO"
+	YAPILANISLEM(11,1)="RAPOR"
+	YAPILANISLEM(12,1)="TOPLANTI"
+	YAPILANISLEM(13,1)="TOPLANTI"
+	YAPILANISLEM(14,1)="SERVÝS"
+	YAPILANISLEM(15,1)="SERVÝS"
+	YAPILANISLEM(16,1)="ÝPTAL"
+
+	Dim RetCode
+	Dim SRVM00T
+	Dim SelTable
+	Set SelTable=Doc.Select1("_123123_123234","SRVM00E","*","",-1)	
+	Set SRVM00T=Doc.GetTableObject("SRVM00T")
+
+	for i=1 to SelTable.GetRecCount()
+		SelTable.SetCurrentRow i
+		if Trim(SelTable.EVRAKNO)<>"" then
+			RetCode=Doc.Load_Voucher(SelTable.EVRAKNO)
+			if RetCode<>0 then
+				Doc.d7MsgBox "Load Error:"&SelTable.EVRAKNO,"dinamo",MB_OK
+				Exit Sub
+			end if
+			for j=1 to SRVM00T.GetRecCount()
+				SRVM00T.SetCurrentRow j
+				if Trim(SRVM00T.SERVISKARTNO)<>"" and Trim(SRVM00T.OPERATORKODU)<>"" then
+					if Trim(SRVM00T.YAPILANISLEM)="" then
+						SRVM00T.YAPILANISLEM="DÝÐER"
+					end if
+					for w=0 to 20
+						if Trim(PROBLEMISTEK(w,0))<>"" then
+							if Trim(PROBLEMISTEK(w,0))=Trim(SRVM00T.PROBLEMISTEK) then
+								SRVM00T.PROBLEMISTEK=PROBLEMISTEK(w,1)
+							end if
+						end if
+					next
+					for w=0 to 20
+						if Trim(YAPILANISLEM(w,0))<>"" then
+							if Trim(YAPILANISLEM(w,0))=Trim(SRVM00T.YAPILANISLEM) then
+								SRVM00T.YAPILANISLEM=YAPILANISLEM(w,1)
+							end if
+						end if
+					next
+					if Trim(SRVM00T.YAPILANISLEM)="EÐÝTÝM" or Trim(SRVM00T.YAPILANISLEM)="SERVÝS" then
+						SRVM00T.SERVISDUSUMU="SDÜÞÜLSÜN"
+					else
+						SRVM00T.SERVISDUSUMU="SDÜÞÜLMESN"
+					end if
+				end if
+			next
+			RetCode=Doc.Save_Voucher()
+			if RetCode<>0 then
+				Doc.d7MsgBox "Save Error:"&SelTable.EVRAKNO,"dinamo",MB_OK
+				Exit Sub
+			end if
+		end if
+	next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : STD-MLYT
+Hangi Tablo için : STDMH0
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Stok Kartý 4.Fiyatý standart maliyet tablosuna aktarma
+Kod : 
+Sub Makro1()
+	Endeks = "LM"
+	EndeksAciklama = "Lamp-83 Maliyet Endeksi"
+
+	Set S00 = Doc.Select1("S00_FYT", "STOK00", "B_OR_FIYAT_4>0", "", -1)
+	if S00.GetRowCount = 0 Then
+		k = Doc.d7MsgBox("4. Fiyatý dolu olan stok kartý bulunamadý.", "Uyarý", MB_OK+MB_ICONINFORMATION)
+		Exit Sub
+	End if
+	if Not GrupKoduVarmi("STMTYP", Endeks) Then
+		ret = GrupKoduYarat("STMTYP",Endeks,EndeksAciklama)
+		if ret <> 0 then
+			k = Doc.d7MsgBox(Endeks & " Maliyet endeksi yaratýlamadý. Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			exit sub
+		end if
+	end if
+	if Not GrupKoduVarmi("STMMUS", "HM") Then
+		ret = GrupKoduYarat("STMMUS","HM","Hammadde Maliyeti")
+		if ret <> 0 then
+			k = Doc.d7MsgBox("HM masraf unsuru yaratýlamadý. Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			exit sub
+		end if
+	end if
+
+	For i = 1 to S00.GetRecCount()
+		Doc.StatusBarMessage "Aktarýlýyor : " & i & " / " & S00.GetRecCount()
+		Tarih = Doc.BuGun()
+		StokKodu = S00.KOD(i)	
+		Fiyat = S00.B_OR_FIYAT_4(i)
+		PB = S00.PRICEUNIT_4(i)
+		Miktar = 1
+		Call StandartMaliyeteYaz(StokKodu, Endeks, Tarih, Fiyat, PB, Miktar)
+	Next
+End Sub
+Sub StandartMaliyeteYaz(StokKodu, Endeks, Tarih, Fiyat, PB, Miktar)
+	if trim(Tarih) = "" Then Tarih = Doc.BuGun
+	rows = Doc.SelectEQ("STDMH0E","KOD+STDMALTYPE",StokKodu & Endeks)
+	if rows = 0 then
+		ret = Doc.New_Voucher()				
+		STDMH0E.STDMALTYPE = Endeks
+		STDMH0E.KOD = StokKodu
+		STDMH0T.AddRow
+		satirNo = STDMH0T.GetRecCount
+		Tarih = Doc.StrDate_Year(Doc.BuGun) & "/01/01"
+	else
+		set ST = Doc.GetTableObject("AU_STDMH0E_SELECT")
+		EvrakNo = ST.EVRAKNO(1)
+		ret = Doc.Load_Voucher(EvrakNo)
+		if ret <> 0 then
+			k = Doc.d7MsgBox(trim(StokKodu) & ": Standart Maliyet tablosu yüklenemedi. Ýþlem kesilmiþtir.","dinamo",MB_OK)
+			exit sub
+		end if
+		satirNo = satirBul(Tarih)
+		if satirNo = 0 then
+			STDMH0T.AddRow
+			satirNo = STDMH0T.GetRecCount
+		End if
+	end if
+	STDMH0T.VALIDAFTERTARIH(satirNo) = Doc.StrToNorDate(Tarih)
+	STDMH0T.UNSUR(satirNo) = "HM"
+	STDMH0T.TUTAR(satirNo) = Fiyat
+	STDMH0T.PARABIRIMI(satirNo) = PB
+	STDMH0T.MIKTAR(satirNo) = Miktar
+	ret = Doc.Save_Voucher()
+	if ret <> 0 then
+		k = Doc.d7MsgBox(trim(StokKodu) & ": Standart Maliyet tablosu kaydedilemedi. Ýþlem kesilmiþtir.","dinamo",MB_OK)
+		ret = Doc.LoadEmpty_Voucher()
+		exit sub
+	end if
+	ret = Doc.LoadEmpty_Voucher()
+End Sub
+Function GrupKoduYarat(GrupKoduTipi,GrupKodu,GrupAciklamasi)
+	Set Doc1 = Doc.CreateDocumentNoUI("GECO10","")
+	Set GT = Doc1.GetTableObject("GECOUST")
+	ret = Doc1.Load_Voucher(GrupKoduTipi)
+	if ret <> 0 then
+		GrupKoduYarat = 1
+		ret = Doc1.LoadEmpty_Voucher()
+		exit Function
+	end if
+	GT.AddRow
+	satirNo = GT.GetRecCount
+	GT.KOD(satirNo) = GrupKodu
+	GT.AD(satirNo) = GrupAciklamasi
+	ret = Doc1.Save_Voucher()
+	if ret <> 0 then
+		GrupKoduYarat = 1
+	else
+		GrupKoduYarat = 0
+	end if
+	ret = Doc1.LoadEmpty_Voucher()
+End Function
+Function satirBul(Tarih)
+	satirBul = 0
+	For i = 1 to STDMH0T.GetRowCount()
+		if STDMH0T.VALIDAFTERTARIH(i) = Tarih then
+			satirBul = i
+			exit function
+		end if
+	Next
+End Function
+Function GrupKoduVarmi(GrupKodu, Kod)
+	GrupKoduVarmi = False
+	QStr = "EVRAKNO='" + GrupKodu + "'&KOD='" + Kod + "'"
+	Set GECO = Doc.Select1("SDASD", "GECOUST", QStr, "", -1)
+	if GECO.GetRowCount() > 0 Then
+		GrupKoduVarmi = True
+	End if
+End Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SYNC
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DUYURU dinamo
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru_DINAMO\","/download/dinamo/duyuru/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SYNCBRDR
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DUYURU Bordro
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru4_BORDRO\","/download/dinamo/duyuru4/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SYNCHR
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DUYURU Ýnsan Kaynaklarý
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru3_INSAN_KAYNAKLARI\","/download/dinamo/duyuru3/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SYNCSALES
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DUYURU Satýþ Otomasyonu
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru2_SATIS_OTOMASYONU\","/download/dinamo/duyuru2/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SYNFB
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DUYURU Fabrika Bakým
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru7_FB\","/download/dinamo/duyuru7/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : SYNVIVA
+Hangi Tablo için : MAKR7S
+Ýlave Hangi Uygulamalar için : 
+Açýklama : DUYURU viva
+Kod : 
+Sub Makro1()
+	Dim aaa
+'	aaa=Doc.Httpd7SyncDir1("http://www.diyalogyazilim.com","k:\upload\dinamo\duyuru6_VIVA\","/download/dinamo/duyuru6/",-1,0)
+	MsgBox(aaa)
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : DLS / Uygulama : MAKR7S
+Makro Kodu : UPCARI00
+Hangi Tablo için : CNTACT00
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Cari hesap kodu olanlarý cari kartla karþýlaþtýr farklý ise kaydet
+Kod : 
+Sub Makro1()
+	Dim upflag
+	Dim Doc1
+	Dim CARI00
+	Dim LISTET
+	Set Doc1 = Doc.CreateDocumentNOUI("CARI00","")
+	If Doc1 Is Nothing Then
+		MsgBox "Hata Cari00"
+		Exit Sub
+	End If
+	Set CARI00=Doc1.GetTableObject("CARI00")
+	Set LISTET=Doc.GetTableObject("LISTET")
+	for i=1 to LISTET.GetRecCount()
+		chkod=LISTET.SIRKET_CH_KODU(i)
+		sel=LISTET.SELECTED(i)
+		if Trim(chkod)<>"" then
+			retcode=Doc1.Load_Voucher(chkod)
+			if(retcode=0) then
+				upflag=0
+				if Trim(LISTET.SIRKET_UNVAN1(i))<>Trim(CARI00.AD) then
+					CARI00.AD=LISTET.SIRKET_UNVAN1(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_UNVAN2(i))<>Trim(CARI00.NAME2) then
+					CARI00.NAME2=LISTET.SIRKET_UNVAN2(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_ADR_1(i))<>Trim(CARI00.ADRES_1) then
+					CARI00.ADRES_1=LISTET.SIRKET_ADR_1(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_ADR_2(i))<>Trim(CARI00.ADRES_2) then
+					CARI00.ADRES_2=LISTET.SIRKET_ADR_2(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_ADR_3(i))<>Trim(CARI00.ADRES_3) then
+					CARI00.ADRES_3=LISTET.SIRKET_ADR_3(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_POSTAKODU(i))<>Trim(CARI00.POSTAKODU) then
+					CARI00.POSTAKODU=LISTET.SIRKET_POSTAKODU(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_SEHIR_KODU(i))<>Trim(CARI00.SEHIRKODU) then
+					CARI00.SEHIRKODU=LISTET.SIRKET_SEHIR_KODU(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.IS_TELEFONU(i))<>Trim(CARI00.TELEFONNO_1) then
+					CARI00.TELEFONNO_1=LISTET.IS_TELEFONU(i)
+					upflag=upflag+1
+				end if
+				if Trim(LISTET.SIRKET_FAX(i))<>Trim(CARI00.FAXNO) then
+					CARI00.FAXNO=LISTET.SIRKET_FAX(i)
+					upflag=upflag+1
+				end if
+				if upflag>0 then
+					retcode=Doc1.Save_Voucher()
+					if retcode<>0 then
+						msgbox "Save Error"
+					end if
+					retcode=Doc1.LoadEmpty_Voucher()
+				end if
+			end if
+		end if
+	next
+End Sub                                     
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------

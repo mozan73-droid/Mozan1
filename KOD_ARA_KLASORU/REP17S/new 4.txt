@@ -1,0 +1,4043 @@
+Option Explicit
+
+Dim PV_SpecFilterResult_C
+Dim PV_SpecFilterResult_M1
+Dim PV_SpecFilterResult_S1
+
+Sub Run1
+	Dim SQLCommand
+	Dim Rep17SE_B
+	Dim mes1
+	Dim RaporRowSet
+
+	Set Rep17SE_B=Doc.GetTableObject("Rep17SE_B")
+	SQLCommand=Trim(Rep17SE_B.SQLTEXT)
+
+	If Len(SQLCommand)=0 Then
+
+'SQL komut yok ise boş ama alanları olan rowset yarat
+		Set RaporRowSet=CreateReportRowSet()
+
+		'Call SendTableToExcel(RaporRowSet)
+	Else
+'SQL komut var ise SQL komutu kullanarak query yapılmış rowset yarat
+		Set RaporRowSet=CreateReportRowSet_SQL(SQLCommand,True)
+
+		If Not IsObject(RaporRowSet) Or IsEmpty(RaporRowSet) Or IsNull(RaporRowSet) Or Doc.IsBlank(RaporRowSet) Then
+			mes1=Doc.FormatMessage1("SQL Komutu Geçerli Bir Rowset Geri Döndürmüyor (İşlem=Sub Run1 İçinde Kriter Giriş Tablosu Yaratılmadan Önce Alanların Belirlenmesi).$$$NEW_LINE$$$SQL Komutu=[%1]",SQLCommand)
+			Doc.Msgbox(mes1)
+			Exit Sub
+		End If
+	End If
+
+	Call CreateKriterTable(RaporRowSet)
+
+	Doc.LoadMainForm("ThisForm")
+End Sub
+'-------------------------------------------------------------------------------------------
+Function CreateReportRowSet()
+	Dim RaporRowSet
+	Dim Rep17SE
+	Dim AlanBilgisi
+
+	Set RaporRowSet=Doc.CreateRowSetObject("REPORT1=STOK10A","REPORT")
+
+	Set Rep17SE=Doc.GetTableObject("REP17SE")
+
+	If Rep17SE.BELLEKTEISLENECEKR>0 Then RaporRowSet.Set_Recs_on_Memory Rep17SE.BELLEKTEISLENECEKR
+
+	Set AlanBilgisi=Doc.CreateSObject("FieldDefinition")
+
+	AlanBilgisi.Clear()
+	AlanBilgisi.Name="KOD->STOK00..."
+
+	RaporRowSet.AddField(AlanBilgisi)
+
+	AlanBilgisi.Clear()
+	AlanBilgisi.Name="TL_BIRIMMALIYET"
+	AlanBilgisi.DataType="N"
+	AlanBilgisi.Length=15
+	AlanBilgisi.SigDig=0
+	RaporRowSet.AddField(AlanBilgisi)
+	AlanBilgisi.Clear()
+	AlanBilgisi.Name="MALIYET"
+	AlanBilgisi.DataType="N"
+	AlanBilgisi.Length=16
+	AlanBilgisi.SigDig=0
+	RaporRowSet.AddField(AlanBilgisi)
+
+	Set CreateReportRowSet=RaporRowSet
+End Function
+'-------------------------------------------------------------------------------------------
+Sub CreateKriterTable(RaporRowSet)
+	Dim KriterGirisTablosu
+	Dim TablodakiAlanBilgisi
+	Dim Alanismi
+
+	Set KriterGirisTablosu=Doc.CreateTableObject("KRITERGIRIS=STACK","IO")
+
+	KriterGirisTablosu.SetBRWT "STOK10A"
+
+	Set TablodakiAlanBilgisi=RaporRowSet.GetFieldDef_E("KOD")
+
+	If Not IsObject(TablodakiAlanBilgisi) Then Exit Sub
+
+	Alanismi=TablodakiAlanBilgisi.Name
+	TablodakiAlanBilgisi.Name = "B_" & Alanismi
+	TablodakiAlanBilgisi.FTFFnc = ""
+
+	Call Guess_If_Date_Field(TablodakiAlanBilgisi)
+
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+	TablodakiAlanBilgisi.Name = "E_" & Alanismi
+	TablodakiAlanBilgisi.FTFFnc = ""
+
+	Call Guess_If_Date_Field(TablodakiAlanBilgisi)
+
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+
+	Set TablodakiAlanBilgisi=RaporRowSet.GetFieldDef_E("AMBCODE")
+
+	If Not IsObject(TablodakiAlanBilgisi) Then Exit Sub
+
+	Alanismi=TablodakiAlanBilgisi.Name
+	TablodakiAlanBilgisi.Name="CL01_" & Alanismi
+	TablodakiAlanBilgisi.FTFFnc=""
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+
+	Set TablodakiAlanBilgisi=RaporRowSet.GetFieldDef_E("TARIH")
+
+	If Not IsObject(TablodakiAlanBilgisi) Then Exit Sub
+
+	Alanismi=TablodakiAlanBilgisi.Name
+	TablodakiAlanBilgisi.Name="E_"&Alanismi
+	TablodakiAlanBilgisi.FTFFnc=""
+
+	Call Guess_If_Date_Field(TablodakiAlanBilgisi)
+
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+
+	Set TablodakiAlanBilgisi=RaporRowSet.GetFieldDef_E("KOD_STOK00_GK_1")
+
+	If Not IsObject(TablodakiAlanBilgisi) Then Exit Sub
+
+	Alanismi=TablodakiAlanBilgisi.Name
+	TablodakiAlanBilgisi.Name="EQ_"&Alanismi
+	TablodakiAlanBilgisi.FTFFnc=""
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+
+	Set TablodakiAlanBilgisi=RaporRowSet.GetFieldDef_E("TL_TUTAR")
+
+	If Not IsObject(TablodakiAlanBilgisi) Then Exit Sub
+
+	Alanismi=TablodakiAlanBilgisi.Name
+	TablodakiAlanBilgisi.Name="GT_"&Alanismi
+	TablodakiAlanBilgisi.FTFFnc=""
+
+	Call Guess_If_Date_Field(TablodakiAlanBilgisi)
+
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+
+	Set TablodakiAlanBilgisi=RaporRowSet.GetFieldDef_E("SF_MIKTAR")
+
+	If Not IsObject(TablodakiAlanBilgisi) Then Exit Sub
+
+	Alanismi=TablodakiAlanBilgisi.Name
+	TablodakiAlanBilgisi.Name="GT_"&Alanismi
+	TablodakiAlanBilgisi.FTFFnc=""
+
+	Call Guess_If_Date_Field(TablodakiAlanBilgisi)
+
+	KriterGirisTablosu.AddField(TablodakiAlanBilgisi)
+
+	KriterGirisTablosu.CL01_AMBCODE="AGSMEK"
+	KriterGirisTablosu.E_TARIH="30 08"
+	KriterGirisTablosu.EQ_KOD_STOK00_GK_1="MAMUL"
+
+	KriterGirisTablosu.MakeSimpleBrowseFunction
+End Sub
+'-------------------------------------------------------------------------------------------
+Sub Run2
+
+	Dim mes1
+	Dim RunPhase
+	Dim ReportOutput
+	Dim KriterGirisTablosu
+	Dim SQLCommand
+	Dim Rep17SE_B
+	Dim AlanBilgisi
+	Dim Kriterler_IcmaldenOnce
+	Dim Kriterler_IcmaldenSonra
+	Dim Kriterler_SiralamaveAraToplamdanSonra
+	Dim JoinSet_IcmaldenOnce
+	Dim JoinSet_IcmaldenSonra
+	Dim JoinSet_SiralamaveAraToplamdanSonra
+	Dim JoinSubQueryInfo
+	Dim CodeList
+	Dim TOPLAM(100)
+	Dim ROW
+	Dim RAPOR
+	Dim RaporRowSet ,k
+
+	Set ReportOutput=Doc.CreateSObject("ReportOutput")
+	Set KriterGirisTablosu=Doc.GetTableObject("KRITERGIRIS")
+
+	Set Rep17SE_B=Doc.GetTableObject("Rep17SE_B")
+	SQLCommand=Trim(Rep17SE_B.SQLTEXT)
+
+	If Len(SQLCommand)=0 Then
+'SQL komut yok ise boş ama alanları olan rowset yarat
+		Set RaporRowSet=CreateReportRowSet()
+	Else
+'SQL komut var ise SQL komutu kullanarak query yapılmış rowset yarat
+		Set RaporRowSet=CreateReportRowSet_SQL(SQLCommand,False)
+
+		If Not IsObject(RaporRowSet) Or IsEmpty(RaporRowSet) Or IsNull(RaporRowSet) Or Doc.IsBlank(RaporRowSet) Then
+			mes1=Doc.FormatMessage1("SQL Komutu Geçerli Bir Rowset Geri Döndürmüyor (İşlem=Sub Run2 İçinde Kriter Giriş Tablosu Yaratılmadan Önce Alanların Belirlenmesi).$$$NEW_LINE$$$SQL Komutu=[%1]",SQLCommand)
+			Doc.Msgbox(mes1)
+
+			Exit Sub
+		End If
+	End If
+
+	Set Kriterler_IcmaldenOnce				=Doc.CreateSObject("Query")
+	Set Kriterler_IcmaldenSonra				=Doc.CreateSObject("Query")
+	Set Kriterler_SiralamaveAraToplamdanSonra	=Doc.CreateSObject("Query")
+
+	Set JoinSet_IcmaldenOnce					=Doc.CreateSObject("JoinSet")
+	Set JoinSet_IcmaldenSonra				=Doc.CreateSObject("JoinSet")
+	Set JoinSet_SiralamaveAraToplamdanSonra		=Doc.CreateSObject("JoinSet")
+
+	Set CodeList							=Doc.CreateSObject("CodeList")
+
+
+	RunPhase="S"
+
+	Kriterler_IcmaldenOnce.UseTable "STOK10A"
+	Kriterler_IcmaldenSonra.UseTable "STOK10A"
+	Kriterler_SiralamaveAraToplamdanSonra.UseTable "STOK10A"
+
+	AddReportHeader_Clear
+
+	'********** İCMALDEN SONRA *********************************************************************
+	If Len(Trim(KriterGirisTablosu.B_KOD))>0 Or Len(Trim(KriterGirisTablosu.E_KOD))>0 Then
+		Kriterler_IcmaldenSonra.AddAndCriteria RaporRowSet,"KOD",">=",KriterGirisTablosu.B_KOD
+		Kriterler_IcmaldenSonra.AddAndCriteria RaporRowSet,"KOD","<=",KriterGirisTablosu.E_KOD
+	
+		AddReportHeader_Cri2 RaporRowSet,"KOD","><", KriterGirisTablosu.B_KOD, KriterGirisTablosu.E_KOD
+	End If
+	'***************************************************************************************************
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("AMBCODE")
+
+	If Not IsObject(AlanBilgisi) Then 
+		msgbox "IsObject(AlanBilgisi) - 11" &  AlanBilgisi
+
+		Exit Sub
+	End If
+
+	CodeList.RemoveAll()
+
+	If Len(Trim(KriterGirisTablosu.CL01_AMBCODE))>0 Then
+		CodeList.AddCode(KriterGirisTablosu.CL01_AMBCODE)
+		Kriterler_IcmaldenOnce.AddAndCriteria RaporRowSet,"AMBCODE","?INLIST",CodeList
+
+		AddReportHeader_CriCL RaporRowSet,"AMBCODE","S",CodeList
+	End If
+
+'k = RaporRowSet.RunQuery(Kriterler_IcmaldenOnce)
+'msgbox "Kriterler_IcmaldenOnce = " & RaporRowSet.GetRecCount()
+
+	If IsDate(KriterGirisTablosu.E_TARIH) Then
+
+		Kriterler_IcmaldenOnce.AddAndCriteria RaporRowSet,"TARIH","<=",KriterGirisTablosu.E_TARIH
+		AddReportHeader_Cri2 RaporRowSet,"TARIH","<=",KriterGirisTablosu.E_TARIH,""
+	End If
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("KOD_STOK00_GK_1")
+
+	If Not IsObject(AlanBilgisi) Then 
+		msgbox "IsObject(AlanBilgisi) - 22" &  AlanBilgisi
+	
+		Exit Sub
+	End If
+
+	CodeList.RemoveAll()
+
+'Call SendTableToExcel(KriterGirisTablosu)
+
+	If Len(Trim(KriterGirisTablosu.EQ_KOD_STOK00_GK_1))>0 Then
+		CodeList.AddCode(KriterGirisTablosu.EQ_KOD_STOK00_GK_1)
+		Kriterler_IcmaldenOnce.AddAndCriteria RaporRowSet,"KOD_STOK00_GK_1","?INLIST",CodeList
+
+		AddReportHeader_CriCL RaporRowSet,"KOD_STOK00_GK_1","S", CodeList
+	End If
+
+	If IsNumeric(KriterGirisTablosu.GT_TL_TUTAR) Then
+		Kriterler_IcmaldenOnce.AddAndCriteria RaporRowSet,"TL_TUTAR",">",KriterGirisTablosu.GT_TL_TUTAR
+	End If
+
+	If IsNumeric(KriterGirisTablosu.GT_SF_MIKTAR) Then
+		Kriterler_IcmaldenOnce.AddAndCriteria RaporRowSet,"SF_MIKTAR",">",KriterGirisTablosu.GT_SF_MIKTAR
+	End If
+
+msgbox "Start rows: " & CStr(RaporRowSet.GetRecCount())
+
+	If Len(SQLCommand)=0 Then
+'Sql Komut yok ise IcmaldenOnce kriterleri ile query başlat
+		Kriterler_IcmaldenOnce.SetSpecFilterOpt 1
+
+		If RaporRowSet.RunQuery(Kriterler_IcmaldenOnce) <> 0 Then 
+			msgbox "RaporRowSet.RunQuery(Kriterler_IcmaldenOnce)" 
+
+			Exit Sub
+		End If
+	Else
+'Sql Komut var ise sadece IcmaldenOnce kriterleri uygula
+		If RaporRowSet.Filter_DBFields(Kriterler_IcmaldenOnce) <> 0 Then 
+			msgbox "RaporRowSet.Filter_DBFields(Kriterler_IcmaldenOnce)" 
+
+			Exit Sub
+		End If
+	End If
+
+msgbox "After IcmaldenOnce: " & CStr(RaporRowSet.GetRecCount())
+
+	'*************  yetki kısıtı varmı kontrolü ******************************
+	PV_SpecFilterResult_C=Kriterler_IcmaldenOnce.GetSpecFilterResult("C")  'cari
+	PV_SpecFilterResult_M1=Kriterler_IcmaldenOnce.GetSpecFilterResult("M1") 'muhasebe
+	PV_SpecFilterResult_S1=Kriterler_IcmaldenOnce.GetSpecFilterResult("S1") 'stok
+	'*******************************************************************************************
+
+	If RaporRowSet.Sort("KOD_STOK00_GK_1+AMBCODE") <> 0 Then 
+		msgbox "RaporRowSet.Sort " 
+
+		Exit Sub
+	End If
+
+	Set RAPOR=RaporRowSet
+
+
+	JoinSet_IcmaldenOnce.AddJoin "KOD", "KOD_STOK00_REC", "STOK00", "KOD"
+
+	If RaporRowSet.Join(JoinSet_IcmaldenOnce) <> 0 Then 
+		msgbox "RaporRowSet.Join(JoinSet_IcmaldenOnce)" 
+
+		Exit Sub
+	End If
+
+
+	If RaporRowSet.Filter(Kriterler_IcmaldenOnce) <> 0 Then 
+		msgbox "RaporRowSet.Filter(Kriterler_IcmaldenOnce)" 
+		
+		Exit Sub
+	End If
+
+
+
+
+
+
+'k = RaporRowSet.RunQuery(Kriterler_IcmaldenOnce)
+'msgbox "aaa = " & RaporRowSet.GetRecCount()
+'exit sub
+
+
+	RunPhase="I"
+
+
+
+msgbox "Pre-join count: " & CStr(RaporRowSet.GetRecCount())
+
+	JoinSet_IcmaldenSonra.AddJoin "KOD", "KOD_STOK00_REC", "STOK00", "KOD"
+
+	If RaporRowSet.Join(JoinSet_IcmaldenSonra) <> 0 Then 
+		msgbox "RaporRowSet.Join(JoinSet_IcmaldenSonra)" 
+
+		Exit Sub
+	End If
+
+msgbox "Post-join count: " & CStr(RaporRowSet.GetRecCount())
+
+
+	Erase TOPLAM
+
+
+	For ROW = 1 To RaporRowSet.GetRecCount()
+		RaporRowSet.SetcurrentRow(ROW)
+
+		If Int(ROW/20)*20=ROW Then
+
+			If Doc.EscPressed() Then Exit Sub
+
+			Doc.StatusBarMessage("Eklenen Alanlar Hesaplanıyor... (%%" & CStr(Int(ROW*100/RaporRowSet.GetRecCount()))  & ")" )
+
+		End If
+
+		'RAPOR.TL_BIRIMMALIYET=ABS(DOC.DIV(RAPOR.TL_TUTAR,RAPOR.SF_MIKTAR))
+		RAPOR.TL_BIRIMMALIYET = Doc.Div(RAPOR.MALIYET,RAPOR.SF_MIKTAR)
+		RAPOR.MALIYET = RAPOR.TL_TUTAR + RAPOR.TL_NONMIKTARTUTAR
+	Next
+
+	If RaporRowSet.Filter(Kriterler_IcmaldenSonra) <> 0 Then 
+		msgbox "RaporRowSet.Filter(Kriterler_IcmaldenSonra)" 
+
+		Exit Sub
+	End If
+
+msgbox "After IcmaldenSonra: " & CStr(RaporRowSet.GetRecCount())
+
+	If RaporRowSet.Sort("KOD_STOK00_GK_1+AMBCODE") <> 0 Then
+		msgbox "RaporRowSet.Sort" 
+
+		Exit Sub
+	End If
+
+	If RaporRowSet.GrandTotal() <> 0 Then 
+		msgbox "RaporRowSet.GrandTotal" 
+
+		Exit Sub
+	End If
+
+	If RaporRowSet.ReNum() <> 0 Then
+		msgbox "RaporRowSet.ReNum" 
+
+		Exit Sub
+	End If
+
+	If RaporRowSet.Join(JoinSet_SiralamaveAraToplamdanSonra) <> 0 Then
+		msgbox "RaporRowSet.Join(JoinSet_SiralamaveAraToplamdanSonra)" 
+
+		Exit Sub
+	End If
+	
+	RunPhase="A"
+
+	If RaporRowSet.Filter(Kriterler_SiralamaveAraToplamdanSonra) <> 0 Then
+		msgbox "RaporRowSet.Filter(Kriterler_SiralamaveAraToplamdanSonra)"
+
+		Exit Sub
+	End If
+
+	If RaporRowSet.ReNum() <> 0 Then
+		msgbox "RaporRowSet.ReNum"
+
+		Exit Sub
+	End If
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("KOD_STOK00_GK_1")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 1"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=10
+	AlanBilgisi.RaporAciklamasi="Malzeme Grubu"
+	AlanBilgisi.SigDig=0
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="Malzeme Grubu"
+	AlanBilgisi.OUTF_FIELDLEN=10.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	AlanBilgisi.PRINTOPT=0
+	AlanBilgisi.PRINTOPT_1H=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("AMBCODE")
+
+	If Not IsObject(AlanBilgisi) Then 
+		msgbox "IsObject(AlanBilgisi) 2"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=6
+	AlanBilgisi.RaporAciklamasi="Depo Kodu"
+	AlanBilgisi.SigDig=0
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="Depo Kodu"
+	AlanBilgisi.OUTF_FIELDLEN=6.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("KOD")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 3"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=15
+	AlanBilgisi.RaporAciklamasi="Stok Kodu"
+	AlanBilgisi.SigDig=0
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="Stok Kodu"
+	AlanBilgisi.OUTF_FIELDLEN=15.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("KOD_STOK00_AD")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 4"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=50
+	AlanBilgisi.RaporAciklamasi="Stok Adı"
+	AlanBilgisi.SigDig=0
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="Stok Adı"
+	AlanBilgisi.OUTF_FIELDLEN=50.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("FOKOD")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 5"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=6
+	AlanBilgisi.RaporAciklamasi="F/O"
+	AlanBilgisi.SigDig=0
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="F/O"
+	AlanBilgisi.OUTF_FIELDLEN=6.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("SF_MIKTAR")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 6"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=13
+	AlanBilgisi.RaporAciklamasi="Miktar"
+	AlanBilgisi.SigDig=1
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="Miktar"
+	AlanBilgisi.OUTF_FIELDLEN=13.000000
+	AlanBilgisi.OUTF_FIELDSIGDIG=1.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("SF_UNIT")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 7"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=6
+	AlanBilgisi.RaporAciklamasi="Birim"
+	AlanBilgisi.SigDig=0
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="Birim"
+	AlanBilgisi.OUTF_FIELDLEN=6.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("TL_BIRIMMALIYET")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 8"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=15
+	AlanBilgisi.RaporAciklamasi="TL Birim Maliyet"
+	AlanBilgisi.SigDig=4
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="TL Birim Maliyet"
+	AlanBilgisi.OUTF_FIELDLEN=15.000000
+	AlanBilgisi.OUTF_FIELDSIGDIG=4.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Set AlanBilgisi=RaporRowSet.GetFieldDef_E("MALIYET")
+
+	If Not IsObject(AlanBilgisi) Then
+		msgbox "IsObject(AlanBilgisi) 9"
+
+		Exit Sub
+	End If
+
+	AlanBilgisi.Length=16
+	AlanBilgisi.RaporAciklamasi="TL Maliyet"
+	AlanBilgisi.SigDig=2
+	AlanBilgisi.FONT_FACENAME=""
+	AlanBilgisi.FONT_TXTCLR=""
+	AlanBilgisi.OUTF_ACIKLAMA="TL Maliyet"
+	AlanBilgisi.OUTF_FIELDLEN=16.000000
+	AlanBilgisi.OUTF_FIELDSIGDIG=2.000000
+	AlanBilgisi.OUTF_BCKCLR=""
+	AlanBilgisi.OUTF_WRAPTEXT=1
+	ReportOutput.AddField(AlanBilgisi)
+
+	Call PrintReport(RaporRowSet, ReportOutput)
+End Sub
+'----------------------------------------------------------------------------------------------------------------
+Sub PrintReport(RT, RO)
+	Dim pe1
+	Dim satirSayisi
+	Dim I
+	Dim Pdf_File_Name
+	Dim Html_File_Name
+
+	Doc.SetDocParameterValue "SONYARATILANEXCELCIKTISI",""
+	Doc.SetDocParameterValue "SONYARATILANPDFCIKTISI",""
+	Doc.SetDocParameterValue "SONYARATILANSMSCIKTISI",""
+	Doc.SetDocParameterValue "SONYARATILANHTMLCIKTISI",""
+	Doc.SetDocParameterValue "SONYARATILANODSCIKTISI",""	
+	
+	If Len(PV_OUTPUT)=1 Then
+		If PV_OUTPUT="E" Then
+			PrintReport_Excel RT, RO
+
+			Exit Sub
+
+		ElseIf PV_OUTPUT="O" Then
+			PrintReport_Ods RT, RO
+			Exit Sub	
+
+		ElseIf PV_OUTPUT="S" Then
+			PrintReport_SMSText RT, RO
+			Exit Sub
+
+		ElseIf PV_OUTPUT="X" Then
+			Exit Sub
+		End If
+	End If
+
+	Set pe1 = doc.CreateSObject("PrintEngineOutput")
+
+	pe1.MsgOpt=0
+
+	Set PV_RT=RT
+	Set PV_RO=RO
+	Set PV_PE1=pe1
+
+	PV_SayfaNo=0
+	PV_SayfaIciSatirNo=0
+	PV_SayfaBasindanBasilanDataRowSayisi=0
+	PV_SatirdaBasilacakAlanVarmi_Data=1
+
+	ret = PV_PE1.Open(0,"",-1,0,"Portrait")
+
+	Call SetFormatAttributes("V")
+	Call SayfaBasi()
+
+	satirSayisi = PV_RT.GetRecCount()
+
+	For I=1 To satirSayisi
+		If Int(I/20)*20=I Then
+			If Doc.EscPressed() Then PV_PE1.Close
+
+			Doc.StatusBarMessage("Çıktı Hazırlanıyor... (%%" & CStr(Int(I*100/satirSayisi))  & ")" )
+		End If
+
+		If PV_RT.REPORT___SUBTOTAL_B(I)>="1" And PV_RT.REPORT___SUBTOTAL_B(I)<="5" Then
+			If PV_RT.REPORT___SUBTOTAL_N_1(I)>=0 Then Call HeaderRowYazdir("1",PV_RT.REPORT___SUBTOTAL_N_1(I))
+			If PV_RT.REPORT___SUBTOTAL_N_2(I)>=0 Then Call HeaderRowYazdir("2",PV_RT.REPORT___SUBTOTAL_N_2(I))
+			If PV_RT.REPORT___SUBTOTAL_N_3(I)>=0 Then Call HeaderRowYazdir("3",PV_RT.REPORT___SUBTOTAL_N_3(I))
+			If PV_RT.REPORT___SUBTOTAL_N_4(I)>=0 Then Call HeaderRowYazdir("4",PV_RT.REPORT___SUBTOTAL_N_4(I))
+			If PV_RT.REPORT___SUBTOTAL_N_5(I)>=0 Then Call HeaderRowYazdir("5",PV_RT.REPORT___SUBTOTAL_N_5(I))
+		End If
+
+		Call SatirYazdir(I)
+	Next
+
+	Call SayfaSonu()
+	Call RaporSonu()
+
+	If PV_OUTPUT="P" Then
+		Pdf_File_Name=Doc.TempFileName_Client("pdf")
+
+		If PV_PE1.WriteDoc(Pdf_File_Name)<>0 Then
+			PV_PE1.Close
+			Doc.SetDocParameterValue "SONYARATILANPDFCIKTISI",Pdf_File_Name
+			Doc.ShellOpen Pdf_File_Name
+		End If
+
+	ElseIf PV_OUTPUT="H" Then
+		Html_File_Name=Doc.TempFileName_Client("html")
+
+		If PV_PE1.WriteDoc(Html_File_Name)<>0 Then
+			PV_PE1.Close
+			Doc.SetDocParameterValue "SONYARATILANHTMLCIKTISI",Html_File_Name
+			Doc.ShellOpen Html_File_Name
+		End If
+
+	Else
+		ret = PV_PE1.Show()
+		ret = PV_PE1.SetScale(0.7)
+	End If
+
+	ret = doc.ActivateAfterMacro(0)
+
+	Set PV_RT=Nothing
+	Set PV_RO=Nothing
+	Set PV_PE1=Nothing
+End Sub
+'----------------------------------------------------------------------------------------------------------------
+Sub PrintReport_Excel(RT,  RO)
+	Dim pe2
+	Dim satirSayisi
+	Dim I
+
+	Set pe2=Doc.CreateSObject("ExcelOutput")
+
+	If Not IsObject(pe2) Then
+		Doc.d7MsgBox "Excel Başlatılamıyor","",-1
+
+		Exit Sub
+	End If
+
+	Set PV_RT=RT
+	Set PV_RO=RO
+	Set PV_EXCEL_PE2=pe2
+
+	PV_EXCEL_ROW=1
+	PV_EXCEL_ROW_SHEET=1
+
+	Call SetFormatAttributes("E")
+
+	If PV_Portrait_Landscape=2 Then
+		PV_EXCEL_PE2.SetOrientation "L"
+	Else
+		PV_EXCEL_PE2.SetOrientation "P"
+	End If
+
+	Call Excel_SayfaBasi()
+
+	satirSayisi = PV_RT.GetRecCount()
+
+	For I=1 To satirSayisi
+		if PV_EXCEL_ROW_SHEET>(pe2.maxrowcount-1) Then
+			PV_EXCEL_ROW_SHEET=1
+			PV_EXCEL_PE2.SheetBreak ""
+
+			Call Excel_SayfaBasi
+
+		End If
+
+		If Int(I/20)*20=I Then
+
+			If Doc.EscPressed() Then Exit Sub
+
+			Doc.StatusBarMessage("Çıktı Hazırlanıyor... (%%" & CStr(Int(I*100/satirSayisi))  & ")" )
+		End If
+
+		If PV_RT.REPORT___SUBTOTAL_B(I)>="1" And PV_RT.REPORT___SUBTOTAL_B(I)<="5" Then
+			If PV_RT.REPORT___SUBTOTAL_N_1(I)>=0 Then Call Excel_HeaderRowYazdir("1",PV_RT.REPORT___SUBTOTAL_N_1(I))
+			If PV_RT.REPORT___SUBTOTAL_N_2(I)>=0 Then Call Excel_HeaderRowYazdir("2",PV_RT.REPORT___SUBTOTAL_N_2(I))
+			If PV_RT.REPORT___SUBTOTAL_N_3(I)>=0 Then Call Excel_HeaderRowYazdir("3",PV_RT.REPORT___SUBTOTAL_N_3(I))
+			If PV_RT.REPORT___SUBTOTAL_N_4(I)>=0 Then Call Excel_HeaderRowYazdir("4",PV_RT.REPORT___SUBTOTAL_N_4(I))
+			If PV_RT.REPORT___SUBTOTAL_N_5(I)>=0 Then Call Excel_HeaderRowYazdir("5",PV_RT.REPORT___SUBTOTAL_N_5(I))
+		End If
+
+		Call Excel_SatirYazdir(I)
+	Next
+
+	Call Excel_SayfaSonu()
+	Call Excel_RaporSonu()
+	Doc.SetDocParameterValue "SONYARATILANEXCELCIKTISI",PV_EXCEL_PE2.GetFileName()
+
+	PV_EXCEL_PE2.Show
+End Sub
+'--------------------------------------------------------
+Sub Excel_SayfaBasi()
+	PV_EXCEL_PE2.PageB_ReportHead_std1 PV_RAPORACIKLAMASI & ",   Kriterler : " & PV_KRITERACIKLAMASI
+	PV_EXCEL_ROW=PV_EXCEL_ROW+1
+	PV_EXCEL_ROW_SHEET=PV_EXCEL_ROW_SHEET+1
+	PV_EXCEL_PE2.TableB
+	PV_EXCEL_ROW=PV_EXCEL_ROW+1
+	PV_EXCEL_ROW_SHEET=PV_EXCEL_ROW_SHEET+1
+End Sub
+'--------------------------------------------------------
+Sub Excel_SayfaSonu()
+End Sub
+'--------------------------------------------------------
+Sub Excel_RaporSonu()
+End Sub
+'--------------------------------------------------------
+Sub Excel_SatirYazdir(satirNo)
+	Dim RowType
+	Dim RowTypePrev
+	Dim AlanSayisi
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+	Dim ncol
+
+	RowType=PV_RT.REPORT___ROWTYPE(satirNo)
+	RowTypePrev=" "
+	If satirNo>1 Then RowTypePrev=PV_RT.REPORT___ROWTYPE(satirNo-1)
+
+	If (RowType>="1" AND RowType<= "9") Then
+		Select Case RowType
+		Case "1" :
+				If REP17SE.ST1_PRINTOPT="0" Then Exit Sub
+		Case "2" :
+				If REP17SE.ST2_PRINTOPT="0" Then Exit Sub
+		Case "3" :
+				If REP17SE.ST3_PRINTOPT="0" Then Exit Sub
+		Case "4" :
+				If REP17SE.ST4_PRINTOPT="0" Then Exit Sub
+		Case "5" :
+				If REP17SE.ST5_PRINTOPT="0" Then Exit Sub
+		End Select
+	End If
+
+	If RowType="T" Then
+
+		If RowTypePrev="T" Then Exit Sub
+
+		Select Case RowTypePrev
+		Case "T" : Exit Sub
+		Case "A" :
+				If REP17SE.OT1_GENELTOPLAM="0" Then Exit Sub
+		Case "B" :
+				If REP17SE.OT2_GENELTOPLAM="0" Then Exit Sub
+		Case "C" :
+				If REP17SE.OT3_GENELTOPLAM="0" Then Exit Sub
+		Case "D" :
+				If REP17SE.OT4_GENELTOPLAM="0" Then Exit Sub
+		Case "E" :
+				If REP17SE.OT5_GENELTOPLAM="0" Then Exit Sub
+		Case Else :
+				If REP17SE.R_OUTF_GENELTOPLAM="0" Then Exit Sub
+		End Select
+
+	End If
+
+	AlanSayisi=PV_RO.GetNumberOfFields()
+
+	If Not SatirdaBasilacakAlanVarmi(AlanSayisi,RowType) Then
+		If RowType=" " Then PV_SatirdaBasilacakAlanVarmi_Data=0
+		PV_EXCEL_PE2.InitRowValues
+		If PV_SatirdaBasilacakAlanVarmi_Data>0 Then
+			PV_EXCEL_PE2.SetRowValue_String -1,""
+			Select Case RowType
+			Case "1","2","3","4","5"		PV_EXCEL_PE2.SubTotalOut
+			Case "A","B","C","D","E","T"	PV_EXCEL_PE2.GrandTotalOut
+			Case Else						PV_EXCEL_PE2.LineOut
+			End Select
+		End If
+		Exit Sub
+	End If
+
+	PV_EXCEL_PE2.InitRowValues
+	PV_EXCEL_PE2.SetRowValue_String -1,""
+
+	ncol=2
+
+    For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			If FieldDef.PRINTOPT=1 Then
+				Dim OutputStr2
+				If FieldDef.IsNumeric() Then
+					OutputStr=PV_RT.GetFieldValue(FieldDef.Name,satirNo)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1),FieldDef.Length,FieldDef.SigDig,0)
+							If OutputStr2=OutputStr Then OutputStr=0
+						End If
+					End If
+					'PV_EXCEL_PE2.SetRowValue_Double -1,PV_RT.GetFieldValue(FieldDef.Name,satirNo)
+					PV_EXCEL_PE2.SetRowValue_Double -1,OutputStr
+				ElseIf FieldDef.IsDate() Then
+					OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+					OutputStr=Left(Trim(OutputStr),FieldDef.Length)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1))
+							OutputStr2=Left(Trim(OutputStr2),FieldDef.Length)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+				
+					'OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+					'OutputStr=Left(Trim(OutputStr),FieldDef.Length)
+					
+					PV_EXCEL_PE2.SetRowValue_String -1,OutputStr
+				Else
+					
+					OutputStr=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo)),FieldDef.Length)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1)),FieldDef.Length)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+					
+					PV_EXCEL_PE2.SetRowValue_String -1,OutputStr
+				End If
+				ncol=ncol+1
+			End If
+		ElseIf PV_RO.BuAlanBasilacakmi(F,"*")=1 Then
+			PV_EXCEL_PE2.SetRowValue_String -1,""
+		End If
+	Next
+
+	Select Case RowType
+		Case "1","2","3","4","5"		PV_EXCEL_PE2.SubTotalOut
+		Case "A","B","C","D","E","T"	PV_EXCEL_PE2.GrandTotalOut
+		Case Else					PV_EXCEL_PE2.LineOut
+	End Select
+
+	PV_EXCEL_ROW=PV_EXCEL_ROW+1
+	PV_EXCEL_ROW_SHEET=PV_EXCEL_ROW_SHEET+1
+
+	If RowType=" " Or ( RowType>="A" AND RowType<="E" ) Then PV_SayfaBasindanBasilanDataRowSayisi=PV_SayfaBasindanBasilanDataRowSayisi+1
+End Sub
+'--------------------------------------------------------------------------------------------------------------
+Sub Excel_HeaderRowYazdir(rowtypest,satirNo)
+	Dim SayfaBasiGereklimi
+	Dim RowType
+	Dim AlanSayisi
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+	Dim AraToplamaBasilacakAlanVarmi
+	Dim ATHeaderString
+	Dim FBaslik
+
+	Select Case rowtypest
+		Case "1" :
+				If REP17SE.ST1H_PRINTOPT="0" Then Exit Sub
+		Case "2" :
+				If REP17SE.ST2H_PRINTOPT="0" Then Exit Sub
+		Case "3" :
+				If REP17SE.ST3H_PRINTOPT="0" Then Exit Sub
+		Case "4" :
+				If REP17SE.ST4H_PRINTOPT="0" Then Exit Sub
+		Case "5" :
+				If REP17SE.ST5H_PRINTOPT="0" Then Exit Sub
+	End Select
+
+	SayfaBasiGereklimi=0
+
+	If SayfaBasiGereklimi=0 Then
+		Select Case rowtypest
+		Case "1" If REP17SE.ST1_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "2" If REP17SE.ST2_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "3" If REP17SE.ST3_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "4" If REP17SE.ST4_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "5" If REP17SE.ST5_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		End Select
+	End If
+
+	RowType=rowtypest
+	RowType=Trim(RowType)&"H"
+
+	AlanSayisi=PV_RO.GetNumberOfFields()
+
+	AraToplamaBasilacakAlanVarmi=0
+
+	ATHeaderString=" "
+
+	For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			AraToplamaBasilacakAlanVarmi=AraToplamaBasilacakAlanVarmi+1
+
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+		
+			FBaslik=Trim(FieldDef.ARaporAciklamasi)
+
+			If FieldDef.IsNumeric() Then
+				OutputStr=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo),FieldDef.Length,FieldDef.SigDig,0)
+				OutputStr=Trim(OutputStr)
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+OutputStr
+				ATHeaderString=ATHeaderString+"]"
+
+			ElseIf FieldDef.IsDate() Then
+				OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+				OutputStr=Trim(OutputStr)
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+OutputStr
+				ATHeaderString=ATHeaderString+"]"
+
+			Else
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+				ATHeaderString=ATHeaderString+"]"
+			End If
+		End If
+	Next
+
+	If AraToplamaBasilacakAlanVarmi=0 Then Exit Sub
+
+	PV_EXCEL_PE2.InitRowValues
+	PV_EXCEL_PE2.SetRowValue_String -1,ATHeaderString
+	PV_EXCEL_PE2.SubTotalHeaderOut
+	PV_EXCEL_ROW=PV_EXCEL_ROW+1
+	PV_EXCEL_ROW_SHEET=PV_EXCEL_ROW_SHEET+1
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Function CreateReportRowSet_SQL(ByVal SQLCommand,ByVal For_SCHEMA_PROBING)
+	Dim mes1
+	Dim RaporRowSet
+	Dim Par1
+	Set Par1=Doc.CreateSObject("Parameters")
+
+'2025/08/24
+	If Not Doc.IsBlank(Rep17SE.DBDEF0_KOD) Then
+		Par1.SetParameter "DBDEF0",Trim(Rep17SE.DBDEF0_KOD)
+	End If
+
+	If Rep17SE.BELLEKTEISLENECEKR>0 Then
+		Par1.SetParameter "BELLEKTEISLENECEKR",Rep17SE.BELLEKTEISLENECEKR
+'2025/07/12
+		If For_SCHEMA_PROBING Then
+			Par1.SetParameter "SCHEMA_PROBING",1
+		End If
+		Set RaporRowSet=Doc.RunSQLQuery_Par("REPORT1",SQLCommand,Par1)
+	Else
+'2025/07/12
+'		Set RaporRowSet=Doc.RunSQLQuery("REPORT1",SQLCommand)
+		If For_SCHEMA_PROBING Then
+			Par1.SetParameter "SCHEMA_PROBING",1
+		End If
+		Set RaporRowSet=Doc.RunSQLQuery_Par("REPORT1",SQLCommand,Par1)
+	End If
+'
+'	If Trim(Rep17SE.CONSTR_K)<>"" Then 
+'		Par1.SetParameter "REPORT_CONNECTION_STRING",Trim(Rep17SE.CONSTR_K)
+'	end if
+
+
+'2025/07/12
+'	If (Not IsObject(RaporRowSet)) OR IsEmpty(RaporRowSet) OR IsNull(RaporRowSet) Then
+	If (Not IsObject(RaporRowSet)) Or IsEmpty(RaporRowSet) Or IsNull(RaporRowSet) Or Doc.IsBlank(RaporRowSet) Then
+'2025/07/16
+'		CreateReportRowSet_SQL=0
+		Set CreateReportRowSet_SQL=Nothing
+		mes1=Doc.FormatMessage1("SQL Komutu Geçerli Bir Rowset Geri Döndürmüyor (İşlem=CreateReportRowSet_SQL İçinde SQL Sonucundan Rapor RowSet'in Yaratılması).$$$NEW_LINE$$$SQL Komutu=[%1]",SQLCommand)
+		Doc.Msgbox(mes1)
+		Exit Function
+	End If
+
+	Dim AlanBilgisi
+	Set AlanBilgisi=Doc.CreateSObject("FieldDefinition")
+
+	RaporRowSet.AddField_PreServe_Begin
+
+	AlanBilgisi.Clear()
+	AlanBilgisi.Name="KOD->STOK00..."
+	RaporRowSet.AddField_PreServe(AlanBilgisi)
+
+	AlanBilgisi.Clear()
+	AlanBilgisi.Name="TL_BIRIMMALIYET"
+	AlanBilgisi.DataType="N"
+	AlanBilgisi.Length=15
+	AlanBilgisi.SigDig=0
+	RaporRowSet.AddField_PreServe(AlanBilgisi)
+	AlanBilgisi.Clear()
+	AlanBilgisi.Name="MALIYET"
+	AlanBilgisi.DataType="N"
+	AlanBilgisi.Length=16
+	AlanBilgisi.SigDig=0
+
+	RaporRowSet.AddField_PreServe(AlanBilgisi)
+	RaporRowSet.AddField_PreServe_End
+
+	Set CreateReportRowSet_SQL=RaporRowSet
+End Function
+
+
+
+
+'Option Explicit .... Include eden modül de söylendi ise söylendi....
+'SQL_READY
+
+Private PV_OUTPUT
+
+Private Const PC_DEFAULT 		= 0
+
+Private PV_FIRMAISMI
+Private PV_RAPORACIKLAMASI
+Private PV_KRITERACIKLAMASI
+Private PV_H1HEIGHTMM
+Private PV_H2HEIGHTMM
+Private PV_H3HEIGHTMM
+Private PV_MMFIRMAISMI
+Private PV_MMRAPORADI
+Private PV_MMTARIH
+Private PV_MMSAYFA
+Private PV_MMPRINTABLEPAGEWIDTHMM
+
+
+Private PV_H1L1VPOS
+Private PV_H1VPOS
+Private PV_H1L2VPOS
+Private PV_H2VPOS
+Private PV_ULVPOS
+Private PV_HDVPOS
+
+
+Private PV_SayfaNo
+Private PV_SayfaIciSatirNo
+Private PV_vsatir1pozr
+Private PV_mmSonBasilanRowsatirYuksekligi
+Private PV_SayfaBasindanBasilanDataRowSayisi
+Private PV_SatirdaBasilacakAlanVarmi_Data
+
+Private PV_MaxCharPortrait
+Private PV_Portrait_Landscape
+
+Private PV_ZebraPrintOpt
+Private PV_Zebra_Satir_Rengi1
+Private PV_Zebra_Satir_Rengi2
+
+Private PV_mmsatirYuksekligi
+Private PV_mmleft_margin
+Private PV_mmright_margin
+Private PV_mmbottom_margin
+Private PV_mmtop_margin
+
+Private PV_BCKCOLOR
+
+Private PV_MMALANLARARASIBOSLUK
+Private PV_MMCHARWIDTH
+
+Private PV_RT
+Private PV_RO
+Private PV_PE1
+Private PV_EXCEL_PE2
+
+Private PV_BACKGROUNDSAGSOLFAZLALIKMM
+
+Private PV_EXCEL_ROW
+Private PV_EXCEL_ROW_SHEET
+
+
+
+Sub AddReportHeader_Clear()
+	PV_KRITERACIKLAMASI=""
+End Sub
+
+'Kullanıcı Tanımlı Kriterler Rapor başlığında çıkmıyor idi
+Sub AddReportHeader_CriQ(RRS,FN,CT,FV1,FV2,KRITERFIELDNAME,KRITERROWSET,DefAciklama)
+
+	Dim str
+	Dim AlanBilgisi
+	Set AlanBilgisi=KRITERROWSET.GetFieldDef_E(KRITERFIELDNAME)
+	If Not IsObject(AlanBilgisi) Then 
+		Set AlanBilgisi=RRS.GetFieldDef_E(FN)
+		If Not IsObject(AlanBilgisi) Then Exit Sub
+	End If
+	Dim AAciklama
+	AAciklama=""
+	If IsObject(AlanBilgisi) Then
+		AAciklama=Trim(AlanBilgisi.ARaporAciklamasi)
+	End If
+	If Not Doc.Isblank(DefAciklama) Then AAciklama=DefAciklama
+
+	If Len(AAciklama)>0 Then
+		str=AAciklama&"("&KRITERFIELDNAME&")"
+	Else
+		str=KRITERFIELDNAME
+	End If
+
+	Select Case CT
+	Case "><"
+		If Doc.Isblank(FV1) And Doc.Isblank(FV2) Then Exit Sub
+		If Doc.Isblank(FV1) Or Doc.Isblank(FV2) Then
+			AddReportHeader_Cri2 RRS,FN,">=",FV1,""
+			AddReportHeader_Cri2 RRS,FN,"<=",FV2,""
+			Exit Sub
+		End If
+		If FV1=FV2 Then
+			AddReportHeader_Cri2 RRS,FN,"=",FV1,""
+			Exit Sub
+		End If
+		str=str&" "&"="&" "
+		str=str&"["&Trim(FV1)&"]"
+		str=str&" -> "
+		str=str&"["&Trim(FV2)&"]"
+	Case "BOS"
+		str=str&" = Boş Olanlar"
+	Case "!BOS"
+		str=str&" = Dolu Olanlar"
+	Case Else
+		If Doc.Isblank(FV1) Then Exit Sub
+		str=str&" "&CT&" "
+		str=str&"["&Trim(FV1)&"]"
+	End Select
+	If Len(PV_KRITERACIKLAMASI)>0 Then
+		PV_KRITERACIKLAMASI=PV_KRITERACIKLAMASI&CHR(13)&CHR(10)
+	End If
+	PV_KRITERACIKLAMASI=PV_KRITERACIKLAMASI&str
+End Sub
+
+
+Sub AddReportHeader_Cri2(RRS,FN,CT,FV1,FV2)
+	Dim str
+	Dim AlanBilgisi
+	Set AlanBilgisi=RRS.GetFieldDef_E(FN)
+	If Not IsObject(AlanBilgisi) Then Exit Sub
+	Dim AAciklama
+	AAciklama=""
+	If IsObject(AlanBilgisi) Then
+		AAciklama=Trim(AlanBilgisi.ARaporAciklamasi)
+	End If
+	If Len(AAciklama)>0 Then
+		str=AAciklama&"("&FN&")"
+	Else
+		str=FN
+	End If
+	Select Case CT
+	Case "><"
+		If Doc.Isblank(FV1) And Doc.Isblank(FV2) Then Exit Sub
+		If Doc.Isblank(FV1) Or Doc.Isblank(FV2) Then
+			AddReportHeader_Cri2 RRS,FN,">=",FV1,""
+			AddReportHeader_Cri2 RRS,FN,"<=",FV2,""
+			Exit Sub
+		End If
+		If FV1=FV2 Then
+			AddReportHeader_Cri2 RRS,FN,"=",FV1,""
+			Exit Sub
+		End If
+		str=str&" "&"="&" "
+		str=str&"["&Trim(FV1)&"]"
+		str=str&" -> "
+		str=str&"["&Trim(FV2)&"]"
+	Case "BOS"
+		str=str&" = Boş Olanlar"
+	Case "!BOS"
+		str=str&" = Dolu Olanlar"
+	Case Else
+		If Doc.Isblank(FV1) Then Exit Sub
+		str=str&" "&CT&" "
+		str=str&"["&Trim(FV1)&"]"
+	End Select
+	If Len(PV_KRITERACIKLAMASI)>0 Then
+		PV_KRITERACIKLAMASI=PV_KRITERACIKLAMASI&CHR(13)&CHR(10)
+	End If
+	PV_KRITERACIKLAMASI=PV_KRITERACIKLAMASI&str
+End Sub
+Sub AddReportHeader_CriCL(RRS,FN,CT,CL)
+	Dim str
+	Dim AlanBilgisi
+	Set AlanBilgisi=RRS.GetFieldDef(FN)
+	If Not IsObject(AlanBilgisi) Then Exit Sub
+	Dim AAciklama
+	AAciklama=""
+	If IsObject(AlanBilgisi) Then
+		AAciklama=Trim(AlanBilgisi.ARaporAciklamasi)
+	End If
+	If Len(AAciklama)>0 Then
+		str=AAciklama&"("&FN&")"
+	Else
+		str=FN
+	End If
+	If CT="S" Then
+		str=str&" = "
+	ElseIf CT="NS" Then
+		str=str&" <> "
+	Else
+		Exit Sub
+	End If
+	If CL.GetSize()<=0 Then Exit Sub
+	Dim I
+	For I=1 TO CL.GetSize()
+		If I>1 Then str=str&", "
+		str=str&"["&Trim(CL.Getat(I))&"]"
+	Next
+	If Len(PV_KRITERACIKLAMASI)>0 Then
+		PV_KRITERACIKLAMASI=PV_KRITERACIKLAMASI&CHR(13)&CHR(10)
+	End If
+	PV_KRITERACIKLAMASI=PV_KRITERACIKLAMASI&str
+End Sub
+
+Function SatirdaBasilacakAlanVarmi(AlanSayisi,RowType)
+	SatirdaBasilacakAlanVarmi=False
+	Dim F
+    For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			SatirdaBasilacakAlanVarmi=True
+			Exit Function
+		End If
+	Next
+End Function
+
+
+Sub SetFormatAttributes(VpeExcel)
+	Dim Rep17SE
+	Set Rep17SE=Doc.GetTableObject("REP17SE")
+
+	PV_ZebraPrintOpt=False
+	If Rep17SE.ZEBRAPRINTOPT="1" Then PV_ZebraPrintOpt=True
+	If Doc.IsBlank(Rep17SE.ZEBRACOLOR1) Then
+		PV_Zebra_Satir_Rengi1=RGB(224, 255, 224)
+	Else
+		PV_Zebra_Satir_Rengi1=Doc.C9ToCRGB(Rep17SE.ZEBRACOLOR1)
+	End If
+
+	If Doc.IsBlank(Rep17SE.ZEBRACOLOR2) Then
+		PV_Zebra_Satir_Rengi2=RGB(255, 255, 255)
+	Else
+		PV_Zebra_Satir_Rengi2=Doc.C9ToCRGB(Rep17SE.ZEBRACOLOR2)
+	End If
+
+	PV_mmbottom_margin = Rep17SE.ALTMARJ*10
+	PV_mmtop_margin = Rep17SE.USTMARJ*10
+	PV_mmleft_margin = Rep17SE.SOLMARJ*10
+	PV_mmright_margin = Rep17SE.SAGMARJ*10
+	PV_MaxCharPortrait=150
+
+	If VpeExcel="V" Then PV_PE1.StoreSet PC_DEFAULT
+
+
+	Dim F
+	Dim FieldDef
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim mmOlarakAlanGenisligi
+
+	If PV_RO.AdjustFieldLengthsFromReportData(PV_RT) Then
+		Exit Sub
+	End If
+
+'2016/09/28 
+	For F=1 To AlanSayisi
+		Set FieldDef=PV_RO.GetFieldDefN(F)
+		If FieldDef.PRINTOPT=1 And FieldDef.outf_fieldlen_dycalc=1 Then
+			Dim fielddisplaylength2
+			fielddisplaylength2=PV_RO.getfielddisplaylength(F)
+			If fielddisplaylength2=0 Then
+				FieldDef.PRINTOPT=0
+			End If
+		End If
+	Next
+
+
+	Dim ToplamKarakterSayisi
+'alanların karakter toplamı + alanlar arasındaki 2 karakter boşluk
+'	ToplamKarakterSayisi=PV_RO.GetTotalDisplayLength()+PV_RO.GetNumberOfFields()*2
+	ToplamKarakterSayisi=PV_RO.GetTotalDisplayLength()
+	PV_MMALANLARARASIBOSLUK=REP17SE.SUTUNLARARASIBOSLUK*10
+	PV_BACKGROUNDSAGSOLFAZLALIKMM=0
+
+	Dim mmprintablepagewidth
+
+	mmprintablepagewidth=REP17SE.CM_PAPER_WIDTH*10
+	If REP17SE.CM_PAPER_WIDTH<=0 OR REP17SE.CM_PAPER_HEIGHT<=0 Then
+		Doc.d7MsgBox "Sayfa Eni veya Boyu Belirtilmemiş","",-1
+		Exit Sub
+	End If
+	PV_Portrait_Landscape=1
+	If REP17SE.PORTR_LANDS="L" Then PV_Portrait_Landscape=2
+	If REP17SE.AU_PORTR_LANDS="1" Then
+		If ToplamKarakterSayisi <= PV_MaxCharPortrait Then
+			PV_Portrait_Landscape=1
+		Else
+			PV_Portrait_Landscape=2
+		End If
+	End If
+	If PV_Portrait_Landscape=1 Then
+		mmprintablepagewidth=mmprintablepagewidth-PV_mmleft_margin-PV_mmright_margin
+	Else
+		mmprintablepagewidth=REP17SE.CM_PAPER_HEIGHT*10
+		mmprintablepagewidth=mmprintablepagewidth-PV_mmleft_margin-PV_mmright_margin
+	End If
+	PV_MMPRINTABLEPAGEWIDTHMM=mmprintablepagewidth
+
+	If VpeExcel="V" Then
+		PV_PE1.SetPageHeight(REP17SE.CM_PAPER_HEIGHT*10)
+		PV_PE1.SetPageWidth(REP17SE.CM_PAPER_WIDTH*10)
+		PV_PE1.SetPageOrientation(PV_Portrait_Landscape)
+	End If
+
+
+	If PV_RO.GetNumberOfFields()>=2 Then
+		mmprintablepagewidth=mmprintablepagewidth-(PV_RO.GetNumberOfFields())*PV_MMALANLARARASIBOSLUK
+	End If
+
+	PV_RO.FONT_FACENAME="Verdana"
+	PV_RO.FONT_FACENAME=REP17SE.R_FONT_FACENAME
+	PV_RO.FONT_BOLD=CInt(REP17SE.R_FONT_BOLD)
+	PV_RO.FONT_ITALIC=CInt(REP17SE.R_FONT_ITALIC)
+	PV_RO.FONT_UNDERLINE=CInt(REP17SE.R_FONT_UNDERLINE)
+	PV_RO.FONT_STRIKEOUT=CInt(REP17SE.R_FONT_STRIKEOUT)
+	PV_RO.FONT_POINTSIZE=REP17SE.R_FONT_POINTSIZE
+	PV_RO.FONT_CHARSET=REP17SE.R_FONT_CHARSET
+	PV_RO.FONT_TXTCLR=REP17SE.R_FONT_TXTCLR
+	PV_RO.OUTF_BCKCLR=REP17SE.R_OUTF_BCKCLR
+	PV_BCKCOLOR=RGB(255, 255, 255)
+	If Trim(PV_RO.OUTF_BCKCLR)<>"" Then
+		PV_BCKCOLOR=Doc.C9TOCRGB(PV_RO.OUTF_BCKCLR)
+	End If
+
+
+	PV_RO.GT_FONT_TXTCLR=REP17SE.GT_FONT_TXTCLR
+	PV_RO.GT_OUTF_BCKCLR=REP17SE.GT_OUTF_BCKCLR
+	PV_RO.ST1_FONT_TXTCLR=REP17SE.ST1_FONT_TXTCLR
+	PV_RO.ST1_OUTF_BCKCLR=REP17SE.ST1_OUTF_BCKCLR
+	PV_RO.ST2_FONT_TXTCLR=REP17SE.ST2_FONT_TXTCLR
+	PV_RO.ST2_OUTF_BCKCLR=REP17SE.ST2_OUTF_BCKCLR
+	PV_RO.ST3_FONT_TXTCLR=REP17SE.ST3_FONT_TXTCLR
+	PV_RO.ST3_OUTF_BCKCLR=REP17SE.ST3_OUTF_BCKCLR
+	PV_RO.ST4_FONT_TXTCLR=REP17SE.ST4_FONT_TXTCLR
+	PV_RO.ST4_OUTF_BCKCLR=REP17SE.ST4_OUTF_BCKCLR
+	PV_RO.ST5_FONT_TXTCLR=REP17SE.ST5_FONT_TXTCLR
+	PV_RO.ST5_OUTF_BCKCLR=REP17SE.ST5_OUTF_BCKCLR
+
+	PV_RO.ST1H_OUTF_BCKCLR=REP17SE.ST1H_OUTF_BCKCLR
+	PV_RO.ST2H_FONT_TXTCLR=REP17SE.ST2H_FONT_TXTCLR
+	PV_RO.ST2H_OUTF_BCKCLR=REP17SE.ST2H_OUTF_BCKCLR
+	PV_RO.ST3H_FONT_TXTCLR=REP17SE.ST3H_FONT_TXTCLR
+	PV_RO.ST3H_OUTF_BCKCLR=REP17SE.ST3H_OUTF_BCKCLR
+	PV_RO.ST4H_FONT_TXTCLR=REP17SE.ST4H_FONT_TXTCLR
+	PV_RO.ST4H_OUTF_BCKCLR=REP17SE.ST4H_OUTF_BCKCLR
+	PV_RO.ST5H_FONT_TXTCLR=REP17SE.ST5H_FONT_TXTCLR
+	PV_RO.ST5H_OUTF_BCKCLR=REP17SE.ST5H_OUTF_BCKCLR
+
+
+	PV_RO.OT1_FONT_TXTCLR=REP17SE.OT1_FONT_TXTCLR
+	PV_RO.OT1_OUTF_BCKCLR=REP17SE.OT1_OUTF_BCKCLR
+	PV_RO.OT2_FONT_TXTCLR=REP17SE.OT2_FONT_TXTCLR
+	PV_RO.OT2_OUTF_BCKCLR=REP17SE.OT2_OUTF_BCKCLR
+	PV_RO.OT3_FONT_TXTCLR=REP17SE.OT3_FONT_TXTCLR
+	PV_RO.OT3_OUTF_BCKCLR=REP17SE.OT3_OUTF_BCKCLR
+	PV_RO.OT4_FONT_TXTCLR=REP17SE.OT4_FONT_TXTCLR
+	PV_RO.OT4_OUTF_BCKCLR=REP17SE.OT4_OUTF_BCKCLR
+	PV_RO.OT5_FONT_TXTCLR=REP17SE.OT5_FONT_TXTCLR
+	PV_RO.OT5_OUTF_BCKCLR=REP17SE.OT5_OUTF_BCKCLR
+
+
+	Dim Pointfontsize
+	Pointfontsize=PV_RO.CalcAutoFontPointSizes(mmprintablepagewidth)
+
+	PV_mmSonBasilanRowsatirYuksekligi=0
+	If Rep17SE.CMSATIRYUKSEKLIGI > 0 Then
+		PV_mmsatirYuksekligi=Rep17SE.CMSATIRYUKSEKLIGI*10
+	Else
+'bu oranlar default satır yüksekliği için iyi gibi
+		PV_mmsatirYuksekligi=Pointfontsize*0.175*3.2 'bu oranlar default satır yüksekliği için iyi gibi
+	End If
+
+	If VpeExcel="V" Then
+		PV_PE1.UseSet PC_DEFAULT
+	End If
+
+
+	Dim mmOlarakSoldanAlanBaslangici
+	mmOlarakSoldanAlanBaslangici=PV_mmleft_margin+(PV_MMALANLARARASIBOSLUK/2)
+	
+	If VpeExcel="E" Then
+		PV_EXCEL_PE2.AddColumnDef "",1,0,"L"
+	End If
+
+	If VpeExcel="O" Then
+		'If FieldDef.PRINTOPT=1 Then
+			Call AddElement_with_Attribute(Content_objXMLDoc,o_table_row ,  o_table, "table:table-row", "", "table:style-name=field_Caption_row")
+			Call AddColumn("dinamo-cell-type=string,table:style-name=field_Caption_col0","")
+			Call Default_Column_Properties(0,0.8,0,"LEFT","string","","","",0,0.2,0)
+		'End If
+	End If
+	
+	For F=1 To AlanSayisi
+		
+		Set FieldDef=PV_RO.GetFieldDefN(F)
+		If FieldDef.PRINTOPT=1 Then
+			mmOlarakAlanGenisligi=PV_RO.GetFieldDisplayLengthmm(F)
+			FieldDef.INTF_HESAPLANANYER_X_MM=mmOlarakSoldanAlanBaslangici
+			FieldDef.INTF_HESAPLANANGENISLIK_X_MM=mmOlarakAlanGenisligi
+			If FieldDef.OUTF_GENISLIKCM>0 Then FieldDef.INTF_HESAPLANANGENISLIK_X_MM=FieldDef.OUTF_GENISLIKCM*10
+			PV_RO.SetFieldDefN F,FieldDef
+			mmOlarakSoldanAlanBaslangici=mmOlarakSoldanAlanBaslangici+mmOlarakAlanGenisligi
+			mmOlarakSoldanAlanBaslangici=mmOlarakSoldanAlanBaslangici+PV_MMALANLARARASIBOSLUK
+		End If
+	
+		Dim Align
+		Select Case FieldDef.DataAlignment
+			Case "LEFT"			Align="LEFT"
+			Case "RIGHT"		Align="RIGHT"
+			Case "CENTER"		Align="CENTER"
+			Case Else
+			Align="LEFT"
+			If FieldDef.IsNumeric() Then
+				Align="RIGHT"
+			End If
+		End Select
+		
+		If VpeExcel="E" Then
+			If FieldDef.PRINTOPT=1 Then
+				PV_EXCEL_PE2.AddColumnDef FieldDef.ARaporAciklamasi,FieldDef.Length,FieldDef.SigDig,Align
+			End If
+		End If
+		
+		If VpeExcel="O" Then
+
+'FieldDef tablosundaki alanlar.
+'font_facename
+'font_use
+'font_bold
+'font_italic
+'font_underline
+'font_strikeout
+'font_pointsize
+'font_txtclr
+'font_charset
+'raporaciklamasi
+'printopt
+'OUTF_GENISLIKCM
+'dataalignment
+
+			If FieldDef.PRINTOPT=1 Then
+			
+				CiktidaBasilacakAlanSayisi = CiktidaBasilacakAlanSayisi + 1 
+			
+				Dim ValueType
+				ValueType = ""
+				If FieldDef.IsNumeric() Then
+					ValueType="float"
+				ElseIf FieldDef.IsDate() Then
+					ValueType="date"
+				Else
+					ValueType="string"
+				End If
+				'Call AddColumn("dinamo-cell-type="&ValueType&",table:style-name=field_Caption",FieldDef.ARaporAciklamasi)
+				Call AddColumn("dinamo-cell-type=string,table:style-name=field_Caption_col" & F,FieldDef.ARaporAciklamasi)
+				Call GenerateFieldCaptionStyles(F,Align,FieldDef.OUTF_ONCECIZGI)
+				Call Default_Column_Properties(F,FieldDef.Length,FieldDef.SigDig,Align,ValueType,FieldDef.OUTF_BCKCLR,FieldDef.font_txtclr,FieldDef.font_facename,FieldDef.font_pointsize,FieldDef.OUTF_GENISLIKCM,FieldDef.OUTF_ONCECIZGI)
+				
+			End If
+		End If
+	Next
+
+
+	If VpeExcel="V" Then
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+	End If
+
+	PV_FIRMAISMI=""
+	PV_FIRMAISMI=PV_FIRMAISMI&Doc.Customp_Gets("FNAMEL0")
+	PV_FIRMAISMI=PV_FIRMAISMI&" ("
+	PV_FIRMAISMI=PV_FIRMAISMI&Trim(Doc.Getd7FirmCode())
+	PV_FIRMAISMI=PV_FIRMAISMI&")"
+
+	PV_RAPORACIKLAMASI=Trim(REP17SE.ACIKLAMA) & "   (" & Trim(REP17SE.EVRAKNO) & ")"
+	if(PV_SpecFilterResult_C>0) Then PV_RAPORACIKLAMASI=PV_RAPORACIKLAMASI & " (C/H Raporlama Hakları Nedeniyle Kısıtlı Liste)"
+	if(PV_SpecFilterResult_M1>0) Then PV_RAPORACIKLAMASI=PV_RAPORACIKLAMASI & " (Muhasebe Hesap Raporlama Hakları Nedeniyle Kısıtlı Liste)"
+'2024/02/07
+	if(PV_SpecFilterResult_S1>0) Then PV_RAPORACIKLAMASI=PV_RAPORACIKLAMASI & " (Stok Raporlama Hakları Nedeniyle Kısıtlı Liste)"
+
+'2009/02/11
+	If VpeExcel="S" Then
+		PV_RAPORACIKLAMASI=Trim(REP17SE.ACIKLAMA)
+	End If
+
+
+	PV_MMFIRMAISMI=PV_MMPRINTABLEPAGEWIDTHMM*0.7
+	PV_MMRAPORADI=PV_MMPRINTABLEPAGEWIDTHMM*0.7
+	PV_MMTARIH=PV_MMPRINTABLEPAGEWIDTHMM-PV_MMFIRMAISMI
+	PV_MMSAYFA=PV_MMPRINTABLEPAGEWIDTHMM-PV_MMRAPORADI
+
+	If VpeExcel="V" Then
+		Call SetH2Attributes
+		ret = PV_PE1.RenderWrite(1,1,-2,PV_MMRAPORADI,PV_RAPORACIKLAMASI)
+		PV_H2HEIGHTMM=PV_PE1.GetRenderHeight()
+		If PV_H2HEIGHTMM<=0 Then
+			ret = PV_PE1.RenderWrite(1,1,-2,PV_MMRAPORADI,"A")
+			PV_H2HEIGHTMM=PV_PE1.GetRenderHeight()
+		End If
+
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+		If REP17SE.H2ROWHEIGHTCM>0 Then PV_H2HEIGHTMM=REP17SE.H2ROWHEIGHTCM*10
+
+		ret = PV_PE1.RenderWrite(1,1,-2,PV_MMPRINTABLEPAGEWIDTHMM,PV_KRITERACIKLAMASI)
+		PV_H3HEIGHTMM=PV_PE1.GetRenderHeight()
+
+
+		Call SetH1Attributes
+		ret = PV_PE1.RenderWrite(1,1,-2,PV_MMFIRMAISMI,PV_FIRMAISMI)
+		PV_H1HEIGHTMM=PV_PE1.GetRenderHeight()
+		If PV_H1HEIGHTMM<=0 Then
+			ret = PV_PE1.RenderWrite(1,1,-2,PV_MMFIRMAISMI,"A")
+			PV_H1HEIGHTMM=PV_PE1.GetRenderHeight()
+		End If
+
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+		If REP17SE.H1ROWHEIGHTCM>0 Then PV_H1HEIGHTMM=REP17SE.H1ROWHEIGHTCM*10
+	End If
+
+	Dim CizgiGenisligi
+
+	PV_H1L1VPOS=PV_mmtop_margin+0
+	PV_H1VPOS=PV_H1L1VPOS
+	CizgiGenisligi=0.0
+	If REP17SE.H1_ONCECIZGI Then CizgiGenisligi=REP17SE.H1_ONCECIZGI_CM*10
+	PV_H1VPOS=PV_H1L1VPOS+CizgiGenisligi
+	PV_H1L2VPOS=PV_H1VPOS+PV_H1HEIGHTMM
+	CizgiGenisligi=0.0
+	If REP17SE.H1_SONRACIZGI Then CizgiGenisligi=REP17SE.H1_SONRACIZGI_CM*10
+	PV_H2VPOS=PV_H1L2VPOS+CizgiGenisligi+(REP17SE.H1DENSONRABOSLUKCM*10)
+	PV_HDVPOS=PV_H2VPOS+PV_H2HEIGHTMM+PV_H3HEIGHTMM+(REP17SE.H2DENSONRABOSLUKCM*10)
+	PV_ULVPOS=PV_HDVPOS
+	If REP17SE.ALTUSTCIZGI="1" Then PV_HDVPOS=PV_HDVPOS+REP17SE.ALTUSTCIZGI_CM
+	PV_HDVPOS=PV_HDVPOS+2
+End Sub
+'-------------------------------------------------------------------------------------------------------------------------------------------
+Function PrintReport_SMSText_WriteToFile(ByRef FileName,ByRef ResultText)
+	PrintReport_SMSText_WriteToFile=0
+	On Error Resume Next
+    Err.Clear
+    Err.Number = 0
+	Dim FSO1
+	Dim TF1
+	Set FSO1=CreateObject("Scripting.FileSystemObject")
+	Set TF1=FSO1.CreateTextFile(FileName,True)
+	TF1.Write(ResultText)
+	TF1.Close
+	Set TF1=Nothing
+	Set FSO1=Nothing
+    On Error GoTo 0
+    If Err.Number <> 0 Then PrintReport_SMSText_WriteToFile=Err.Number
+    Err.Clear
+    Err.Number = 0
+End Function
+
+Sub SMSText_SatirYazdir(ByVal satirNo,ByRef ResultText)
+	Dim RowType
+	Dim RowTypePrev
+	RowType=PV_RT.REPORT___ROWTYPE(satirNo)
+	RowTypePrev=" "
+	If satirNo>1 Then RowTypePrev=PV_RT.REPORT___ROWTYPE(satirNo-1)
+	If RowType<>"T" And RowType<>" " Then Exit Sub
+
+	If RowType="T" Then
+		If RowTypePrev="T" Then Exit Sub
+		Select Case RowTypePrev
+		Case "T" : Exit Sub
+		Case "A" : Exit Sub
+		Case "B" : Exit Sub
+		Case "C" : Exit Sub
+		Case "D" : Exit Sub
+		Case "E" : Exit Sub
+		Case Else :
+				If REP17SE.R_OUTF_GENELTOPLAM="0" Then Exit Sub
+		End Select
+	End If
+
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+
+	If Not SatirdaBasilacakAlanVarmi(AlanSayisi,RowType) Then
+		If RowType=" " Then PV_SatirdaBasilacakAlanVarmi_Data=0
+		Exit Sub
+	End If
+	Dim ResultText_Dolu
+	ResultText_Dolu=False
+	Dim ResultText_Satir
+    For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			Dim FBaslik
+			FBaslik=Trim(FieldDef.ARaporAciklamasi)
+			FBaslik=Trim(FieldDef.OUTF_ACIKLAMA)
+			FBaslik=Replace(FBaslik,"@@@LF@@@",vbLf)
+			FBaslik=Replace(FBaslik,"@@@YENISATIR@@@",vbLf)
+			If FieldDef.PRINTOPT=1 Then
+				If FieldDef.IsNumeric() Then
+					OutputStr=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo),FieldDef.Length,FieldDef.SigDig,0)
+					OutputStr=Trim(OutputStr)
+				ElseIf FieldDef.IsDate() Then
+					OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+					OutputStr=Left(Trim(OutputStr),FieldDef.Length)
+				Else
+					OutputStr=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo)),FieldDef.Length)
+				End If
+				If Not ResultText_Dolu Then
+					ResultText_Satir=ResultText_Satir & vbLf
+				Else
+					ResultText_Satir=ResultText_Satir & " "
+				End If
+				If RowType="T" And Len(FBaslik)>0 Then
+					If Left(FBaslik,1) = vbLf Then
+						FBaslik=vbLf & "Toplam " & Trim(Mid(FBaslik,2))
+					Else
+						FBaslik="Toplam " & FBaslik
+					End If
+				End If
+				ResultText_Satir=ResultText_Satir & FBaslik
+				ResultText_Satir=ResultText_Satir & OutputStr
+				ResultText_Dolu=True
+			End If
+		End If
+	Next
+	ResultText=ResultText & ResultText_Satir
+'2025/07/08
+'	If RowType=" " Then PV_SayfaBasindanBasilanDataRowSayisi=PV_SayfaBasindanBasilanDataRowSayisi+1
+	If RowType=" " Or ( RowType>="A" AND RowType<="E" ) Then PV_SayfaBasindanBasilanDataRowSayisi=PV_SayfaBasindanBasilanDataRowSayisi+1
+End Sub
+Sub PrintReport_SMSText(RT,RO)
+	Dim SMSText_File_Name
+	SMSText_File_Name=Doc.TempFileName_Client("txt")
+	Set PV_RT=RT
+	Set PV_RO=RO
+	Call SetFormatAttributes("S")
+	Dim ResultText
+	ResultText=PV_RAPORACIKLAMASI
+	If Len(ResultText)>0 Then ResultText=ResultText & " "
+	If REP17SE.HX_TARIHFORMAT="1" Then
+		Dim ct
+		Dim pTime
+		ct=Now
+		pTime=Right("0" & Day(ct),2) & "/" & Right("0" & Month(ct),2) & "/" & Year(ct)
+		ResultText=ResultText & pTime & " " & FormatDateTime(ct,4)
+	End If
+
+
+	Dim satirSayisi
+	satirSayisi = PV_RT.GetRecCount()
+	Dim I
+	For I=1 To satirSayisi
+		If Int(I/20)*20=I Then
+			If Doc.EscPressed() Then
+				Exit Sub
+			End If
+			Doc.StatusBarMessage("Çıktı Hazırlanıyor... (%%" & CStr(Int(I*100/satirSayisi))  & ")" )
+		End If
+		Call SMSText_SatirYazdir(I,ResultText)
+	Next
+	ResultText=Replace(ResultText,vbLf,vbCrLf)
+	If PrintReport_SMSText_WriteToFile(SMSText_File_Name,ResultText)=0 Then
+		Doc.SetDocParameterValue "SONYARATILANSMSCIKTISI",SMSText_File_Name
+
+
+
+
+
+	End If
+End Sub
+
+Sub SetH1Attributes()
+	PV_PE1.UseSet PC_DEFAULT
+	If Doc.IsBlank(REP17SE.H1_FONT_FACENAME) Then
+		PV_PE1.SetFontName "Verdana"
+	Else
+		PV_PE1.SetFontName Trim(REP17SE.H1_FONT_FACENAME)
+	End If
+	If REP17SE.H1_FONT_POINTSIZE>0 Then
+		PV_PE1.SetFontSize REP17SE.H1_FONT_POINTSIZE
+	Else
+		PV_PE1.SetFontSize 9
+	End If
+	PV_PE1.SetBold(CInt(REP17SE.H1_FONT_BOLD))
+	PV_PE1.SetItalic(CInt(REP17SE.H1_FONT_ITALIC))
+	PV_PE1.SetUnderline(CInt(REP17SE.H1_FONT_UNDERLINE))
+	PV_PE1.SetStrikeOut(CInt(REP17SE.H1_FONT_STRIKEOUT))
+	If REP17SE.H1_FONT_CHARSET>0 Then PV_PE1.SetCharset(REP17SE.H1_FONT_CHARSET)
+	If Trim(REP17SE.H1_FONT_TXTCLR)<>"" Then PV_PE1.SetTextColor(Doc.C9TOCRGB(REP17SE.H1_FONT_TXTCLR))
+	PV_PE1.SetAlign "LEFT"
+	PV_PE1.SetBkgcolor(RGB(255,255,255))
+End Sub
+Sub SetH2Attributes()
+	PV_PE1.UseSet PC_DEFAULT
+	If Doc.IsBlank(REP17SE.H2_FONT_FACENAME) Then
+		PV_PE1.SetFontName "Verdana"
+	Else
+		PV_PE1.SetFontName Trim(REP17SE.H2_FONT_FACENAME)
+	End If
+	If REP17SE.H2_FONT_POINTSIZE>0 Then
+		PV_PE1.SetFontSize REP17SE.H2_FONT_POINTSIZE
+	Else
+		PV_PE1.SetFontSize 9
+	End If
+	PV_PE1.SetBold(CInt(REP17SE.H2_FONT_BOLD))
+	PV_PE1.SetItalic(CInt(REP17SE.H2_FONT_ITALIC))
+	PV_PE1.SetUnderline(CInt(REP17SE.H2_FONT_UNDERLINE))
+	PV_PE1.SetStrikeOut(CInt(REP17SE.H2_FONT_STRIKEOUT))
+	If REP17SE.H2_FONT_CHARSET>0 Then PV_PE1.SetCharset(REP17SE.H2_FONT_CHARSET)
+	If Trim(REP17SE.H2_FONT_TXTCLR)<>"" Then PV_PE1.SetTextColor(Doc.C9TOCRGB(REP17SE.H2_FONT_TXTCLR))
+	PV_PE1.SetAlign "LEFT"
+End Sub
+Sub SetOTAAttributes()
+	PV_PE1.UseSet PC_DEFAULT
+	If Doc.IsBlank(REP17SE.OTA_FONT_FACENAME) Then
+		PV_PE1.SetFontName "Verdana"
+	Else
+		PV_PE1.SetFontName Trim(REP17SE.OTA_FONT_FACENAME)
+	End If
+	If REP17SE.OTA_FONT_POINTSIZE>0 Then
+		PV_PE1.SetFontSize REP17SE.OTA_FONT_POINTSIZE
+	Else
+		PV_PE1.SetFontSize 9
+	End If
+	PV_PE1.SetBold(CInt(REP17SE.OTA_FONT_BOLD))
+	PV_PE1.SetItalic(CInt(REP17SE.OTA_FONT_ITALIC))
+	PV_PE1.SetUnderline(CInt(REP17SE.OTA_FONT_UNDERLINE))
+	PV_PE1.SetStrikeOut(CInt(REP17SE.OTA_FONT_STRIKEOUT))
+	If REP17SE.OTA_FONT_CHARSET>0 Then PV_PE1.SetCharset(REP17SE.OTA_FONT_CHARSET)
+	If Trim(REP17SE.OTA_FONT_TXTCLR)<>"" Then PV_PE1.SetTextColor(Doc.C9TOCRGB(REP17SE.OTA_FONT_TXTCLR))
+	PV_PE1.SetAlign "LEFT"
+	PV_PE1.SetBkgcolor(RGB(255,255,255))
+	If Trim(REP17SE.OTA_OUTF_BCKCLR)<>"" Then PV_PE1.SetBkgColor(Doc.C9TOCRGB(REP17SE.OTA_OUTF_BCKCLR))
+End Sub
+Sub SetSTnHAttributes(N)
+	PV_PE1.UseSet PC_DEFAULT
+	Dim STnStx
+	STnStx="ST"&Trim(N)&"H_"
+
+	Dim FONT_FACENAME
+	Dim FONT_POINTSIZE
+	Dim FONT_BOLD
+	Dim FONT_ITALIC
+	Dim FONT_UNDERLINE
+	Dim FONT_STRIKEOUT
+	Dim FONT_CHARSET
+	Dim FONT_TXTCLR
+	Dim OUTF_BCKCLR
+	FONT_FACENAME=REP17SE.GetFieldValue(STnStx&"FONT_FACENAME",-1)
+	FONT_POINTSIZE=REP17SE.GetFieldValue(STnStx&"FONT_POINTSIZE",-1)
+	FONT_BOLD=REP17SE.GetFieldValue(STnStx&"FONT_BOLD",-1)
+	FONT_ITALIC=REP17SE.GetFieldValue(STnStx&"FONT_ITALIC",-1)
+	FONT_UNDERLINE=REP17SE.GetFieldValue(STnStx&"FONT_UNDERLINE",-1)
+	FONT_STRIKEOUT=REP17SE.GetFieldValue(STnStx&"FONT_STRIKEOUT",-1)
+	FONT_CHARSET=REP17SE.GetFieldValue(STnStx&"FONT_CHARSET",-1)
+	FONT_TXTCLR=REP17SE.GetFieldValue(STnStx&"FONT_TXTCLR",-1)
+	OUTF_BCKCLR=REP17SE.GetFieldValue(STnStx&"OUTF_BCKCLR",-1)
+
+	If Doc.IsBlank(FONT_FACENAME) Then
+		PV_PE1.SetFontName "Verdana"
+	Else
+		PV_PE1.SetFontName Trim(FONT_FACENAME)
+	End If
+	If FONT_POINTSIZE>0 Then
+		PV_PE1.SetFontSize FONT_POINTSIZE
+	Else
+		PV_PE1.SetFontSize 9
+	End If
+
+	PV_PE1.SetBold(CInt(FONT_BOLD))
+	PV_PE1.SetItalic(CInt(FONT_ITALIC))
+	PV_PE1.SetUnderline(CInt(FONT_UNDERLINE))
+	PV_PE1.SetStrikeOut(CInt(FONT_STRIKEOUT))
+	If FONT_CHARSET>0 Then PV_PE1.SetCharset(FONT_CHARSET)
+	If Trim(FONT_TXTCLR)<>"" Then
+		PV_PE1.SetTextColor(Doc.C9TOCRGB(FONT_TXTCLR))
+	Else
+		PV_PE1.SetTextColor(Doc.C9TOCRGB("128000064"))
+	End If
+	PV_PE1.SetAlign "LEFT"
+	PV_PE1.SetBkgcolor(RGB(255,255,255))
+	If Trim(OUTF_BCKCLR)<>"" Then
+		PV_PE1.SetBkgColor(Doc.C9TOCRGB(OUTF_BCKCLR))
+	Else
+		PV_PE1.SetBkgColor(Doc.C9TOCRGB("255255128"))
+	End If
+End Sub
+
+
+
+Sub SayfaBasi0()
+	If PV_BCKCOLOR<>RGB(255, 255, 255) Then
+		PV_PE1.NoPen()
+		PV_PE1.SetBkgcolor PV_BCKCOLOR
+		PV_PE1.SetTransparentMode 0
+		PV_PE1.Box 0,0,PV_PE1.GetPageHeight(),PV_PE1.GetPageWidth()
+		PV_PE1.SetTransparentMode 1
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+	End If
+	PV_SayfaBasindanBasilanDataRowSayisi=0
+	PV_SatirdaBasilacakAlanVarmi_Data=1
+	PV_SayfaNo=PV_SayfaNo+1
+	PV_SayfaIciSatirNo=1
+	Dim pagewidth
+	pagewidth=PV_PE1.GetPageWidth()
+
+	Call SetH1Attributes
+	PV_PE1.Write PV_H1VPOS,PV_mmleft_margin,PV_H1HEIGHTMM,PV_MMFIRMAISMI,PV_FIRMAISMI
+	Call SetH2Attributes
+	PV_PE1.Write PV_H2VPOS,PV_mmleft_margin,PV_H2HEIGHTMM,PV_MMRAPORADI,PV_RAPORACIKLAMASI
+	PV_PE1.Write PV_H2VPOS+PV_H2HEIGHTMM,PV_mmleft_margin,PV_H3HEIGHTMM,PV_MMPRINTABLEPAGEWIDTHMM,PV_KRITERACIKLAMASI
+End Sub
+
+
+Sub SayfaBasi()
+	Call SayfaBasi0()
+
+	PV_PE1.UseSet PC_DEFAULT
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	Dim Align
+	Dim BottomLine
+	BottomLine=PV_mmtop_margin+PV_H1HEIGHTMM+PV_H2HEIGHTMM+PV_H3HEIGHTMM
+
+
+	For F=1 To AlanSayisi
+		Set FieldDef=PV_RO.GetFieldDefN(F)
+		If FieldDef.PRINTOPT=1 Then
+			PV_RO.SetFieldFontAttributes PV_PE1,F,"H"
+			If FieldDef.IsNumeric() Then
+				Align="RIGHT"
+				PV_PE1.SetAlign "RIGHT"
+			Else
+				Align=FieldDef.DataAlignment
+				Select Case Align
+					Case "LEFT"			PV_PE1.SetAlign "LEFT"
+					Case "RIGHT"		PV_PE1.SetAlign "RIGHT"
+					Case "CENTER"		PV_PE1.SetAlign "CENTER"
+					Case Else			PV_PE1.SetAlign "LEFT"
+				End Select
+			End If
+
+			Dim FBaslik
+			FBaslik=Trim(FieldDef.ARaporAciklamasi)
+'			If Len(FBaslik)=0 Then FBaslik=FieldDef.Name
+			ret = PV_PE1.Write(PV_HDVPOS,FieldDef.INTF_HESAPLANANYER_X_MM,-2,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,FBaslik)
+			If ret > BottomLine Then BottomLine=ret
+		End If
+	Next
+	BottomLine=BottomLine+2
+
+	PV_PE1.UseSet PC_DEFAULT
+	Dim CizgiGenisligi
+	Dim CizgiRengi
+
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.H1_ONCECIZGI Then
+		CizgiGenisligi=REP17SE.H1_ONCECIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.H1_ONCECIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.H1_ONCECIZGI_CLR)
+	End If
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line PV_H1L1VPOS,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+	End If
+
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.H1_SONRACIZGI Then
+		CizgiGenisligi=REP17SE.H1_SONRACIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.H1_SONRACIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.H1_SONRACIZGI_CLR)
+	End If
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line PV_H1L2VPOS,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+	End If
+
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.ALTUSTCIZGI Then
+		CizgiGenisligi=REP17SE.ALTUSTCIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.ALTUSTCIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ALTUSTCIZGI_CLR)
+	End If
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line PV_ULVPOS,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+	End If
+
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.BALTICIZGI Then
+		CizgiGenisligi=REP17SE.BALTICIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.BALTICIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.BALTICIZGI_CLR)
+	End If
+
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line BottomLine,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+	End If
+	PV_vsatir1pozr=BottomLine+2
+End Sub
+
+Sub SayfaSonu()
+	Dim pagewidth
+	pagewidth=PV_PE1.GetPageWidth()
+	Dim pageheight
+	pageheight=PV_PE1.GetPageHeight()
+
+	Dim CizgiGenisligi
+	Dim CizgiRengi
+
+	PV_PE1.UseSet PC_DEFAULT
+	PV_PE1.SetPenSize 0.3
+	PV_PE1.SetPenColor RGB(192,192,192)
+
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.YANCIZGI Then
+		CizgiGenisligi=REP17SE.YANCIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.YANCIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.YANCIZGI_CLR)
+	End If
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line PV_ULVPOS,PV_mmleft_margin,(pageheight-PV_mmbottom_margin-PV_ULVPOS),0
+		PV_PE1.Line PV_ULVPOS,pagewidth-PV_mmright_margin,(pageheight-PV_mmbottom_margin-PV_ULVPOS)	,0
+	End If
+
+	If REP17SE.SUTUNCIZGI="S" OR REP17SE.SUTUNCIZGI="A" Then
+		CizgiGenisligi=0.0
+		CizgiRengi=RGB(192,192,192)
+		CizgiGenisligi=REP17SE.SUTUNCIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.SUTUNCIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.SUTUNCIZGI_CLR)
+		If CizgiGenisligi>0 Then
+			For F=2 To AlanSayisi
+				Set FieldDef=PV_RO.GetFieldDefN(F)
+				If FieldDef.PRINTOPT=1 Then
+					If REP17SE.SUTUNCIZGI="A" OR FieldDef.OUTF_ONCECIZGI=1 Then
+						PV_PE1.SetPenSize CizgiGenisligi
+						PV_PE1.SetPenColor CizgiRengi
+'						PV_PE1.Line PV_mmtop_margin+PV_H1HEIGHTMM+PV_H2HEIGHTMM+PV_H3HEIGHTMM,FieldDef.INTF_HESAPLANANYER_X_MM-(PV_MMALANLARARASIBOSLUK/2),(pageheight-PV_mmtop_margin-PV_mmbottom_margin-(PV_H1HEIGHTMM+PV_H2HEIGHTMM+PV_H3HEIGHTMM)),0
+						PV_PE1.Line PV_ULVPOS,FieldDef.INTF_HESAPLANANYER_X_MM-(PV_MMALANLARARASIBOSLUK/2),(pageheight-PV_mmbottom_margin-PV_ULVPOS),0
+					End If
+				End If
+			Next
+		End If
+	End If
+
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.ALTUSTCIZGI Then
+		CizgiGenisligi=REP17SE.ALTUSTCIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.ALTUSTCIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ALTUSTCIZGI_CLR)
+	End If
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line pageheight-PV_mmbottom_margin,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+	End If
+
+
+End Sub
+
+'2009/12/18
+Sub AddStringParameterToString(ByRef paremeters,ByVal parametername,ByVal parametervalue)
+	parametervalue=Replace(parametervalue,"'"," ")
+	parametervalue=Trim(parametervalue)
+'2009/12/21
+	parametervalue=Doc.ReplaceDocValues(parametervalue)
+	parametername=Trim(parametername)
+	If parametervalue="" Then Exit Sub
+	If Len(paremeters)>0 Then paremeters=paremeters & ", "
+	paremeters=paremeters & parametername
+	paremeters=paremeters & "="
+	paremeters=paremeters & "'"
+	paremeters=paremeters & parametervalue
+	paremeters=paremeters & "'"
+End Sub
+Sub AddNumericParameterToString(ByRef paremeters,ByVal parametername,ByVal parametervalue)
+	parametername=Trim(parametername)
+	If parametervalue=0 Then Exit Sub
+	If Len(paremeters)>0 Then paremeters=paremeters & ", "
+	paremeters=paremeters & parametername
+	paremeters=paremeters & "="
+	paremeters=paremeters & "'"
+	paremeters=paremeters & Doc.CStr(parametervalue)
+	paremeters=paremeters & "'"
+End Sub
+
+
+
+Function FormatAlanBasligi1(ByVal FieldName)
+	FormatAlanBasligi1=""
+	Dim FieldDef
+	Set FieldDef=PV_RO.GetFieldDef(FieldName)
+	If Not IsObject(FieldDef) Then Exit Function
+	FormatAlanBasligi1=Trim(FieldDef.ARaporAciklamasi)
+	If FormatAlanBasligi1="" Then FormatAlanBasligi1=FieldName
+End Function
+
+Sub BirCizelge(Tbl_REP17CT,Tbl_REP17CT1)
+		Dim Cizelge_Turu
+		Cizelge_Turu=Trim(Tbl_REP17CT.CHART_TYPE)
+		Dim Cizelge_Row_Type
+		Cizelge_Row_Type=Trim(Tbl_REP17CT.REPORT_ROW_TYPE)
+		Dim PAGE_AUTO_PORT_LANDS
+		PAGE_AUTO_PORT_LANDS=Tbl_REP17CT.PAGE_AUTO_PORT_LANDS
+		Dim Cizelge_X_Alan
+		Cizelge_X_Alan=Trim(Tbl_REP17CT.FIELDNAME1)
+		Dim Cizelge_Y_Alanlar
+		Cizelge_Y_Alanlar=""
+		Dim J
+		For J=1 To Tbl_REP17CT1.GetRowCount
+			If Tbl_REP17CT1.AP10="1" Then
+				If Len(Cizelge_Y_Alanlar)>0 Then Cizelge_Y_Alanlar=Cizelge_Y_Alanlar&","
+				Cizelge_Y_Alanlar=Cizelge_Y_Alanlar&Trim(Tbl_REP17CT1.FIELDNAME1(J))
+			End If
+		Next
+
+		If Trim(Cizelge_X_Alan)="" Then Exit Sub
+		If Trim(Cizelge_Y_Alanlar)="" Then Exit Sub
+		If Tbl_REP17CT.PAGE_AUTO_BREAK="1" Then
+			PV_PE1.PageBreak()
+			If PAGE_AUTO_PORT_LANDS="L" Then PV_PE1.SetPageOrientation "LANDSCAPE"
+			If PAGE_AUTO_PORT_LANDS="P" Then PV_PE1.SetPageOrientation "PORTRAIT"
+			Call SayfaBasi0
+		End If
+
+		If Cizelge_Row_Type="R" Then Cizelge_Row_Type=" "
+		Dim Tbl
+		Dim KriterString
+		KriterString="REPORT___ROWTYPE=='"&Cizelge_Row_Type&"'"
+
+'2015/02/14
+		If Not Doc.IsBlank(Tbl_REP17CT.DATA_FILTER_CRITERIA) Then 
+			KriterString=KriterString & " & " & Trim(Tbl_REP17CT.DATA_FILTER_CRITERIA)
+		End If
+
+		If Cizelge_Row_Type="T" Then
+			Set Tbl=Doc.Select2("__1","REPORT1",KriterString,"",1)
+		Else
+			Set Tbl=Doc.Select2("__1","REPORT1",KriterString,"",-1)
+		End If
+		Dim Alanlar
+		Alanlar=Cizelge_X_Alan
+		Alanlar=Alanlar&","
+		Alanlar=Alanlar&Cizelge_Y_Alanlar
+		Dim hData
+		Dim PrepdataParameters
+		If Tbl_REP17CT.DATAX_CR="C" Then
+			PrepdataParameters="TRANSPOSE=1"
+			If Tbl_REP17CT.DATAX_ROWNO>0 Then
+				PrepdataParameters=PrepdataParameters & ",ROWNUMBER="&CStr(CInt(Tbl_REP17CT.DATAX_ROWNO))
+			End If
+			PrepdataParameters=PrepdataParameters & ", CREATELEGENDS=1"
+		End If
+
+		hData=PV_PE1.CreateChartData_RowSet(Tbl,Alanlar,PrepdataParameters)
+		If hData<0 Then Exit Sub
+		Dim Label1
+		If Tbl_REP17CT.DATAX_CR="C" Then
+'CreateChartData_RowSet legentları yaratıyor
+			For J=1 To Tbl_REP17CT1.GetRowCount
+				Label1=FormatAlanBasligi1(Trim(Tbl_REP17CT1.FIELDNAME1(J)))
+'2009/12/21
+				Label1=Doc.ReplaceDocValues(Label1)
+				If Tbl_REP17CT1.AP10="1" Then
+					PV_PE1.ChartDataAddXLabel hData,Label1
+				End If
+			Next
+		Else
+			For J=1 To Tbl_REP17CT1.GetRowCount
+				Label1=Trim(Tbl_REP17CT1.ACIKLAMA(J))
+				If Label1="" Then  Label1=FormatAlanBasligi1(Trim(Tbl_REP17CT1.FIELDNAME1(J)))
+				If Tbl_REP17CT1.AP10="1" Then
+					PV_PE1.ChartDataAddLegend hData,Label1
+					Dim CProperties
+					CProperties=""
+					Call AddStringParameterToString(CProperties,"COLOR",Tbl_REP17CT1.COLOR1(J))
+					Call AddStringParameterToString(CProperties,"LINESTYLE",Tbl_REP17CT1.LINESTYLE(J))
+					Call AddStringParameterToString(CProperties,"HATCHSTYLE",Tbl_REP17CT1.HATCHSTYLE(J))
+					PV_PE1.SetChartColumnProperties hData,J,CProperties
+				End If
+			Next
+		End If
+
+		doc.DeleteRowsetObject Tbl
+		Dim paremeters
+		paremeters=""
+		Call AddStringParameterToString(paremeters,"TITLE",Tbl_REP17CT.TITLE1)
+		Call AddStringParameterToString(paremeters,"LEGENDPOSITION",Tbl_REP17CT.LEGENDPOSITION)
+		Call AddStringParameterToString(paremeters,"GRIDBKGCOLOR",Tbl_REP17CT.GRIDBKGCOLOR)
+		Call AddStringParameterToString(paremeters,"GRIDBKGMODE",Tbl_REP17CT.GRIDBKGMODE)
+		Call AddStringParameterToString(paremeters,"GRIDTYPE",Tbl_REP17CT.GRIDTYPE)
+		Call AddStringParameterToString(paremeters,"GRIDCOLOR",Tbl_REP17CT.GRIDCOLOR)
+		Call AddStringParameterToString(paremeters,"LEGENDBORDERSTAT",Tbl_REP17CT.LEGENDBORDERSTAT)
+		Call AddStringParameterToString(paremeters,"XLABELSTATE",Tbl_REP17CT.XLABELSTATE)
+		Call AddStringParameterToString(paremeters,"PIELEGENDWITHPERCENT",Tbl_REP17CT.PIELEGENDWITHPERCENT)
+		Call AddStringParameterToString(paremeters,"PIELABELTYPE",Tbl_REP17CT.PIELABELTYPE)
+		Call AddStringParameterToString(paremeters,"XLABELANGLE",Tbl_REP17CT.XLABELANGLE)
+		Call AddStringParameterToString(paremeters,"YLABELSTATE",Tbl_REP17CT.YLABELSTATE)
+		Call AddStringParameterToString(paremeters,"GRIDROTATION",Tbl_REP17CT.GRIDROTATION)
+		Call AddStringParameterToString(paremeters,"XAXISTITLE",Tbl_REP17CT.XAXISTITLE)
+		Call AddStringParameterToString(paremeters,"YAXISTITLE",Tbl_REP17CT.YAXISTITLE)
+		Call AddStringParameterToString(paremeters,"SUBTITLE",Tbl_REP17CT.SUBTITLE)
+		Call AddStringParameterToString(paremeters,"FOOTNOTE",Tbl_REP17CT.FOOTNOTE)
+
+		Call AddNumericParameterToString(paremeters,"MINIMUM1",Tbl_REP17CT.MINIMUM1)
+		Call AddNumericParameterToString(paremeters,"MAXIMUM1",Tbl_REP17CT.MAXIMUM1)
+		Call AddNumericParameterToString(paremeters,"TITLEFONTSIZEFACTOR",Tbl_REP17CT.TITLEFONT_SF)
+		Call AddNumericParameterToString(paremeters,"SUBTITLEFONTSIZEFACTOR",Tbl_REP17CT.SUBTITLEFONT_SF)
+		Call AddNumericParameterToString(paremeters,"FOOTNOTEFONTSIZEFACTOR",Tbl_REP17CT.FOOTNOTEFONT_SF)
+		Call AddNumericParameterToString(paremeters,"AXISTITLEFONTSIZEFACTOR",Tbl_REP17CT.AXISTITLEFONT_SF)
+		Call AddNumericParameterToString(paremeters,"LEGENDFONTSIZEFACTOR",Tbl_REP17CT.LEGENDFONT_SF)
+		Call AddNumericParameterToString(paremeters,"LINEWIDTHFACTOR",Tbl_REP17CT.LINEWIDTHFACTOR)
+		Call AddNumericParameterToString(paremeters,"BARWIDTHFACTOR",Tbl_REP17CT.BARWIDTHFACTOR)
+		Call AddNumericParameterToString(paremeters,"YGRIDSTEP",Tbl_REP17CT.YGRIDSTEP)
+		Call AddNumericParameterToString(paremeters,"XLABELFONTSIZEFACTOR",Tbl_REP17CT.XLABELFONT_SF)
+		Call AddNumericParameterToString(paremeters,"XLABELSTARTVALUE",Tbl_REP17CT.XLABELSTARTVALUE)
+		Call AddNumericParameterToString(paremeters,"YLABELFONTSIZEFACTOR",Tbl_REP17CT.YLABELFONT_SF)
+		Call AddNumericParameterToString(paremeters,"YLABELSTEP",Tbl_REP17CT.YLABELSTEP)
+		Call AddNumericParameterToString(paremeters,"YLABELDIVISOR",Tbl_REP17CT.YLABELDIVISOR)
+		Call AddNumericParameterToString(paremeters,"YAXISANGLE",Tbl_REP17CT.YAXISANGLE)
+		Call AddNumericParameterToString(paremeters,"XAXISANGLE",Tbl_REP17CT.XAXISANGLE)
+
+		PV_PE1.ConfigChartDataSettings hData,paremeters
+		If Tbl_REP17CT.PAGEPOS_HEIGHT>0 And Tbl_REP17CT.PAGEPOS_WIDTH>0 Then
+			PV_PE1.PrintChart Tbl_REP17CT.PAGEPOS_START_Y,Tbl_REP17CT.PAGEPOS_START_X,Tbl_REP17CT.PAGEPOS_HEIGHT,Tbl_REP17CT.PAGEPOS_WIDTH,hData,Cizelge_Turu
+		Else
+			Dim BottomLine
+			BottomLine=PV_mmtop_margin+PV_H1HEIGHTMM+PV_H2HEIGHTMM+PV_H3HEIGHTMM
+
+			PV_PE1.PrintChart BottomLine,0,PV_PE1.GetPageHeight-BottomLine,PV_PE1.GetPageWidth,hData,Cizelge_Turu
+		End If
+End Sub
+
+Sub RaporSonu()
+'2009/12/18
+	Dim Tbl_REP17CT
+	Set Tbl_REP17CT=Doc.GetRowsetObject("REP17CT")
+	Dim Tbl_REP17CT1
+	Set Tbl_REP17CT1=Doc.GetRowsetObject("REP17CT1")
+	For I=1 To Tbl_REP17CT.GetRowCount
+		Tbl_REP17CT.SetCurrentRow(I)
+		If Tbl_REP17CT.AP10="1" Then
+			Call BirCizelge(Tbl_REP17CT,Tbl_REP17CT1)
+		End If
+	Next
+	Call SetH2Attributes
+	Dim I
+	PV_PE1.SetAlign "RIGHT"
+	Dim pagewidth
+	Dim ct
+	Dim pTime
+	ct=Now
+	pTime=Right("0" & Day(ct),2) & "/" & Right("0" & Month(ct),2) & "/" & Year(ct)
+	For I = 1 To PV_SayfaNo
+		PV_PE1.GotoPage(I)
+		pagewidth=PV_PE1.GetPageWidth()
+		If REP17SE.HX_TARIHFORMAT="1" Then
+			'PV_PE1.Write PV_H1VPOS,PV_mmleft_margin+PV_MMFIRMAISMI,PV_H1HEIGHTMM,PV_MMTARIH, FormatDateTime(ct,2) & " " & FormatDateTime(ct,4)
+			PV_PE1.Write PV_H1VPOS,PV_mmleft_margin+PV_MMFIRMAISMI,PV_H1HEIGHTMM,PV_MMTARIH, pTime & " " & FormatDateTime(ct,4)
+		End If
+		If REP17SE.HX_SAYFANOFORMAT="1" Then
+			PV_PE1.Write PV_H2VPOS,PV_mmleft_margin+PV_MMRAPORADI,PV_H2HEIGHTMM,PV_MMSAYFA, "Sayfa : " & Cstr(I) & "/" & Cstr(PV_SayfaNo)
+		End If
+	Next
+End Sub
+
+Function OzetTabloBasligi(satirNo,RowType,satirpozr)
+	Call SetOTAAttributes
+	Dim outmsg
+	Select Case RowType
+	Case "A" : outmsg=REP17SE.OT1_ACIKLAMA
+	Case "B" : outmsg=REP17SE.OT2_ACIKLAMA
+	Case "C" : outmsg=REP17SE.OT3_ACIKLAMA
+	Case "D" : outmsg=REP17SE.OT4_ACIKLAMA
+	Case "E" : outmsg=REP17SE.OT5_ACIKLAMA
+	End Select
+	outmsg=RTrim(outmsg)
+	Dim OldTop
+	OldTop=PV_PE1.GetTop()
+
+	Dim OTAHEIGHTMM
+	Dim OTAHEIGHTMMBKG
+	OTAHEIGHTMM=REP17SE.OTAROWHEIGHTCM*10
+
+	If OTAHEIGHTMM=0 Then
+		ret = PV_PE1.RenderWrite(1,1,-2,PV_MMPRINTABLEPAGEWIDTHMM,outmsg)
+		OTAHEIGHTMM=PV_PE1.GetRenderHeight()
+	End If
+	OTAHEIGHTMMBKG=(REP17SE.OTA_ONCECMBOSLUK*10)+OTAHEIGHTMM+(REP17SE.OTA_SONRACMBOSLUK*10)
+	Dim CizgiGenisligi
+	Dim CizgiRengi
+	CizgiGenisligi=0.0
+	CizgiRengi=RGB(192,192,192)
+	If REP17SE.OTA_OUTF_CIZGI Then
+		CizgiGenisligi=REP17SE.OTA_OUTF_CIZGI_CM*10
+		CizgiRengi=RGB(192,192,192)
+		If Trim(REP17SE.OTA_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.OTA_OUTF_CIZGI_CLR)
+	End If
+	If CizgiGenisligi>0 Then
+		OTAHEIGHTMMBKG=OTAHEIGHTMMBKG+CizgiGenisligi+1
+	End If
+
+	If Trim(REP17SE.OTA_OUTF_BCKCLR)<>"" Then PV_PE1.SetBkgcolor Doc.C9ToCRGB(REP17SE.OTA_OUTF_BCKCLR)
+	If PV_PE1.GetBkgcolor()<>RGB(255,255,255) Then
+		PV_PE1.NoPen()
+		PV_PE1.SetTransparentMode 0
+		PV_PE1.SetBkgcolor PV_PE1.GetBkgcolor()
+
+		PV_PE1.Box satirpozr,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),OTAHEIGHTMMBKG, PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+		PV_PE1.SetTransparentMode 1
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+	End If
+	SatirPozr=SatirPozr+(REP17SE.OTA_ONCECMBOSLUK*10)
+	Dim BottomLine
+	BottomLine = PV_PE1.Write(SatirPozr,PV_mmleft_margin,-2,PV_MMPRINTABLEPAGEWIDTHMM,outmsg)
+
+	If CizgiGenisligi>0 Then
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line BottomLine+1,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+	End If
+
+	PV_PE1.SetTop(OldTop+OTAHEIGHTMMBKG)
+	PV_PE1.SetBkgcolor(RGB(255,255,255))
+	OzetTabloBasligi=OTAHEIGHTMMBKG
+End Function
+
+Sub SatirYazdir(satirNo)
+	Dim pagewidth
+	pagewidth=PV_PE1.GetPageWidth()
+	Dim sonSatir
+	Dim satirpozr
+	Dim satirpozr_bck
+'ğğğ sonSatir PV_PE1'nin SatirYazdir çağrıldındaki kaldığı yer(bottom)
+	sonSatir = PV_PE1.GetBottom()
+	Dim pageheight
+	pageheight=PV_PE1.GetPageHeight()-PV_mmbottom_margin
+	Dim BuRowmmsatirYuksekligi_YaziIcin
+	BuRowmmsatirYuksekligi_YaziIcin=PV_mmsatirYuksekligi
+
+	Dim RowType
+	Dim RowTypePrev
+	RowType=PV_RT.REPORT___ROWTYPE(satirNo)
+	RowTypePrev=" "
+	If satirNo>1 Then RowTypePrev=PV_RT.REPORT___ROWTYPE(satirNo-1)
+
+'ğğğ Ara toplamlar Basılmayacak ise Dön
+	If (RowType>="1" AND RowType<= "9") Then
+		Select Case RowType
+		Case "1" :
+				If REP17SE.ST1_PRINTOPT="0" Then Exit Sub
+		Case "2" :
+				If REP17SE.ST2_PRINTOPT="0" Then Exit Sub
+		Case "3" :
+				If REP17SE.ST3_PRINTOPT="0" Then Exit Sub
+		Case "4" :
+				If REP17SE.ST4_PRINTOPT="0" Then Exit Sub
+		Case "5" :
+				If REP17SE.ST5_PRINTOPT="0" Then Exit Sub
+		End Select
+	End If
+'ğğğ Özet Raporlar İçi Rapor Toplamı Basılmayacak ise Dön
+	If RowType="T" Then
+		If RowTypePrev="T" Then Exit Sub
+		Select Case RowTypePrev
+		Case "T" : Exit Sub
+		Case "A" :
+				If REP17SE.OT1_GENELTOPLAM="0" Then Exit Sub
+		Case "B" :
+				If REP17SE.OT2_GENELTOPLAM="0" Then Exit Sub
+		Case "C" :
+				If REP17SE.OT3_GENELTOPLAM="0" Then Exit Sub
+		Case "D" :
+				If REP17SE.OT4_GENELTOPLAM="0" Then Exit Sub
+		Case "E" :
+				If REP17SE.OT5_GENELTOPLAM="0" Then Exit Sub
+		Case Else :
+				If REP17SE.R_OUTF_GENELTOPLAM="0" Then Exit Sub
+		End Select
+	End If
+
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+	Dim OutputStr2
+	Dim Align
+
+	If Not SatirdaBasilacakAlanVarmi(AlanSayisi,RowType) Then
+		If RowType=" " Then PV_SatirdaBasilacakAlanVarmi_Data=0
+		Exit Sub
+	End If
+'ğğğ BuRowmmsatirYuksekligi_YaziIcin hesaplaması
+	For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Or True Then
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			If FieldDef.PRINTOPT=1 Then
+				PV_RO.SetFieldFontAttributes PV_PE1,F,RowType
+				PV_PE1.SetBkgcolor(RGB(255,255,255))
+				If FieldDef.IsNumeric() Then
+					Align="RIGHT"
+					PV_PE1.SetAlign "RIGHT"
+				Else
+					Align=FieldDef.DataAlignment
+					Select Case Align
+						Case "LEFT"			PV_PE1.SetAlign "LEFT"
+						Case "RIGHT"		PV_PE1.SetAlign "RIGHT"
+						Case "CENTER"		PV_PE1.SetAlign "CENTER"
+						Case Else			PV_PE1.SetAlign "LEFT"
+					End Select
+				End If
+				If FieldDef.OUTF_WRAPTEXT=1 Then
+					If FieldDef.IsNumeric() Then
+						OutputStr=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo),FieldDef.Length,FieldDef.SigDig,0)
+						OutputStr=Trim(OutputStr)
+						ret = PV_PE1.RenderWrite(1,FieldDef.INTF_HESAPLANANYER_X_MM,-2,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,OutputStr)
+					ElseIf FieldDef.IsDate() Then
+						OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+						OutputStr=Left(Trim(OutputStr),FieldDef.Length)
+						ret = PV_PE1.RenderWrite(1,FieldDef.INTF_HESAPLANANYER_X_MM,-2,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,OutputStr)
+					Else
+						OutputStr=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo)),FieldDef.Length)
+						ret = PV_PE1.RenderWrite(1,FieldDef.INTF_HESAPLANANYER_X_MM,-2,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,OutputStr)
+					End If
+				Else
+					ret = PV_PE1.RenderWrite(1,FieldDef.INTF_HESAPLANANYER_X_MM,-2,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,"g")
+				End If
+				If PV_PE1.GetRenderHeight()+1>BuRowmmsatirYuksekligi_YaziIcin Then
+					BuRowmmsatirYuksekligi_YaziIcin=PV_PE1.GetRenderHeight()+1
+				End If
+			End If
+		End If
+	Next
+	Dim SayfaBasindanBasilanDataRowSayisi
+	SayfaBasindanBasilanDataRowSayisi=PV_SayfaBasindanBasilanDataRowSayisi
+'2025/07/08
+'	If RowType=" " Then PV_SayfaBasindanBasilanDataRowSayisi=PV_SayfaBasindanBasilanDataRowSayisi+1
+	If RowType=" " Or ( RowType>="A" AND RowType<="E" ) Then PV_SayfaBasindanBasilanDataRowSayisi=PV_SayfaBasindanBasilanDataRowSayisi+1
+
+'ğğğ SonSatirdanSonraBirakilacakExtraBosluk ve SayfaBasiGereklimi beraber hesaplanıyor çünkü sayfabaşı yapılır ise boşluğa gerek yok
+	Dim SonSatirdanSonraBirakilacakExtraBosluk
+	SonSatirdanSonraBirakilacakExtraBosluk=0
+	Dim SayfaBasiGereklimi
+	SayfaBasiGereklimi=0
+
+'ğğğ özet raporlardan sonra boşluk ve sayfa sonu
+	If RowType>="A" AND RowType<="E" Then
+		If RowTypePrev="T" Then
+			Select Case RowType
+			Case "A" : SonSatirdanSonraBirakilacakExtraBosluk=REP17SE.CMOT1DENONCEBOSLUK*10
+			Case "B" : SonSatirdanSonraBirakilacakExtraBosluk=REP17SE.CMOT2DENONCEBOSLUK*10
+			Case "C" : SonSatirdanSonraBirakilacakExtraBosluk=REP17SE.CMOT3DENONCEBOSLUK*10
+			Case "D" : SonSatirdanSonraBirakilacakExtraBosluk=REP17SE.CMOT4DENONCEBOSLUK*10
+			Case "E" : SonSatirdanSonraBirakilacakExtraBosluk=REP17SE.CMOT5DENONCEBOSLUK*10
+			End Select
+
+'ğğğ önceki satır 'T' bu satır özet ise yeni sayfa gerekli mi?
+			Select Case RowType
+			Case "A" : If REP17SE.OT1_YENISAYFAYA="1" Then SayfaBasiGereklimi=1
+			Case "B" : If REP17SE.OT2_YENISAYFAYA="1" Then SayfaBasiGereklimi=1
+			Case "C" : If REP17SE.OT3_YENISAYFAYA="1" Then SayfaBasiGereklimi=1
+			Case "D" : If REP17SE.OT4_YENISAYFAYA="1" Then SayfaBasiGereklimi=1
+			Case "E" : If REP17SE.OT5_YENISAYFAYA="1" Then SayfaBasiGereklimi=1
+			End Select
+		End If
+	End If
+'ğğğ ara toplamlardan sonra sayfa basi gerekli mi?
+	If SayfaBasiGereklimi=0 Then
+		Select Case RowTypePrev
+		Case "1" If REP17SE.ST1_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "2" If REP17SE.ST2_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "3" If REP17SE.ST3_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "4" If REP17SE.ST4_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "5" If REP17SE.ST5_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		End Select
+	End If
+
+'ğğğ her özet rapor ayrı sayfadan başlasın veya sayfa ortasına başlıklar yazılsın
+	Dim OTSayfaBasi
+	OTSayfaBasi=0
+
+	sonSatir=sonSatir+SonSatirdanSonraBirakilacakExtraBosluk
+	If sonSatir+BuRowmmsatirYuksekligi_YaziIcin >= pageheight Then SayfaBasiGereklimi=1
+
+	If RowType>="A" AND RowType<="E" AND RowType<>RowTypePrev Then
+		If PV_SatirdaBasilacakAlanVarmi_Data<>0 Then
+			If SayfaBasindanBasilanDataRowSayisi=0 Then SayfaBasiGereklimi=0
+		End If
+
+		If SayfaBasiGereklimi=1 Then
+			Call SayfaSonu()
+			ret = PV_PE1.PageBreak()
+			Call SayfaBasi()
+			satirpozr = PV_vsatir1pozr
+			SayfaBasiGereklimi=0
+		Else
+			If PV_SayfaIciSatirNo=1 Then
+				satirpozr = PV_vsatir1pozr
+			Else
+				satirpozr = PV_PE1.GetTop() + PV_mmSonBasilanRowsatirYuksekligi
+			End If
+		End If
+		satirpozr=satirpozr+SonSatirdanSonraBirakilacakExtraBosluk
+		Dim OTAHEIGHTMMBKG
+		OTAHEIGHTMMBKG=OzetTabloBasligi(satirNo,RowType,satirpozr)
+		sonSatir=sonSatir+OTAHEIGHTMMBKG
+		If sonSatir+BuRowmmsatirYuksekligi_YaziIcin >= pageheight Then SayfaBasiGereklimi=1
+		OTSayfaBasi=1
+	End If
+
+	If PV_SatirdaBasilacakAlanVarmi_Data<>0 Then
+		If SayfaBasindanBasilanDataRowSayisi=0 Then SayfaBasiGereklimi=0
+	End If
+
+	If SayfaBasiGereklimi=1 Then
+		Call SayfaSonu()
+		ret = PV_PE1.PageBreak()
+		Call SayfaBasi()
+		satirpozr = PV_vsatir1pozr
+	Else
+		If PV_SayfaIciSatirNo=1 AND OTSayfaBasi=0 Then
+			satirpozr=PV_vsatir1pozr
+		Else
+			satirpozr=PV_PE1.GetTop() + PV_mmSonBasilanRowsatirYuksekligi
+		End If
+	End If
+'ğğğ PV_mmSonBasilanRowsatirYuksekligi
+	PV_mmSonBasilanRowsatirYuksekligi=BuRowmmsatirYuksekligi_YaziIcin
+
+
+	Dim BckRenkYuksekligi
+	BckRenkYuksekligi=BuRowmmsatirYuksekligi_YaziIcin
+	Dim MMSTX_ONCEBOSLUK
+	Dim MMSTX_SONRABOSLUK
+	MMSTX_ONCEBOSLUK=0
+	MMSTX_SONRABOSLUK=0
+'ğğğ önce ve sonra boşluk
+	Select Case RowType
+		Case "1"		MMSTX_ONCEBOSLUK=REP17SE.ST1_ONCECMBOSLUK*10
+		Case "2"		MMSTX_ONCEBOSLUK=REP17SE.ST2_ONCECMBOSLUK*10
+		Case "3"		MMSTX_ONCEBOSLUK=REP17SE.ST3_ONCECMBOSLUK*10
+		Case "4"		MMSTX_ONCEBOSLUK=REP17SE.ST4_ONCECMBOSLUK*10
+		Case "5"		MMSTX_ONCEBOSLUK=REP17SE.ST5_ONCECMBOSLUK*10
+		Case "T"		MMSTX_ONCEBOSLUK=REP17SE.GT_ONCECMBOSLUK*10
+		Case Else		MMSTX_ONCEBOSLUK=REP17SE.DT_ONCECMBOSLUK*10
+	End Select
+	Select Case RowType
+		Case "1"		MMSTX_SONRABOSLUK=REP17SE.ST1_SONRACMBOSLUK*10
+		Case "2"		MMSTX_SONRABOSLUK=REP17SE.ST2_SONRACMBOSLUK*10
+		Case "3"		MMSTX_SONRABOSLUK=REP17SE.ST3_SONRACMBOSLUK*10
+		Case "4"		MMSTX_SONRABOSLUK=REP17SE.ST4_SONRACMBOSLUK*10
+		Case "5"		MMSTX_SONRABOSLUK=REP17SE.ST5_SONRACMBOSLUK*10
+		Case "T"		MMSTX_SONRABOSLUK=REP17SE.GT_SONRACMBOSLUK*10
+		Case Else		MMSTX_SONRABOSLUK=REP17SE.DT_SONRACMBOSLUK*10
+	End Select
+
+	BckRenkYuksekligi=BckRenkYuksekligi+MMSTX_ONCEBOSLUK+MMSTX_SONRABOSLUK
+	satirpozr_bck=satirpozr
+
+	PV_PE1.SetBkgcolor(RGB(255,255,255))
+	PV_RO.SetRowFontAttributes PV_PE1,RowType
+
+'ğğğ zemin rengi varsa....
+	If PV_PE1.GetBkgcolor()<>RGB(255,255,255) Then
+		PV_PE1.NoPen()
+		PV_PE1.SetTransparentMode 0
+		PV_PE1.SetBkgcolor PV_PE1.GetBkgcolor()
+		PV_PE1.Box satirpozr_bck,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),BckRenkYuksekligi,PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+		PV_PE1.SetTransparentMode 1
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+	Else
+		If PV_ZebraPrintOpt Then
+			If Int(PV_SayfaIciSatirNo/2)*2<>PV_SayfaIciSatirNo Then
+				If PV_Zebra_Satir_Rengi1<>RGB(255, 255, 255) Then
+					PV_PE1.NoPen()
+					PV_PE1.SetBkgcolor PV_Zebra_Satir_Rengi1
+					PV_PE1.SetTransparentMode 0
+					PV_PE1.Box satirpozr_bck,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),BckRenkYuksekligi,PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+					PV_PE1.SetTransparentMode 1
+					PV_PE1.SetBkgcolor(RGB(255,255,255))
+				End If
+			Else
+				If PV_Zebra_Satir_Rengi2<>RGB(255, 255, 255) Then
+					PV_PE1.NoPen()
+					PV_PE1.SetBkgcolor PV_Zebra_Satir_Rengi2
+					PV_PE1.SetTransparentMode 0
+					PV_PE1.Box satirpozr_bck,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),BckRenkYuksekligi,PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+					PV_PE1.SetTransparentMode 1
+					PV_PE1.SetBkgcolor(RGB(255,255,255))
+				End If
+			End If
+		End If
+	End If
+
+'ğğğ ara toplam ve toplamdan önce çizgi
+	Dim CizgiGenisligi
+	CizgiGenisligi=0.0
+	Dim CizgiRengi
+	CizgiRengi=RGB(192,192,192)
+	Select Case RowType
+		Case "1"		If REP17SE.ST1_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST1_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST1_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST1_OUTF_CIZGI_CLR)
+		Case "2"		If REP17SE.ST2_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST2_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST2_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST2_OUTF_CIZGI_CLR)
+		Case "3"		If REP17SE.ST3_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST3_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST3_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST3_OUTF_CIZGI_CLR)
+		Case "4"		If REP17SE.ST4_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST4_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST4_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST4_OUTF_CIZGI_CLR)
+		Case "5"		If REP17SE.ST5_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST5_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST5_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST5_OUTF_CIZGI_CLR)
+		Case "T"		If REP17SE.GT_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.GT_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.GT_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.GT_OUTF_CIZGI_CLR)
+		Case Else		If REP17SE.DT_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.DT_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.DT_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.DT_OUTF_CIZGI_CLR)
+	End Select
+	If PV_SayfaIciSatirNo=1 Then CizgiGenisligi=0.0
+	PV_SayfaIciSatirNo=PV_SayfaIciSatirNo+1
+
+	satirpozr=satirpozr+MMSTX_ONCEBOSLUK+CizgiGenisligi
+	satirpozr_bck=satirpozr_bck+CizgiGenisligi
+
+    For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			If FieldDef.PRINTOPT=1 Then
+				PV_RO.SetFieldFontAttributes PV_PE1,F,RowType
+				If PV_PE1.GetBkgcolor()<>RGB(255,255,255) Then
+					PV_PE1.NoPen()
+					PV_PE1.SetTransparentMode 0
+					PV_PE1.Box satirpozr_bck,FieldDef.INTF_HESAPLANANYER_X_MM,BckRenkYuksekligi,FieldDef.INTF_HESAPLANANGENISLIK_X_MM
+					PV_PE1.SetTransparentMode 1
+					PV_PE1.SetBkgcolor(RGB(255,255,255))
+'					If PV_PE1.GetBkgcolor()<>RGB(255,255,255) Then ?
+				End If
+				If FieldDef.IsNumeric() Then
+					Align="RIGHT"
+					PV_PE1.SetAlign "RIGHT"
+				Else
+					Align=FieldDef.DataAlignment
+					Select Case Align
+						Case "LEFT"			PV_PE1.SetAlign "LEFT"
+						Case "RIGHT"		PV_PE1.SetAlign "RIGHT"
+						Case "CENTER"		PV_PE1.SetAlign "CENTER"
+						Case Else			PV_PE1.SetAlign "LEFT"
+					End Select
+				End If
+				If FieldDef.IsNumeric() Then
+					OutputStr=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo),FieldDef.Length,FieldDef.SigDig,0)
+					OutputStr=Trim(OutputStr)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1),FieldDef.Length,FieldDef.SigDig,0)
+							OutputStr2=Trim(OutputStr2)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+
+					ret = PV_PE1.Write(SatirPozr,FieldDef.INTF_HESAPLANANYER_X_MM,BuRowmmsatirYuksekligi_YaziIcin,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,OutputStr)
+				ElseIf FieldDef.IsDate() Then
+					OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+					OutputStr=Left(Trim(OutputStr),FieldDef.Length)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1))
+							OutputStr2=Left(Trim(OutputStr2),FieldDef.Length)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+					ret = PV_PE1.Write(SatirPozr,FieldDef.INTF_HESAPLANANYER_X_MM,BuRowmmsatirYuksekligi_YaziIcin,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,OutputStr)
+				Else
+					OutputStr=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo)),FieldDef.Length)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1)),FieldDef.Length)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+					ret = PV_PE1.Write(SatirPozr,FieldDef.INTF_HESAPLANANYER_X_MM,BuRowmmsatirYuksekligi_YaziIcin,FieldDef.INTF_HESAPLANANGENISLIK_X_MM,OutputStr)
+				End If
+			End If
+		End If
+	Next
+	If CizgiGenisligi>0 Then
+		PV_PE1.StorePos
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line satirpozr-MMSTX_ONCEBOSLUK,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+		PV_PE1.RestorePos
+	End If
+'ğğğ Ara Toplamdan Sonra Boşluk
+	Select Case RowType
+		Case "1"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+		Case "2"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+		Case "3"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+		Case "4"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+	End Select
+End Sub
+
+
+Sub HeaderRowYazdir(rowtypest,satirNo)
+	Select Case rowtypest
+	Case "1" :
+			If REP17SE.ST1H_PRINTOPT="0" Then Exit Sub
+	Case "2" :
+			If REP17SE.ST2H_PRINTOPT="0" Then Exit Sub
+	Case "3" :
+			If REP17SE.ST3H_PRINTOPT="0" Then Exit Sub
+	Case "4" :
+			If REP17SE.ST4H_PRINTOPT="0" Then Exit Sub
+	Case "5" :
+			If REP17SE.ST5H_PRINTOPT="0" Then Exit Sub
+	End Select
+
+	Dim SayfaBasiGereklimi
+	SayfaBasiGereklimi=0
+	If SayfaBasiGereklimi=0 Then
+		Select Case rowtypest
+		Case "1" If REP17SE.ST1_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "2" If REP17SE.ST2_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "3" If REP17SE.ST3_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "4" If REP17SE.ST4_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		Case "5" If REP17SE.ST5_YENISAYFA="1" Then SayfaBasiGereklimi=1
+		End Select
+	End If
+
+'	Dim satirNo
+'	satirNo=PV_RT.REPORT___SUBTOTAL_N(satirNo0)
+
+	Dim pagewidth
+	pagewidth=PV_PE1.GetPageWidth()
+	Dim sonSatir
+	Dim satirpozr
+	Dim satirpozr_bck
+	sonSatir = PV_PE1.GetBottom()
+	Dim pageheight
+	pageheight=PV_PE1.GetPageHeight()-PV_mmbottom_margin
+	Dim BuRowmmsatirYuksekligi_YaziIcin
+	BuRowmmsatirYuksekligi_YaziIcin=PV_mmsatirYuksekligi
+
+	Dim RowType
+'	RowType=PV_RT.REPORT___ROWTYPE(satirNo)
+	RowType=rowtypest
+	RowType=Trim(RowType)&"H"
+
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+	Dim Align
+
+	Dim AraToplamaBasilacakAlanVarmi
+	AraToplamaBasilacakAlanVarmi=0
+
+	Dim ATHeaderString
+	ATHeaderString=" "
+	For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			AraToplamaBasilacakAlanVarmi=AraToplamaBasilacakAlanVarmi+1
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			Dim FBaslik
+			FBaslik=Trim(FieldDef.ARaporAciklamasi)
+			If FieldDef.IsNumeric() Then
+				OutputStr=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo),FieldDef.Length,FieldDef.SigDig,0)
+				OutputStr=Trim(OutputStr)
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+OutputStr
+				ATHeaderString=ATHeaderString+"]"
+			ElseIf FieldDef.IsDate() Then
+				OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+				OutputStr=Trim(OutputStr)
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+OutputStr
+				ATHeaderString=ATHeaderString+"]"
+			Else
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+				ATHeaderString=ATHeaderString+"]"
+			End If
+		End If
+	Next
+	If AraToplamaBasilacakAlanVarmi=0 Then Exit Sub
+
+	SetSTnHAttributes(Mid(RowType,1,1))
+	PV_PE1.SetAlign "LEFT"
+	ret = PV_PE1.RenderWrite(1,PV_mmleft_margin,-2,PV_MMPRINTABLEPAGEWIDTHMM,ATHeaderString)
+	If PV_PE1.GetRenderHeight()+1>BuRowmmsatirYuksekligi_YaziIcin Then
+		BuRowmmsatirYuksekligi_YaziIcin=PV_PE1.GetRenderHeight()+1
+	End If
+
+	Dim SonSatirdanSonraBirakilacakExtraBosluk
+	SonSatirdanSonraBirakilacakExtraBosluk=0
+
+	sonSatir=sonSatir+SonSatirdanSonraBirakilacakExtraBosluk
+	If sonSatir+BuRowmmsatirYuksekligi_YaziIcin >= pageheight Then SayfaBasiGereklimi=1
+
+	If PV_SatirdaBasilacakAlanVarmi_Data<>0 Then
+		If PV_SayfaBasindanBasilanDataRowSayisi=0 Then SayfaBasiGereklimi=0
+	End If
+	If SayfaBasiGereklimi=1 Then
+		Call SayfaSonu()
+		ret = PV_PE1.PageBreak()
+		Call SayfaBasi()
+		satirpozr = PV_vsatir1pozr
+	Else
+		If PV_SayfaIciSatirNo=1 Then
+			satirpozr=PV_vsatir1pozr
+		Else
+			satirpozr=PV_PE1.GetTop() + PV_mmSonBasilanRowsatirYuksekligi
+		End If
+	End If
+	PV_mmSonBasilanRowsatirYuksekligi=BuRowmmsatirYuksekligi_YaziIcin
+
+	Dim BckRenkYuksekligi
+	BckRenkYuksekligi=BuRowmmsatirYuksekligi_YaziIcin
+	Dim MMSTX_ONCEBOSLUK
+	Dim MMSTX_SONRABOSLUK
+	MMSTX_ONCEBOSLUK=0
+	MMSTX_SONRABOSLUK=0
+	Select Case RowType
+		Case "1H"		MMSTX_ONCEBOSLUK=REP17SE.ST1H_ONCECMBOSLUK*10
+		Case "2H"		MMSTX_ONCEBOSLUK=REP17SE.ST2H_ONCECMBOSLUK*10
+		Case "3H"		MMSTX_ONCEBOSLUK=REP17SE.ST3H_ONCECMBOSLUK*10
+		Case "4H"		MMSTX_ONCEBOSLUK=REP17SE.ST4H_ONCECMBOSLUK*10
+		Case "5H"		MMSTX_ONCEBOSLUK=REP17SE.ST5H_ONCECMBOSLUK*10
+	End Select
+	Select Case RowType
+		Case "1H"		MMSTX_SONRABOSLUK=REP17SE.ST1H_SONRACMBOSLUK*10
+		Case "2H"		MMSTX_SONRABOSLUK=REP17SE.ST2H_SONRACMBOSLUK*10
+		Case "3H"		MMSTX_SONRABOSLUK=REP17SE.ST3H_SONRACMBOSLUK*10
+		Case "4H"		MMSTX_SONRABOSLUK=REP17SE.ST4H_SONRACMBOSLUK*10
+		Case "5H"		MMSTX_SONRABOSLUK=REP17SE.ST5H_SONRACMBOSLUK*10
+	End Select
+
+	BckRenkYuksekligi=BckRenkYuksekligi+MMSTX_ONCEBOSLUK+MMSTX_SONRABOSLUK
+	satirpozr_bck=satirpozr
+
+	PV_PE1.SetBkgcolor(RGB(255,255,255))
+'	PV_RO.SetRowFontAttributes PV_PE1,RowType
+	SetSTnHAttributes(Mid(RowType,1,1))
+
+	If PV_PE1.GetBkgcolor()<>RGB(255,255,255) Then
+		PV_PE1.NoPen()
+		PV_PE1.SetTransparentMode 0
+		PV_PE1.SetBkgcolor PV_PE1.GetBkgcolor()
+		PV_PE1.Box satirpozr_bck,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),BckRenkYuksekligi,PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+		PV_PE1.SetTransparentMode 1
+		PV_PE1.SetBkgcolor(RGB(255,255,255))
+	Else
+		If PV_ZebraPrintOpt Then
+			If Int(PV_SayfaIciSatirNo/2)*2<>PV_SayfaIciSatirNo Then
+				If PV_Zebra_Satir_Rengi1<>RGB(255, 255, 255) Then
+					PV_PE1.NoPen()
+					PV_PE1.SetBkgcolor PV_Zebra_Satir_Rengi1
+					PV_PE1.SetTransparentMode 0
+					PV_PE1.Box satirpozr_bck,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),BckRenkYuksekligi,PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+					PV_PE1.SetTransparentMode 1
+					PV_PE1.SetBkgcolor(RGB(255,255,255))
+				End If
+			Else
+				If PV_Zebra_Satir_Rengi2<>RGB(255, 255, 255) Then
+					PV_PE1.NoPen()
+					PV_PE1.SetBkgcolor PV_Zebra_Satir_Rengi2
+					PV_PE1.SetTransparentMode 0
+					PV_PE1.Box satirpozr_bck,PV_mmleft_margin-(PV_BACKGROUNDSAGSOLFAZLALIKMM/2),BckRenkYuksekligi,PV_MMPRINTABLEPAGEWIDTHMM+PV_BACKGROUNDSAGSOLFAZLALIKMM
+					PV_PE1.SetTransparentMode 1
+					PV_PE1.SetBkgcolor(RGB(255,255,255))
+				End If
+			End If
+		End If
+	End If
+
+	Dim CizgiGenisligi
+	CizgiGenisligi=0.0
+	Dim CizgiRengi
+	CizgiRengi=RGB(192,192,192)
+	Select Case RowType
+		Case "1H"		If REP17SE.ST1H_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST1H_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST1H_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST1H_OUTF_CIZGI_CLR)
+		Case "2H"		If REP17SE.ST2H_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST2H_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST2H_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST2H_OUTF_CIZGI_CLR)
+		Case "3H"		If REP17SE.ST3H_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST3H_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST3H_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST3H_OUTF_CIZGI_CLR)
+		Case "4H"		If REP17SE.ST4H_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST4H_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST4H_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST4H_OUTF_CIZGI_CLR)
+		Case "5H"		If REP17SE.ST5H_OUTF_CIZGI="1" Then CizgiGenisligi=REP17SE.ST5H_OUTF_CIZGI_CM*10
+						If Trim(REP17SE.ST5H_OUTF_CIZGI_CLR)<>"" Then CizgiRengi=Doc.C9ToCRGB(REP17SE.ST5H_OUTF_CIZGI_CLR)
+	End Select
+
+	If PV_SayfaIciSatirNo=1 Then CizgiGenisligi=0.0
+	PV_SayfaIciSatirNo=PV_SayfaIciSatirNo+1
+
+	satirpozr=satirpozr+MMSTX_ONCEBOSLUK+CizgiGenisligi
+	satirpozr_bck=satirpozr_bck+CizgiGenisligi
+
+	SetSTnHAttributes(Mid(RowType,1,1))
+	ret = PV_PE1.Write(SatirPozr,PV_mmleft_margin,BuRowmmsatirYuksekligi_YaziIcin,PV_MMPRINTABLEPAGEWIDTHMM,ATHeaderString)
+	If CizgiGenisligi>0 Then
+		PV_PE1.StorePos
+		PV_PE1.SetPenSize CizgiGenisligi
+		PV_PE1.SetPenColor CizgiRengi
+		PV_PE1.Line satirpozr-MMSTX_ONCEBOSLUK,PV_mmleft_margin,0,PV_MMPRINTABLEPAGEWIDTHMM
+		PV_PE1.RestorePos
+	End If
+	Select Case RowType
+		Case "1H"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+		Case "4H"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+		Case "3H"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+		Case "2H"		PV_PE1.SetTop(PV_PE1.GetTop()+MMSTX_SONRABOSLUK)
+	End Select
+End Sub
+
+' 07/04/2021 ods eklemesi yapıldı
+Dim ods_content
+Dim ods_style
+Dim manifest
+
+Sub PrintReport_Ods(RT,RO)
+	
+	Dim fso
+	Dim temp_folder
+    Const TemporaryFolder = 2
+	Set fso = CreateObject("Scripting.FileSystemObject")
+    Set temp_folder = fso.GetSpecialFolder(TemporaryFolder)
+
+	Dim UUID
+	UUID = Doc.GenerateUUID()
+	
+	Dim FolderName
+	FolderName =temp_folder &"\"& UUID
+	If Not fso.FolderExists(FolderName) Then
+		fso.CreateFolder(FolderName)
+	End If
+
+	Dim metainf_dir
+	metainf_dir = FolderName &"\META-INF"
+	
+	If fso.FolderExists(FolderName) Then
+		If Not fso.FolderExists(metainf_dir) Then
+			fso.CreateFolder(metainf_dir)
+		End If
+		If Not fso.FolderExists(metainf_dir) Then
+			Doc.d7MsgBox "ODS Dosyaları Oluşturulamıyor.","",-1
+			Exit Sub 
+		End If 
+		
+		FSO.CopyFile Doc.Getd7Directory_SwRoot() & "wx\ODS\settings.xml" , FolderName & "\settings.xml" ,true
+		
+		ods_content = FolderName &  "\content.xml" 
+		ods_style = FolderName &  "\styles.xml" 
+		manifest = metainf_dir &  "\manifest.xml" 
+		
+	Else
+		Doc.d7MsgBox "ODS Dosyaları Oluşturulamıyor.","",-1
+		Exit Sub 
+	End If 
+	
+	GenerateStyleXML
+	GenerateManifestXML
+	GenerateContentXML RT , RO
+	
+	Styles_objXMLDoc.Save(Trim(ods_style))
+	Manifest_objXMLDoc.Save(Trim(manifest))
+	Content_objXMLDoc.Save(Trim(ods_content))
+	
+	
+	Dim objTS
+	Dim strods
+	Dim fileSpec 
+	'Dim objFSO
+	fileSpec = ods_style
+    'Set objFSO = CreateObject("Scripting.FileSystemObject")
+    Set objTS = fso.OpenTextFile(fileSpec, 1, -2)
+    strods = objTS.ReadAll
+    strods = Replace(strods, "&amp;", "&")
+    Set objTS = fso.OpenTextFile(fileSpec, 2, -2)
+    objTS.Write strods
+    objTS.Close
+	
+	Dim strContents
+	Set objTS = fso.OpenTextFile(ods_content, 1, -2)
+    strContents = objTS.ReadAll
+	strContents = Replace(strContents, "dinamo-cell-type=""string""", "calcext:value-type=""string"" office:value-type=""string""")
+	strContents = Replace(strContents, "dinamo-cell-type=""date""", "office:value-type=""date"" calcext:value-type=""date""")
+	strContents = Replace(strContents, "dinamo-cell-type=""float""", "calcext:value-type=""float"" office:value-type=""float""")
+    Set objTS = fso.OpenTextFile(ods_content, 2, -2)
+    objTS.Write strContents
+    objTS.Close
+	
+	
+	Dim zip7za
+	zip7za = Doc.Getd7Directory_SwRoot() & "\wx\eInvoice\7za.exe"
+	
+	dim runCmd
+	runCmd =zip7za & " a -tzip " &  FolderName & ".ods " &  FolderName & "\*"
+
+	Dim objShell
+	Set objShell = CreateObject("Wscript.Shell")
+	
+	Dim exec : Set exec = objShell.Exec(runCmd)
+
+	While exec.Status = 0
+		Doc.Sleep(100)
+	Wend
+	
+	If exec.ExitCode = 1 Then
+		Dim mes1 
+		mes1 = Doc.FormatMessage1(" [%1] Dosyası sıkıştırılırken hata ile karşılaşıldı.", FolderName   )
+		Dim y 
+		y = Doc.d7MsgBox(mes1,"Dinamo",MB_OK+MB_ICONSTOP)
+	End If 
+	
+	Doc.SetDocParameterValue "SONYARATILANODSCIKTISI",FolderName & ".ods "
+	fso.DeleteFolder FolderName, False
+	
+'2021/04/23 Metin
+'	objShell.Run(FolderName & ".ods " )
+	Doc.ShellOpen FolderName & ".ods "
+	
+End sub 
+
+Public o_table
+Public o_table_row
+Public o_table_cell
+
+Public Content_objXMLDoc
+Public Styles_objXMLDoc
+Public Manifest_objXMLDoc
+
+
+Public o_automatic_styles
+Public o_automatic_styles_2
+
+Dim o_Styles
+
+Public CiktidaBasilacakAlanSayisi
+
+
+
+Function GenerateStyleXML()
+
+	Dim nret
+    'Dim objXMLDoc
+    Set Styles_objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	Styles_objXMLDoc.Async = False
+    Call Insert_ProcessingInstructions(Styles_objXMLDoc)
+	Dim o_Doc
+
+	Call Insert_Element(Styles_objXMLDoc,o_Doc,"office:document-styles","xmlns:meta=urn:oasis:names:tc:opendocument:xmlns:meta:1.0," & _ 
+																"xmlns:office=urn:oasis:names:tc:opendocument:xmlns:office:1.0," & _ 
+																"xmlns:fo=urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0," & _ 
+																"xmlns:ooo=http://openoffice.org/2004/office," & _ 
+																"xmlns:xlink=http://www.w3.org/1999/xlink," & _ 
+																"xmlns:dc=http://purl.org/dc/elements/1.1/," & _ 
+																"xmlns:style=urn:oasis:names:tc:opendocument:xmlns:style:1.0," & _ 
+																"xmlns:text=urn:oasis:names:tc:opendocument:xmlns:text:1.0," & _ 
+																"xmlns:draw=urn:oasis:names:tc:opendocument:xmlns:drawing:1.0," & _ 
+																"xmlns:dr3d=urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0," & _ 
+																"xmlns:svg=urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0," & _ 
+																"xmlns:chart=urn:oasis:names:tc:opendocument:xmlns:chart:1.0," & _ 
+																"xmlns:rpt=http://openoffice.org/2005/report," & _ 
+																"xmlns:table=urn:oasis:names:tc:opendocument:xmlns:table:1.0," & _ 
+																"xmlns:number=urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0," & _ 
+																"xmlns:ooow=http://openoffice.org/2004/writer," & _ 
+																"xmlns:oooc=http://openoffice.org/2004/calc," & _ 
+																"xmlns:of=urn:oasis:names:tc:opendocument:xmlns:of:1.2," & _ 
+																"xmlns:tableooo=http://openoffice.org/2009/table," & _ 
+																"xmlns:calcext=urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0," & _ 
+																"xmlns:drawooo=http://openoffice.org/2010/draw," & _ 
+																"xmlns:loext=urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0," & _ 
+																"xmlns:field=urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0," & _ 
+																"xmlns:math=http://www.w3.org/1998/Math/MathML," & _ 
+																"xmlns:form=urn:oasis:names:tc:opendocument:xmlns:form:1.0," & _ 
+																"xmlns:script=urn:oasis:names:tc:opendocument:xmlns:script:1.0," & _ 
+																"xmlns:dom=http://www.w3.org/2001/xml-events," & _ 
+																"xmlns:xhtml=http://www.w3.org/1999/xhtml," & _ 
+																"xmlns:grddl=http://www.w3.org/2003/g/data-view#," & _ 
+																"xmlns:css3t=http://www.w3.org/TR/css3-text/," & _ 
+																"xmlns:presentation=urn:oasis:names:tc:opendocument:xmlns:presentation:1.0," & _ 
+																"office:version=1.3")
+	Dim o_f_f_decls
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_f_f_decls , o_Doc, "office:font-face-decls", "", "")
+	
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_f_f_decls, "style:font-face", "", 	"style:name=Arial,"  & _ 
+																									"svg:font-family=Arial,"  & _ 
+																									"style:font-family-generic=system,"  & _ 
+																									"style:font-pitch=variable")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_f_f_decls, "style:font-face", "", 	"style:name=Liberation Sans," & _ 
+																								"svg:font-family=&apos;Liberation Sans&apos;," & _ 
+																								"style:font-family-generic=swiss,"  & _ 
+																								"style:font-pitch=variable")
+	
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_f_f_decls, "style:font-face", "", 	"style:name=Microsoft YaHei,"  & _
+																									"svg:font-family=&apos;Microsoft YaHei&apos;,"  & _
+																									"style:font-family-generic=system,"  & _
+																									"style:font-pitch=variable")
+	
+	'Dim o_Styles
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_Styles , o_Doc, "office:styles", "", "")
+	
+	Dim o_Default_Styles
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_Default_Styles , o_Styles, "style:default-style", "", "style:family=table-cell")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_Default_Styles, "style:paragraph-properties", "", "style:tab-stop-distance=1.25cm")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_Default_Styles, "style:text-properties", "", 	"style:font-name=Arial,"  & _
+																									"fo:language=tr,"  & _
+																									"fo:country=TR,"  & _
+																									"style:font-name-asian=Microsoft YaHei,"  & _
+																									"style:language-asian=zh,"  & _
+																									"style:country-asian=CN,"  & _
+																									"style:font-name-complex=Arial,"  & _
+																									"style:language-complex=hi,"  & _
+																									"style:country-complex=IN")
+	Dim o_number_style
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_number_style , o_Styles, "number:number-style", "", "style:name=N0")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style, "number:number", "", "number:min-integer-digits=1")
+	
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_Styles, "style:style", "", "style:name=Default,style:family=table-cell")
+	
+	Dim o_style_1
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_1 , o_Styles, "style:style", "", "style:name=Heading,style:family=table-cell,style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_1, "style:text-properties", "", "fo:color=#000000,fo:font-size=24pt,fo:font-style=normal,fo:font-weight=bold")
+	
+	Dim o_style_2
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_2 , o_Styles, "style:style", "", "style:name=Heading_20_1,style:display-name=Heading 1,style:family=table-cell,style:parent-style-name=Heading")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_2, "style:text-properties", "", "fo:color=#000000,fo:font-size=18pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_3
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_3 , o_Styles, "style:style", "", "style:name=Heading_20_2,style:display-name=Heading 2,style:family=table-cell,style:parent-style-name=Heading")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_3, "style:text-properties", "", "fo:color=#000000,fo:font-size=12pt, fo:font-style=normal,fo:font-weight=normal")
+	
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_Styles, "style:style", "", "style:name=Text,style:family=table-cell,style:parent-style-name=Default")
+	
+	Dim o_style_4
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_4 , o_Styles, "style:style", "", "style:name=Note,style:family=table-cell,style:parent-style-name=Text")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_4, "style:table-cell-properties", "", "fo:background-color=#ffffcc, style:diagonal-bl-tr=none,style:diagonal-tl-br=none, fo:border=0.74pt solid #808080")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_4, "style:text-properties", "", "fo:color=#333333,fo:font-size=10pt,fo:font-style=normal, fo:font-weight=normal")
+	
+	Dim o_style_5
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_5 , o_Styles, "style:style", "", "style:name=Footnote,style:family=table-cell,style:parent-style-name=Text")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_5, "style:text-properties", "", "fo:color=#808080,fo:font-size=10pt,fo:font-style=italic,fo:font-weight=normal")
+	
+	Dim o_style_6
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_6 , o_Styles, "style:style", "", "style:name=Hyperlink,style:family=table-cell,style:parent-style-name=Text")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_6, "style:text-properties", "", "fo:color=#0000ee,fo:font-size=10pt,fo:font-style=normal,style:text-underline-style=solid,style:text-underline-width=auto,style:text-underline-color=#0000ee,fo:font-weight=normal")
+	
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_Styles, "style:style", "", "style:name=Status,style:family=table-cell,style:parent-style-name=Default")
+	
+	Dim o_style_7
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_7 , o_Styles, "style:style", "", "style:name=Good,style:family=table-cell,style:parent-style-name=Status")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_7, "style:table-cell-properties", "", "fo:background-color=#ccffcc")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_7, "style:text-properties", "","fo:color=#006600,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_8
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_8 , o_Styles, "style:style","","style:name=Neutral,style:family=table-cell,style:parent-style-name=Status")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_8, "style:table-cell-properties", "", "fo:background-color=#ffffcc")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_8, "style:text-properties", "","fo:color=#996600,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_9
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_9 , o_Styles, "style:style","","style:name=Bad,style:family=table-cell,style:parent-style-name=Status")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_9, "style:table-cell-properties", "", "fo:background-color=#ffcccc")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_9, "style:text-properties", "","fo:color=#cc0000,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_10
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_10 , o_Styles, "style:style", "", "style:name=Warning,style:family=table-cell,style:parent-style-name=Status")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_10, "style:text-properties", "", "fo:color=#cc0000,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_11
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_11 , o_Styles, "style:style", "", "style:name=Error,style:family=table-cell,style:parent-style-name=Status")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_11, "style:table-cell-properties", "", "fo:background-color=#cc0000")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_11, "style:text-properties", "","fo:color=#ffffff,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=bold")
+	
+	Dim o_style_12
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_12 , o_Styles,"style:style", "", "style:name=Accent,style:family=table-cell,style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_12, "style:table-cell-properties", "", "fo:background-color=#cc0000")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_12, "style:text-properties", "","fo:color=#000000,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=bold")
+	
+	Dim o_style_13
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_13 , o_Styles,"style:style", "", "style:name=Accent_20_1,style:display-name=Accent 1,style:family=table-cell,style:parent-style-name=Accent")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_13, "style:table-cell-properties", "", "fo:background-color=#000000")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_13, "style:text-properties", "","fo:color=#ffffff,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_14
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_14 , o_Styles,"style:style", "", "style:name=Accent_20_2,style:display-name=Accent 2,style:family=table-cell,style:parent-style-name=Accent")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_14, "style:table-cell-properties", "", "fo:background-color=#808080")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_14, "style:text-properties", "","fo:color=#ffffff,fo:font-size=10pt,fo:font-style=normal,fo:font-weight=normal")
+	
+	Dim o_style_15
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_15 , o_Styles,"style:style", "", "style:name=Accent_20_3,style:display-name=Accent 3,style:family=table-cell,style:parent-style-name=Accent")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_15, "style:table-cell-properties", "", "fo:background-color=#dddddd")
+	
+	Dim o_style_16
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_style_16 , o_Styles,"style:style", "", "style:name=Result,style:family=table-cell,style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_style_16, "style:text-properties", "", "fo:color=#000000,fo:font-size=10pt,fo:font-style=italic,style:text-underline-style=solid,style:text-underline-width=auto,style:text-underline-color=#000000,fo:font-weight=bold")
+	
+	
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_automatic_styles_2 , o_Doc, "office:automatic-styles", "", "")
+	
+	
+	Dim o_page_layout_1
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_page_layout_1 , o_automatic_styles_2,"style:page-layout", "", "style:name=Mpm1")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_page_layout_1, "style:page-layout-properties", "", "style:writing-mode=lr-tb")
+	Dim o_page_layout_header_style
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_page_layout_header_style , o_page_layout_1,"style:header-style", "", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_page_layout_header_style, "style:header-footer-properties", "", "fo:min-height=0.75cm,fo:margin-left=0cm,fo:margin-right=0cm,fo:margin-bottom=0.25cm")
+	Dim o_page_layout_Footer_style
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_page_layout_Footer_style , o_page_layout_1,"style:footer-style", "", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_page_layout_Footer_style, "style:header-footer-properties", "", "fo:min-height=0.75cm,fo:margin-left=0cm,fo:margin-right=0cm,fo:margin-top=0.25cm")
+	
+	Dim o_page_layout_2
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_page_layout_2 , o_automatic_styles_2,"style:page-layout", "", "style:name=Mpm2")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_page_layout_2, "style:page-layout-properties", "", "style:writing-mode=lr-tb")
+	Dim o_page_layout_header_style_2
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_page_layout_header_style_2 , o_page_layout_2,"style:header-style", "", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_page_layout_header_style_2, "style:header-footer-properties", "", "fo:min-height=0.75cm,fo:margin-left=0cm,fo:margin-right=0cm,fo:margin-bottom=0.25cm,fo:border=2.49pt solid #000000,fo:padding=0.018cm,fo:background-color=#c0c0c0")
+	Dim o_page_layout_Footer_style_2
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_page_layout_Footer_style_2 , o_page_layout_2,"style:footer-style", "", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_page_layout_Footer_style_2, "style:header-footer-properties", "", "fo:min-height=0.75cm,fo:margin-left=0cm,fo:margin-right=0cm,fo:margin-top=0.25cm,fo:border=2.49pt solid #000000,fo:padding=0.018cm,fo:background-color=#c0c0c0")
+	
+	Dim o_master_styles
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_master_styles , o_Doc, "office:master-styles", "", "")
+	
+	Dim o_master_page_1
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_master_page_1 , o_master_styles, "style:master-page", "", "style:name=Default,style:page-layout-name=Mpm1")
+	
+	Dim o_master_page_1_header
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_master_page_1_header , o_master_page_1, "style:header", "", "")
+	Dim o_master_page_1_header_text
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_master_page_1_header_text , o_master_page_1_header, "text:p", "", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_master_page_1_header_text, "text:sheet-name", "???", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_master_page_1, "style:header-left", "", "style:display=false")
+	Dim o_master_page_1_footer
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_master_page_1_footer , o_master_page_1, "style:footer", "", "")
+	Dim o_master_page_1_footer_text
+	Call AddElement_with_Attribute(Styles_objXMLDoc,o_master_page_1_footer_text , o_master_page_1_footer, "text:p", "Page", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_master_page_1_footer_text, "text:page-number", "1", "")
+	Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_master_page_1, "style:footer-left", "", "style:display=false")
+
+	
+End Function
+
+
+
+sub GenerateManifestXML()
+	Dim nret
+    Set Manifest_objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	Manifest_objXMLDoc.Async = False
+	Dim o_Doc
+	Call Insert_Element(Manifest_objXMLDoc,o_Doc,"manifest:manifest","xmlns:manifest=urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
+	
+	Call AddElement_with_Attribute_2(Manifest_objXMLDoc , o_Doc, "manifest:file-entry", "", "manifest:full-path=/,manifest:media-type=application/vnd.oasis.opendocument.spreadsheet")	
+	Call AddElement_with_Attribute_2(Manifest_objXMLDoc , o_Doc, "manifest:file-entry", "", "manifest:full-path=content.xml,manifest:media-type=text/xml")	
+	Call AddElement_with_Attribute_2(Manifest_objXMLDoc , o_Doc, "manifest:file-entry", "", "manifest:full-path=styles.xml,manifest:media-type=text/xml")	
+	Call AddElement_with_Attribute_2(Manifest_objXMLDoc , o_Doc, "manifest:file-entry", "", "manifest:full-path=settings.xml,manifest:media-type=text/xml")	
+	
+End sub
+
+Function GenerateContentXML( RT , RO)
+
+	Dim nret
+   Set Content_objXMLDoc = CreateObject("Microsoft.XMLDOM")
+	Content_objXMLDoc.Async = False
+    Call Insert_ProcessingInstructions(Content_objXMLDoc)
+	
+	Dim o_Doc
+	
+	Call Insert_Element(Content_objXMLDoc,o_Doc, "office:document-content","" & _ 
+						"xmlns:meta=urn:oasis:names:tc:opendocument:xmlns:meta:1.0"                            & _
+						",xmlns:office=urn:oasis:names:tc:opendocument:xmlns:office:1.0"                       	& _
+						",xmlns:fo=urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"                	& _
+						",xmlns:ooo=http://openoffice.org/2004/office"                                         	& _
+						",xmlns:xlink=http://www.w3.org/1999/xlink"                                            	& _
+						",xmlns:dc=http://purl.org/dc/elements/1.1/"                                           	& _
+						",xmlns:style=urn:oasis:names:tc:opendocument:xmlns:style:1.0"                         	& _
+						",xmlns:text=urn:oasis:names:tc:opendocument:xmlns:text:1.0"                           	& _
+						",xmlns:draw=urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"                        	& _
+						",xmlns:dr3d=urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0"                           	& _
+						",xmlns:svg=urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"                  	& _
+						",xmlns:chart=urn:oasis:names:tc:opendocument:xmlns:chart:1.0"                         	& _
+						",xmlns:rpt=http://openoffice.org/2005/report"                                         	& _
+						",xmlns:table=urn:oasis:names:tc:opendocument:xmlns:table:1.0"                         	& _
+						",xmlns:number=urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0"                    	& _
+						",xmlns:ooow=http://openoffice.org/2004/writer"                                        	& _
+						",xmlns:oooc=http://openoffice.org/2004/calc"                                          	& _
+						",xmlns:of=urn:oasis:names:tc:opendocument:xmlns:of:1.2"                               	& _
+						",xmlns:tableooo=http://openoffice.org/2009/table"                                     	& _
+						",xmlns:calcext=urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0"  	& _
+						",xmlns:drawooo=http://openoffice.org/2010/draw"                                      	& _
+						",xmlns:loext=urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0"    	& _
+						",xmlns:field=urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0"        	& _
+						",xmlns:math=http://www.w3.org/1998/Math/MathML"                                       	& _
+						",xmlns:form=urn:oasis:names:tc:opendocument:xmlns:form:1.0"                           	& _
+						",xmlns:script=urn:oasis:names:tc:opendocument:xmlns:script:1.0"                       	& _
+						",xmlns:dom=http://www.w3.org/2001/xml-events"                                         	& _
+						",xmlns:xforms=http://www.w3.org/2002/xforms"                                          	& _
+						",xmlns:xsd=http://www.w3.org/2001/XMLSchema"                                          	& _
+						",xmlns:xsi=http://www.w3.org/2001/XMLSchema-instance"                                 	& _
+						",xmlns:formx=urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0"      	& _
+						",xmlns:xhtml=http://www.w3.org/1999/xhtml"                                            	& _
+						",xmlns:grddl=http://www.w3.org/2003/g/data-view#"                                     	& _
+						",xmlns:css3t=http://www.w3.org/TR/css3-text/"                                         	& _
+						",xmlns:presentation=urn:oasis:names:tc:opendocument:xmlns:presentation:1.0"           	& _
+						",xmlns:version=1.3")
+		
+		
+	Dim o_scripts
+	Call AddElement(Content_objXMLDoc, o_scripts ,o_Doc, "office:scripts","")
+	Dim o_font_face_decls
+	Call AddElement(Content_objXMLDoc, o_font_face_decls ,o_Doc, "office:font-face-decls","")
+	Dim o_style_font_face_1
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_font_face_1 , o_font_face_decls, "style:font-face", "", "style:name=Liberation Sans,svg:font-family=&apos;Liberation Sans&apos;,style:font-family-generic=swiss,style:font-pitch=variable")
+	Dim o_style_font_face_2
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_font_face_2 , o_font_face_decls, "style:font-face", "", "style:name=Arial,svg:font-family=Arial,style:font-family-generic=system,style:font-pitch=variable")
+	Dim o_style_font_face_3
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_font_face_3 , o_font_face_decls, "style:font-face", "", "style:name=Microsoft YaHei,svg:font-family=&apos;Microsoft YaHei&apos;,style:font-family-generic=system,style:font-pitch=variable")
+	'automatic_styles
+	
+	Call AddElement(Content_objXMLDoc, o_automatic_styles ,o_Doc, "office:automatic-styles","")
+	
+	' Dim o_field_Caption
+	' Call AddElement_with_Attribute(Content_objXMLDoc,o_field_Caption , o_automatic_styles, "style:style", "", "style:name=field_Caption_col" & F & ",style:family=table-cell,style:parent-style-name=Default")
+	' Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:table-cell-properties","","fo:background-color=#ff0000,style:text-align-source=fix,style:repeat-content=false,fo:wrap-option=wrap")
+	' Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:paragraph-properties","","fo:text-align=" & Align & ",fo:margin-left=0cm")
+	' Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:text-properties","","fo:color=#ffffff,style:font-name=Arial,fo:font-weight=bold,style:font-weight-asian=bold,style:font-weight-complex=bold")
+
+	Dim o_field_Caption_row
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_field_Caption_row , o_automatic_styles, "style:style", "", "style:name=field_Caption_row,style:family=table-row")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption_row,"style:table-row-properties","","style:row-height=1.762cm,fo:break-before=auto,style:use-optimal-row-height=false")
+		
+	'automatic_styles end 
+	
+	Dim o_body
+	Call AddElement(Content_objXMLDoc, o_body ,o_Doc, "office:body","")
+	
+	Dim o_spreadsheet
+	Call AddElement(Content_objXMLDoc, o_spreadsheet ,o_body, "office:spreadsheet","")
+	
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_table ,  o_spreadsheet, "table:table", "", "table:name=Sheet1,table:style-name=ta1")
+
+	Set PV_RT=RT
+	Set PV_RO=RO
+	
+	Dim header_1
+	Dim header_2
+	Call AddElement_with_Attribute(Content_objXMLDoc,header_1 ,  o_table, "table:table-row", "", "")
+	Call AddElement_with_Attribute(Content_objXMLDoc,header_2 ,  o_table, "table:table-row", "", "")
+	
+	CiktidaBasilacakAlanSayisi = 0
+	
+	Call SetFormatAttributes("O")
+
+	Dim header_1_1
+	Dim header_2_2
+	
+	Call AddElement_with_Attribute(Content_objXMLDoc,header_1_1,header_1,"table:table-cell","","table:style-name=firmname,dinamo-cell-type=string")
+	Call AddElement_with_Attribute(Content_objXMLDoc,header_2_2,header_2,"table:table-cell","","table:style-name=criteria,dinamo-cell-type=string")
+
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,header_1,"table:table-cell","","table:style-name=firmname,table:number-columns-repeated="&CiktidaBasilacakAlanSayisi)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,header_2,"table:table-cell","","table:style-name=criteria,table:number-columns-repeated="&CiktidaBasilacakAlanSayisi)
+	
+	Dim str_FNAMEL0
+	str_FNAMEL0 = Doc.Customp_Gets("FNAMEL0")
+	
+	str_FNAMEL0=str_FNAMEL0&" ("
+	str_FNAMEL0=str_FNAMEL0&Trim(Doc.Getd7FirmCode())
+	str_FNAMEL0=str_FNAMEL0&")"
+	
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,header_1_1,"text:p",space(2) & str_FNAMEL0,"")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,header_2_2,"text:p",space(2) & PV_RAPORACIKLAMASI & ",   Kriterler : " & PV_KRITERACIKLAMASI & " ( " & Doc.StrToNorDate(Doc.Today()) & " - " & Doc.STime(5) & " ) " ,"")
+	
+	Dim o_style_Header_1
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_Header_1 ,  o_automatic_styles, "style:style", "", "style:name='firmname',style:family='table-cell',style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_Header_1,"style:table-cell-properties","","fo:background-color=#808080")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_Header_1,"style:text-properties","","fo:color=#ffffff,fo:font-size=12pt,fo:font-weight=bold,style:font-size-asian=12pt,style:font-weight-asian=bold,style:font-size-complex=12pt,style:font-weight-complex=bold")
+	
+	Dim o_style_Header_2
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_Header_2 ,  o_automatic_styles, "style:style", "", "style:name='criteria',style:family='table-cell',style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_Header_2,"style:text-properties","","fo:font-size=12pt,fo:font-weight=bold,style:font-size-asian=12pt,style:font-weight-asian=bold,style:font-size-complex=12pt,style:font-weight-complex=bold")
+	
+	Dim o_style_Header_3
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_Header_3 ,  o_automatic_styles, "style:style", "", "style:name='HeaderRow',style:family='table-cell',style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_Header_3,"style:table-cell-properties","","fo:background-color=#b2b2b2")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_Header_3,"style:text-properties","","fo:color=#000000")
+	
+	Dim satirSayisi
+	satirSayisi = PV_RT.GetRecCount()
+	Dim I
+	
+	For I=1 To satirSayisi
+		If Int(I/20)*20=I Then
+			If Doc.EscPressed() Then
+				Exit Function
+			End If
+			Doc.StatusBarMessage("Çıktı Hazırlanıyor... (%%" & CStr(Int(I*100/satirSayisi))  & ")" )
+		End If
+		
+		
+		If PV_RT.REPORT___SUBTOTAL_B(I)>="1" And PV_RT.REPORT___SUBTOTAL_B(I)<="5" Then
+			If PV_RT.REPORT___SUBTOTAL_N_1(I)>=0 Then Call ODS_HeaderRowYazdir("1",PV_RT.REPORT___SUBTOTAL_N_1(I))
+			If PV_RT.REPORT___SUBTOTAL_N_2(I)>=0 Then Call ODS_HeaderRowYazdir("2",PV_RT.REPORT___SUBTOTAL_N_2(I))
+			If PV_RT.REPORT___SUBTOTAL_N_3(I)>=0 Then Call ODS_HeaderRowYazdir("3",PV_RT.REPORT___SUBTOTAL_N_3(I))
+			If PV_RT.REPORT___SUBTOTAL_N_4(I)>=0 Then Call ODS_HeaderRowYazdir("4",PV_RT.REPORT___SUBTOTAL_N_4(I))
+			If PV_RT.REPORT___SUBTOTAL_N_5(I)>=0 Then Call ODS_HeaderRowYazdir("5",PV_RT.REPORT___SUBTOTAL_N_5(I))
+		End If
+		
+
+		Call AddElement_with_Attribute(Content_objXMLDoc,o_table_row ,  o_table, "table:table-row", "", "table:style-name=ro1")
+' her satrıda ilk sutunun boş oluşması için AddColumn prosedürü çağırılıyor.
+		Call AddColumn("","")
+		Call ODS_SatirYazdir(I)
+	Next
+
+End Function 
+
+Sub GenerateFieldCaptionStyles(F,ByVal Align,ByVal Outf_OnceCizgi)
+
+	
+	
+	If Align = "LEFT" Then 
+		Align = "start"
+	ElseIf Align = "RIGHT" Then 
+		Align = "end"
+	ElseIf Align = "CENTER" Then
+	Else
+		Align = "fix"
+	End If 
+	
+	Dim sOutf_OnceCizgi
+	sOutf_OnceCizgi = ""
+	If Outf_OnceCizgi = 1 Then 
+		sOutf_OnceCizgi = ",fo:border-left=0.06pt solid #000000,fo:border-right=none,fo:border-top=none"
+	End If 
+	
+	Dim o_field_Caption
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_field_Caption , o_automatic_styles, "style:style", "", "style:name=field_Caption_col" & F & ",style:family=table-cell,style:parent-style-name=Default")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:table-cell-properties","","fo:background-color=#ff0000,style:text-align-source=fix,style:repeat-content=false,fo:wrap-option=wrap" & sOutf_OnceCizgi)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:paragraph-properties","","fo:text-align=" & Align & ",fo:margin-left=0cm")
+	'Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:text-properties","","fo:color=#ffffff,style:font-name=Arial,fo:font-weight=bold,style:font-weight-asian=bold,style:font-weight-complex=bold")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_field_Caption,"style:text-properties","","fo:color=#ffffff,style:font-name=Arial,fo:font-size=10pt,fo:font-weight=bold,style:font-size-asian=10pt,style:font-weight-asian=bold,style:font-size-complex=10pt,style:font-weight-complex=bold")
+
+End Sub 
+
+Sub ODS_HeaderRowYazdir(rowtypest,satirNo)
+	Select Case rowtypest
+	Case "1" :
+			If REP17SE.ST1H_PRINTOPT="0" Then Exit Sub
+	Case "2" :
+			If REP17SE.ST2H_PRINTOPT="0" Then Exit Sub
+	Case "3" :
+			If REP17SE.ST3H_PRINTOPT="0" Then Exit Sub
+	Case "4" :
+			If REP17SE.ST4H_PRINTOPT="0" Then Exit Sub
+	Case "5" :
+			If REP17SE.ST5H_PRINTOPT="0" Then Exit Sub
+	End Select
+
+	Dim RowType
+	RowType=rowtypest
+	RowType=Trim(RowType)&"H"
+
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+	Dim AraToplamaBasilacakAlanVarmi
+	AraToplamaBasilacakAlanVarmi=0
+	Dim ATHeaderString
+	ATHeaderString=" "
+	For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			AraToplamaBasilacakAlanVarmi=AraToplamaBasilacakAlanVarmi+1
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			Dim FBaslik
+			FBaslik=Trim(FieldDef.ARaporAciklamasi)
+			If FieldDef.IsNumeric() Then
+				OutputStr=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo),FieldDef.Length,FieldDef.SigDig,0)
+				OutputStr=Trim(OutputStr)
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+OutputStr
+				ATHeaderString=ATHeaderString+"]"
+			ElseIf FieldDef.IsDate() Then
+				OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+				OutputStr=Trim(OutputStr)
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+OutputStr
+				ATHeaderString=ATHeaderString+"]"
+			Else
+				If AraToplamaBasilacakAlanVarmi>1 Then ATHeaderString=ATHeaderString+",  "
+				ATHeaderString=ATHeaderString+"["
+				ATHeaderString=ATHeaderString+FBaslik
+				ATHeaderString=ATHeaderString+"="
+				ATHeaderString=ATHeaderString+Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+				ATHeaderString=ATHeaderString+"]"
+			End If
+		End If
+	Next
+	If AraToplamaBasilacakAlanVarmi=0 Then Exit Sub
+	
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_table_row ,  o_table, "table:table-row", "", "table:style-name=ro1")
+	Call AddColumn("dinamo-cell-type=string,table:style-name=HeaderRow",space(2) & ATHeaderString)
+	Call AddColumn("table:style-name=HeaderRow,table:number-columns-repeated="&CiktidaBasilacakAlanSayisi  ,"")
+	
+End Sub
+
+Sub Default_Column_Properties(F,Length,SigDig,Align,ValueType,ByVal BckClr,ByVal TxtColor,ByVal Font_Facename,ByVal Point_Size,ByVal Width,ByVal Outf_OnceCizgi)
+
+	
+	Dim sWidth
+	sWidth = Length & "pc"
+	If Width > 0 Then 
+		sWidth = Width & "cm"
+	End If 
+
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_table,"table:table-column","","table:style-name=co"& F &",table:default-cell-style-name='ce"& F &"'")
+	Dim o_style_1
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_1 ,  o_automatic_styles, "style:style", "", "style:name='co" & F &"',style:family='table-column'")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_1,"style:table-column-properties","","fo:break-before=auto,style:column-width=" & sWidth)
+
+	If Align = "LEFT" Then 
+		Align = "start"
+	ElseIf Align = "RIGHT" Then 
+		Align = "end"
+	ElseIf Align = "CENTER" Then
+	Else
+		Align = "fix"
+	End If 
+	Dim Value 
+	Value = ""
+	If ValueType = "float" then 
+		
+		Dim o_number_style_1
+		Call AddElement_with_Attribute(Styles_objXMLDoc,o_number_style_1 , o_Styles, "number:number-style", "", "style:name=N" & F & "P0")
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_1, "number:number", "", "number:decimal-places="& SigDig &",number:min-decimal-places="& SigDig &",number:min-integer-digits=0,number:grouping=true")
+		
+		Dim o_number_style_2
+		Call AddElement_with_Attribute(Styles_objXMLDoc,o_number_style_2 , o_Styles, "number:number-style", "", "style:name=N" & F & "P1")
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_2, "number:text", "-", "")
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_2, "number:number", "", "number:decimal-places="& SigDig &",number:min-decimal-places="& SigDig &",number:min-integer-digits=0,number:grouping=true")
+		
+		Value = ",style:data-style-name=N" & F
+		
+		Dim o_number_style_3
+		Call AddElement_with_Attribute(Styles_objXMLDoc,o_number_style_3 , o_Styles, "number:number-style", "", "style:name=N" & F)
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_3, "number:text", "", "")
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_3, "style:map", "", "style:condition=value()&gt;0,style:apply-style-name=N" & F & "P0")
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_3, "style:map", "", "style:condition=value()&lt;0,style:apply-style-name=N" & F & "P1")
+		Call AddElement_with_Attribute_2(Styles_objXMLDoc , o_number_style_3, "style:map", "", "style:condition=value()=0,style:apply-style-name=N" & F & "P2")
+	End If 	
+		
+	Dim sBckClr
+	sBckClr = ""
+	If BckClr <> "" Then 
+		sBckClr = RGBTOHEX(BckClr)
+	End If  
+	If sBckClr <> "" Then sBckClr = "fo:background-color=" & sBckClr & "," 
+	
+	Dim sTxtColor
+	sTxtColor = "" 
+	If TxtColor <> "" Then 
+		sTxtColor = RGBTOHEX(TxtColor)
+	End If 
+	If sTxtColor <> "" Then sTxtColor = "fo:color=" & sTxtColor & "," 
+	
+	Dim sFont_Facename
+	sFont_Facename = ""
+	If Font_Facename <> "" Then 
+		sFont_Facename = "style:font-name=" & Font_Facename & ","
+	End If 
+
+	Dim sPoint_Size
+	sPoint_Size = 10 
+	If Doc.IsNumeric(Point_Size) Then
+		If Point_Size > 0 Then 
+			sPoint_Size = "fo:font-size=" & Point_Size & "pt,"
+			sPoint_Size = sPoint_Size& "style:font-size-asian=" & Point_Size & "pt,"
+			sPoint_Size = sPoint_Size& "style:font-size-complex=" & Point_Size & "pt"
+		Else
+			sPoint_Size = "fo:font-size=10pt,"
+			sPoint_Size = sPoint_Size& "style:font-size-asian=10pt,"
+			sPoint_Size = sPoint_Size& "style:font-size-complex=10pt"
+		End If 
+	Else
+		sPoint_Size = "fo:font-size=10pt,"
+		sPoint_Size = sPoint_Size& "style:font-size-asian=10pt,"
+		sPoint_Size = sPoint_Size& "style:font-size-complex=10pt"
+	End If 
+	
+	'OUTF_ONCECIZGI
+	Dim sOutf_OnceCizgi
+	sOutf_OnceCizgi = ""
+	If Outf_OnceCizgi = 1 Then 
+		sOutf_OnceCizgi = ",fo:border-left=0.06pt solid #000000,fo:border-right=none,fo:border-top=none"
+	End If 
+	'
+	
+	Dim o_style_2
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_2 ,  o_automatic_styles, "style:style", "", "style:name='ce" & F &"',style:family='table-cell',style:parent-style-name=Default" & Value)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_2,"style:table-cell-properties","", sBckClr & "style:text-align-source=fix,style:repeat-content=false" & sOutf_OnceCizgi)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_2,"style:paragraph-properties","","fo:text-align="& Align &",fo:margin-left=0cm")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_2,"style:text-properties","",sTxtColor & sFont_Facename & sPoint_Size)
+	
+	Dim o_style_3
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_3 ,  o_automatic_styles, "style:style", "", "style:name='subtotal_col" & F &"',style:family='table-cell',style:parent-style-name=Default" & Value)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_3,"style:table-cell-properties","","fo:background-color=#ffffcc,style:text-align-source=fix,style:repeat-content=false" & sOutf_OnceCizgi)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_3,"style:paragraph-properties","","fo:text-align="& Align &",fo:margin-left=0cm")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_3,"style:text-properties","",sTxtColor & sFont_Facename & sPoint_Size)
+		
+	Dim o_style_4
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_style_4 ,  o_automatic_styles, "style:style", "", "style:name='GrandTotalOut_col" & F &"',style:family='table-cell',style:parent-style-name=Default" & Value)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_4,"style:table-cell-properties","","fo:background-color=#ffffcc,style:text-align-source=fix,style:repeat-content=false" & sOutf_OnceCizgi)
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_4,"style:paragraph-properties","","fo:text-align="& Align &",fo:margin-left=0cm")
+	Call AddElement_with_Attribute_2(Content_objXMLDoc,o_style_4,"style:text-properties","",sTxtColor & sFont_Facename & sPoint_Size)
+	
+	
+End Sub 
+
+Sub AddColumn(style,value)
+
+	Call AddElement_with_Attribute(Content_objXMLDoc,o_table_cell ,  o_table_row, "table:table-cell", "", style)
+	If TRIM(value) <> "" Then 
+		Call AddElement_with_Attribute_2(Content_objXMLDoc,o_table_cell,"text:p",value,"")
+	End If 
+
+End Sub
+
+Sub ODS_SatirYazdir(satirNo)
+
+	Dim RowType
+	Dim RowTypePrev
+	RowType=PV_RT.REPORT___ROWTYPE(satirNo)
+	RowTypePrev=" "
+	If satirNo>1 Then RowTypePrev=PV_RT.REPORT___ROWTYPE(satirNo-1)
+
+	If (RowType>="1" AND RowType<= "9") Then
+		Select Case RowType
+		Case "1" :
+				If REP17SE.ST1_PRINTOPT="0" Then Exit Sub
+		Case "2" :
+				If REP17SE.ST2_PRINTOPT="0" Then Exit Sub
+		Case "3" :
+				If REP17SE.ST3_PRINTOPT="0" Then Exit Sub
+		Case "4" :
+				If REP17SE.ST4_PRINTOPT="0" Then Exit Sub
+		Case "5" :
+				If REP17SE.ST5_PRINTOPT="0" Then Exit Sub
+		End Select
+	End If
+	If RowType="T" Then
+		If RowTypePrev="T" Then Exit Sub
+		Select Case RowTypePrev
+		Case "T" : Exit Sub
+		Case "A" :
+				If REP17SE.OT1_GENELTOPLAM="0" Then Exit Sub
+		Case "B" :
+				If REP17SE.OT2_GENELTOPLAM="0" Then Exit Sub
+		Case "C" :
+				If REP17SE.OT3_GENELTOPLAM="0" Then Exit Sub
+		Case "D" :
+				If REP17SE.OT4_GENELTOPLAM="0" Then Exit Sub
+		Case "E" :
+				If REP17SE.OT5_GENELTOPLAM="0" Then Exit Sub
+		Case Else :
+				If REP17SE.R_OUTF_GENELTOPLAM="0" Then Exit Sub
+		End Select
+	End If
+
+	Dim AlanSayisi
+	AlanSayisi=PV_RO.GetNumberOfFields()
+	Dim F
+	Dim FieldDef
+	Dim OutputStr
+	
+    For F=1 To AlanSayisi
+		If PV_RO.BuAlanBasilacakmi(F,RowType)=1 Then
+			Set FieldDef=PV_RO.GetFieldDefN(F)
+			If FieldDef.PRINTOPT=1 Then
+				Dim OutputStr2
+				If FieldDef.IsNumeric() Then
+					OutputStr=0
+					OutputStr=FormatNumber(PV_RT.GetFieldValue(FieldDef.Name,satirNo) ,6,,,0)
+					
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Doc.NumFormat_Gen(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1),FieldDef.Length,FieldDef.SigDig,0)
+							If OutputStr2=OutputStr Then OutputStr=0
+						End If
+					End If
+					
+					Call AddColumn("office:value=" & OutputStr & ",dinamo-cell-type=float",Doc.ChangeNumberStyleCD(OutputStr))
+				ElseIf FieldDef.IsDate() Then
+					OutputStr=""
+					OutputStr=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo))
+					OutputStr=Left(Trim(OutputStr),FieldDef.Length)
+					
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Doc.StrToNorDate(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1))
+							OutputStr2=Left(Trim(OutputStr2),FieldDef.Length)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+					
+					Call AddColumn("dinamo-cell-type=string",OutputStr)
+				Else
+					OutputStr=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo)),FieldDef.Length)
+					If FieldDef.TEKRARBASILMAMAOPT>0 Then
+						If satirNo>1 And RowTypePrev=" " And RowType=" " Then
+							OutputStr2=Left(Trim(PV_RT.GetFieldValue(FieldDef.Name,satirNo-1)),FieldDef.Length)
+							If OutputStr2=OutputStr Then OutputStr=""
+						End If
+					End If
+				
+					Call AddColumn("dinamo-cell-type=string",OutputStr)
+				End If
+			End If
+			
+			Select Case RowType
+				Case "1","2","3","4","5"		Call AddAttributeArray(Content_objXMLDoc, o_table_cell, "table:style-name=subtotal_col"&F)  'PV_EXCEL_PE2.SubTotalOut
+				Case "A","B","C","D","E","T"	Call AddAttributeArray(Content_objXMLDoc, o_table_cell, "table:style-name=GrandTotalOut_col"&F)'PV_EXCEL_PE2.GrandTotalOut
+				Case Else						'PV_EXCEL_PE2.LineOut
+			End Select
+			
+		ElseIf PV_RO.BuAlanBasilacakmi(F,"*")=1 Then
+			'PV_EXCEL_PE2.SetRowValue_String -1,""
+		End If
+		
+	Next
+	
+	
+End Sub 
+
+
+Sub Insert_ProcessingInstructions(objXMLDoc)
+    Dim o_pi
+    Set o_pi = objXMLDoc.createProcessingInstruction("xml", " version=""1.0"" encoding=""UTF-8""")
+    objXMLDoc.appendChild (o_pi)
+End Sub
+
+Sub Insert_Element(objXMLDoc,ByRef node,ElementName,Attribute)
+
+    Set node = objXMLDoc.createElement(ElementName)
+	
+	If Len(Attribute) <> 0 Then 
+		Call  AddAttributeArray(objXMLDoc, node, Attribute)
+	End If 
+	
+    objXMLDoc.appendChild (node)
+End Sub 
+
+Sub Insert_Element_with_Attribute(objXMLDoc,ByRef node,ElementName,AttributeName,AttributeValue)
+    Set node = objXMLDoc.createElement(ElementName)
+	Call AddAttribute(objXMLDoc, node, AttributeName, AttributeValue)
+    objXMLDoc.appendChild (node)
+End Sub 
+
+Sub AddElement(objXMLDoc, ByRef o_element , o_Node, ElementName, ElementValue)
+    Set o_element = objXMLDoc.createElement(ElementName)
+    o_element.Text = Trim(ElementValue)
+    o_Node.appendChild (o_element)
+
+End Sub
+
+Sub AddElement_with_Attribute(objXMLDoc,ByRef o_element ,  o_Node, ElementName, ElementValue, Attribute)
+	Set o_element = objXMLDoc.createElement(ElementName)
+	Call AddAttributeArray(objXMLDoc, o_element, Attribute)
+    o_element.Text = ElementValue
+    o_Node.appendChild (o_element)
+
+End Sub
+
+Sub AddElement_with_Attribute_2(objXMLDoc,o_Node, ElementName, ElementValue, Attribute)
+	Dim o_element
+    Set o_element = objXMLDoc.createElement(ElementName)
+    Call AddAttributeArray(objXMLDoc, o_element, Attribute)
+   ' o_element.Text = Trim(ElementValue)
+    o_element.Text = ElementValue
+    o_Node.appendChild (o_element)
+End Sub
+
+
+
+Sub AddAttribute(objXMLDoc, o_Node, AttributeName, AttributeValue)
+    Dim o_Att
+    Set o_Att = objXMLDoc.createAttribute(AttributeName)
+    o_Att.Value = Trim(AttributeValue)
+    o_Node.setAttributeNode (o_Att)
+End Sub
+
+Sub AddAttributeArray(objXMLDoc, o_Node, Attribute)
+    
+	Attribute = Split(Attribute,",")
+	
+	Dim strAttributeName , strAttributeValue
+	Dim i 	
+	For i = LBound(Attribute) To UBound(Attribute)
+		
+		strAttributeName = ""
+		strAttributeValue = ""
+		
+		strAttributeName = TRIM(Left(Attribute(i),instr(1,Attribute(i),"=")-1))
+		strAttributeValue =  TRIM(Replace(Replace(Right(Attribute(i),Len(Attribute(i)) - instr(1,Attribute(i),"=")),"'",""),"""",""))
+		
+		Dim o_Att
+		Set o_Att = objXMLDoc.createAttribute(strAttributeName)
+		o_Att.Value = Trim(strAttributeValue)
+		o_Node.setAttributeNode (o_Att)
+		
+	Next  
+End Sub
+
+Function RGBTOHEX(ByVal RGB)
+	
+	Dim s_rgb(3)
+	s_rgb(0) = Left(RGB,3)
+	s_rgb(1) = MID(RGB,4,3)
+	s_rgb(2) = RIGHT(RGB,3)
+	
+	Dim hex1
+	Dim hex2
+	Dim hex3
+	
+	hex1=hex(s_rgb(0))
+	hex2=hex(s_rgb(1))
+	hex3=hex(s_rgb(2))
+	
+	If Len(hex1) = 1 Then hex1 = "0" & hex1
+	If Len(hex2) = 1 Then hex2 = "0" & hex2
+	If Len(hex3) = 1 Then hex3 = "0" & hex3
+	
+	RGBTOHEX = "#"  & hex1 & hex2 & hex3
+
+End Function
+
+
+
+
+
+
+
+
+
+
+Sub Run2_Vpe
+	PV_OUTPUT="V"
+	Call Run2
+End Sub
+Sub Run2_Excel
+	PV_OUTPUT="E"
+	Call Run2
+End Sub
+Sub Run2_Pdf
+	PV_OUTPUT="P"
+	Call Run2
+End Sub
+'2009/02/11
+Sub Run2_SMSText
+	PV_OUTPUT="S"
+	Call Run2
+End Sub
+'2009/02/11
+Sub Run2_Html
+	PV_OUTPUT="H"
+	Call Run2
+End Sub
+
+Sub Run2_Ods
+'2021/04/23 Metin
+'	Msgbox "ODS Formatı Beta Sürümündedir.Görselde veya Rapor Sonucunda Herhangi Bir Hata İle Karşılaşmanız Durumunda Birleşik Yazılım İle İletişime Geçebilirsiniz."
+	PV_OUTPUT="O"
+	Call Run2
+End Sub
+
+Sub Run2_TABLE
+	Dim RaporRowSet
+	Set RaporRowSet=CreateReportRowSet()
+	Call CreateKriterTable(RaporRowSet)
+	PV_OUTPUT="X"
+	Call Run2
+End Sub
+Sub Run2_Sadece_SQL_Komutu
+	Dim SQLCommand
+	Dim Rep17SE_B
+	Set Rep17SE_B=Doc.GetTableObject("Rep17SE_B")
+	SQLCommand=Trim(Rep17SE_B.SQLTEXT)
+
+'10.4.2011
+'	Dim Rep17SE
+'	Set Rep17SE=Doc.GetTableObject("REP17SE")
+'	Dim DIGERPRG_FIRMA
+'	Dim DIGERPRG_DONEM
+'	DIGERPRG_FIRMA=Trim(Rep17SE.DIGERPRG_FIRMA)
+'	DIGERPRG_DONEM=Trim(Rep17SE.DIGERPRG_DONEM)
+'	if Len(DIGERPRG_FIRMA)>0 then
+'		SQLCommand=RePlace(SQLCommand,"@@FIRMA@@",DIGERPRG_FIRMA)
+'	end if
+'	if Len(DIGERPRG_DONEM)>0 then
+'		SQLCommand=RePlace(SQLCommand,"@@DONEM@@",DIGERPRG_DONEM)
+'	end if
+
+	If Len(SQLCommand)=0 Then
+		Doc.d7MsgBox "SQL Komutu Boş","",-1
+		Exit Sub
+	End If
+'2008/04/12
+'	Doc.d7MsgBox "Sadece Raporlamada Kullanılacak SQL Komutu Oluşturulması Belirtilmiş, SQL Komutu : ","",-1
+'	Doc.d7MsgBox Doc.ProcessSqlString1(SQLCommand),"",-1
+	Dim oHtmlOutput
+	Set oHtmlOutput=Doc.CreateHtmlOutput
+	oHtmlOutput.BeginHead "Sadece Raporlamada Kullanılacak SQL Komutu Oluşturulması Belirtilmiş, SQL Komutu :"
+	oHtmlOutput.EndHead
+	oHtmlOutput.BeginBody ""
+	oHtmlOutput.WriteText "<PRE>"
+	oHtmlOutput.WriteText Doc.ProcessSqlString1(SQLCommand)
+	oHtmlOutput.WriteText "</PRE>"
+	oHtmlOutput.EndBody
+	oHtmlOutput.Show
+End Sub
+
+'2025/07/17
+Sub Guess_If_Date_Field(ByRef f1)
+	If f1.length=10 Then
+		If f1.datatype="CHAR" Then
+			If InStr(f1.name,"DATE")>0 Or InStr(f1.name,"TARIH") Then
+				f1.datatype="DATE"
+			End If
+		End If
+	End If
+End Sub
+
+
+
+
+
+'BYMOZAN
+Sub SendTableToExcel(Tablo)
+
+	dim pe2, Alanlar,ncol,i,AlanAdi,AlanTuru,Align,satirNo,ExcelSatir,OutputStr,Deger
+
+	Set pe2 = Doc.CreateSObject("ExcelOutput")
+	PE2.SetOrientation "P"
+	PE2.PageB_ReportHead_std1 Tablo.GetAppName
+
+	Alanlar = Tablo.GetFields()
+	ncol = 0
+	For i=0 To uBound(Alanlar,1)
+		AlanAdi = Alanlar(i,0)
+		if Cikacak(AlanAdi) Then
+			ncol = ncol+1
+			if ncol > 256 Then Exit For
+			AlanTuru = Alanlar(i,2)
+				If AlanTuru = "INT16" or AlanTuru = "INT32" or AlanTuru = "DOUBLE" Then
+				Align = "RIGHT"
+			Else
+				Align = "LEFT"
+			End if
+			pe2.AddColumnDef Alanlar(i,0), Alanlar(i,3), Alanlar(i,4), Align
+			pe2.SetRowValue_String -1, AlanAdi
+		End if
+	Next
+	PE2.LineOut
+
+	For satirNo = 1 to Tablo.GetRowCount()
+		Doc.StatusBarMessage "Excel 'e gönderiliyor : " & Tablo.GetAppName & " - " & i & " / " & Tablo.GetRowCount
+		PE2.InitRowValues
+
+	ExcelSatir = -1
+	ncol = 0
+
+	For i=0 To uBound(Alanlar,1)
+		AlanAdi = Alanlar(i,0)
+		if Cikacak(AlanAdi) Then
+			ncol = ncol+1
+			if ncol > 256 Then Exit For
+			AlanTuru = Alanlar(i,2)
+			If AlanTuru = "INT16" or AlanTuru = "INT32" or AlanTuru = "DOUBLE" Then
+				Deger = Tablo.GetFieldValue(AlanAdi,satirNo)
+				pe2.SetRowValue_Double ExcelSatir, Deger
+			ElseIf AlanTuru = "DATE" Then
+				OutputStr=Doc.StrToNorDate(Tablo.GetFieldValue(AlanAdi,satirNo))
+				pe2.SetRowValue_String ExcelSatir,OutputStr
+			Else
+				pe2.SetRowValue_String ExcelSatir,RTrim(Tablo.GetFieldValue(AlanAdi,satirNo))
+			End if
+		End if
+	Next
+	PE2.LineOut
+	Next
+	pe2.Show
+End Sub
+'---------------------------
+Function Cikacak(AlanAdi)
+	Cikacak = True
+	if InStr(1, AlanAdi, "D7ROWVERSION") > 0 Then
+		Cikacak = False
+	End if
+End Function

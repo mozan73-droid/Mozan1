@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document Name="PFRM7S" Version="01"><COMMAND Name="MT_TABLE_CLEAN" TABLENAME="PFRM7SE"/><Table Name="PFRM7SE"><Record><ACIKLAMA></ACIKLAMA><DOCTYPE><![CDATA[SFDC32]]></DOCTYPE><ADDDOCTYPES></ADDDOCTYPES><ATABLENAME></ATABLENAME><AP10><![CDATA[0]]></AP10><DOCTYPE_FORM></DOCTYPE_FORM><DOCTYPE_FORM_NAME></DOCTYPE_FORM_NAME><DOCTYPE_FORM_USER></DOCTYPE_FORM_USER><DOCTYPE_RUN_MAKRO></DOCTYPE_RUN_MAKRO><DOCTYPE_SUBFORM></DOCTYPE_SUBFORM><DOCTYPE_SUBFORM_NAME></DOCTYPE_SUBFORM_NAME><DOCTYPE_RUN_MAKRO_FR></DOCTYPE_RUN_MAKRO_FR><DOCTYPE_RUN_MAKRO_S></DOCTYPE_RUN_MAKRO_S><DOCTYPE_RUN_MAKRO_SF></DOCTYPE_RUN_MAKRO_SF><F2_KOMUT></F2_KOMUT><F2_FORMADI></F2_FORMADI><F2_FORMAKTIFTABADI></F2_FORMAKTIFTABADI><F2_FORMTABLOADI></F2_FORMTABLOADI><F2_FORMTABLOALANADI></F2_FORMTABLOALANADI><SCRIPTTEXT><![CDATA[Sub PrintForm
+	TOPLAMKOLONSAYISI = 19
+
+	Set ExcelSheet = CreateObject("Excel.Application")
+	Set sh1 = ExcelSheet.Workbooks.Add
+	Set Sheet = sh1.ActiveSheet
+	
+	ExcelSheet.Visible = True
+	'***********************************************************************************************
+
+	'LOGO MERGE
+	Sheet.Range(Sheet.Cells(1, 1), Sheet.Cells(4, 2)).Merge
+
+	'LOGO RESMİ
+	logo = Doc.Getd7Directory_DataFirm() & trim(Doc.Customp_Gets("!LOGO"))
+	
+	RTOPLOGO = Sheet.Cells(1, 1).Top+2.5
+	RLEFTLOGO= Sheet.Cells(1, 1).Left+2.5
+	Sheet.Cells(1, 1).Select
+	Set LOGORES = Sheet.Pictures.Insert(Trim(LOGO)) 
+	RESIMLOGOADI=LOGORES.Name
+	Sheet.Shapes(RESIMLOGOADI).Select
+	LOGORES.Left = RLEFTLOGO 
+	LOGORES.Top  = RTOPLOGO
+	ExcelSheet.Selection.ShapeRange.LockAspectRatio = msoFalse
+	ExcelSheet.Selection.ShapeRange.Height = 60
+	ExcelSheet.Selection.ShapeRange.Width = 120
+'------------------------------------------------------------------------------------------------------------------
+	'FORM BAŞLIK MERGE
+	Sheet.Range(Sheet.Cells(1, 3), Sheet.Cells(4, TOPLAMKOLONSAYISI-4)).Merge
+	Sheet.Cells(1, 3).Value = "AYLIK ÜRETİM KAYIT FORMU" & vbcrlf & " ( Monthly Production Register Form ) "
+	Sheet.Cells(1, 3).Select
+	ExcelSheet.Selection.Font.Bold = True
+	ExcelSheet.Selection.Font.Size = 18
+	ExcelSheet.Selection.WrapText = True 
+	ExcelSheet.Selection.HorizontalAlignment = 3 'xlCenter 
+'------------------------------------------------------------------------------------------------------------------
+	'TARİH-SİP.NO-REV.NO BAŞIK MERGE
+	Sheet.Range(Sheet.Cells(1, TOPLAMKOLONSAYISI-3), Sheet.Cells(1, TOPLAMKOLONSAYISI-2)).Merge
+	Sheet.Cells(1, TOPLAMKOLONSAYISI-3).Value = "Doküman No"
+
+	Sheet.Range(Sheet.Cells(2, TOPLAMKOLONSAYISI-3), Sheet.Cells(2, TOPLAMKOLONSAYISI-2)).Merge
+	Sheet.Cells(2, TOPLAMKOLONSAYISI-3).Value = "Revizyon No"
+
+	Sheet.Range(Sheet.Cells(3, TOPLAMKOLONSAYISI-3), Sheet.Cells(3, TOPLAMKOLONSAYISI-2)).Merge
+	Sheet.Cells(3, TOPLAMKOLONSAYISI-3).Value = "Revizyon Tarihi"
+	
+	Sheet.Range(Sheet.Cells(4, TOPLAMKOLONSAYISI-3), Sheet.Cells(4, TOPLAMKOLONSAYISI-2)).Merge
+	Sheet.Cells(4, TOPLAMKOLONSAYISI-3).Value = "Yayın Tarihi"
+
+	'TARİH - SİPNO - REV HÜCRELERİNİ BOYA 
+	For i = 1 To 4
+		Sheet.Cells(i, TOPLAMKOLONSAYISI-3).Select
+
+		ExcelSheet.Selection.Font.Bold = False
+		ExcelSheet.Selection.Font.Size = 12
+		ExcelSheet.Selection.WrapText = True 
+		'ExcelSheet.Selection.Interior.ColorIndex = 19
+		ExcelSheet.Selection.Interior.Pattern = 1
+	Next
+	
+	'------------------------------------------------------------------------------------------------------------------
+	Sheet.Range(Sheet.Cells(1, TOPLAMKOLONSAYISI-1), Sheet.Cells(1, TOPLAMKOLONSAYISI)).Merge
+	Sheet.Cells(1, TOPLAMKOLONSAYISI-1).Select
+	ExcelSheet.Selection.Font.Bold = False
+	ExcelSheet.Selection.Font.Size = 12
+	ExcelSheet.Selection.WrapText = True 
+	ExcelSheet.Selection.HorizontalAlignment = 3
+	ExcelSheet.Selection.NumberFormat = "@"
+	ExcelSheet.Selection.Value = "TM200F0016"
+
+	Sheet.Range(Sheet.Cells(2, TOPLAMKOLONSAYISI-1), Sheet.Cells(2, TOPLAMKOLONSAYISI)).Merge
+	Sheet.Cells(2, TOPLAMKOLONSAYISI-1).Value = "1"
+	Sheet.Cells(2, TOPLAMKOLONSAYISI-1).Select
+	ExcelSheet.Selection.HorizontalAlignment = 3
+	ExcelSheet.Selection.Font.Size = 12
+
+	Sheet.Range(Sheet.Cells(3, TOPLAMKOLONSAYISI-1), Sheet.Cells(3, TOPLAMKOLONSAYISI)).Merge
+	Sheet.Cells(3, TOPLAMKOLONSAYISI-1).Select
+	ExcelSheet.Selection.Font.Bold = False
+	ExcelSheet.Selection.Font.Size = 12
+	ExcelSheet.Selection.WrapText = True 
+	ExcelSheet.Selection.HorizontalAlignment = 3
+	ExcelSheet.Selection.NumberFormat = "@"
+	Sheet.Cells(3, TOPLAMKOLONSAYISI-1).Value = "19.11.2015"
+
+	Sheet.Range(Sheet.Cells(4, TOPLAMKOLONSAYISI-1), Sheet.Cells(4, TOPLAMKOLONSAYISI)).Merge
+	Sheet.Cells(4, TOPLAMKOLONSAYISI-1).Value = "29.10.2015"
+	Sheet.Cells(4, TOPLAMKOLONSAYISI-1).Select
+	ExcelSheet.Selection.HorizontalAlignment = 3
+	ExcelSheet.Selection.Font.Size = 12
+
+	'DİKEY ORTALAMA
+
+	For i = 1 to TOPLAMKOLONSAYISI
+		Sheet.Columns(i).Select		
+		ExcelSheet.Selection.VerticalAlignment = 2 'xlCenter 
+		Sheet.Columns(i).EntireColumn.AutoFit
+	Next
+
+	Sheet.Range(Sheet.Cells(5, 1), Sheet.Cells(5, 2)).Merge
+	sh1.Sheets(1).cells(5, 1).Value = "YIL ( Year ) :"
+	sh1.Sheets(1).cells(5, 3).Value = "2016"
+	Sheet.Cells(5, 3).Select
+	ExcelSheet.Selection.HorizontalAlignment = 3	
+		
+	Sheet.Range(Sheet.Cells(5, 4), Sheet.Cells(5, 5)).Merge	
+	sh1.Sheets(1).cells(5, 4).Value = "AY ( Month ) :"
+
+	Sheet.Range(Sheet.Cells(5, 6), Sheet.Cells(5, 8)).Merge	
+	sh1.Sheets(1).cells(5, 6).Value = "JANUARY"	
+
+	Sheet.Range(Sheet.Cells(5, 7), Sheet.Cells(5, 19)).Merge		
+	
+	'***********************************************************************************************
+	satir = 6
+	
+	sh1.Sheets(1).cells(satir,1).Value = "TARIH"
+	sh1.Sheets(1).cells(satir+1,1).Value = "Date"
+	
+	sh1.Sheets(1).cells(satir,2).Value = "SAP / ERP KODU"
+	sh1.Sheets(1).cells(satir+1,2).Value = "Sap / Erp Code"
+	
+	sh1.Sheets(1).cells(satir,3).Value = "ÜRÜN ADI"
+	sh1.Sheets(1).cells(satir+1,3).Value = "Product Name"
+	
+	sh1.Sheets(1).cells(satir,4).Value = "ÜRETİM HATTI"
+	sh1.Sheets(1).cells(satir+1,4).Value = "Product Line"	
+	
+	sh1.Sheets(1).cells(satir,5).Value = "TEL ÇAPI"
+	sh1.Sheets(1).cells(satir+1,5).Value = "Wire Diameter"		
+
+	sh1.Sheets(1).cells(satir,6).Value = "TEL TİPİ"
+	sh1.Sheets(1).cells(satir+1,6).Value = "Wire Type"	
+
+	sh1.Sheets(1).cells(satir,7).Value = "VARDİYA"
+	sh1.Sheets(1).cells(satir+1,7).Value = "Shift"	
+	
+	sh1.Sheets(1).cells(satir,8).Value = "VARDİYA AMİRİ"
+	sh1.Sheets(1).cells(satir+1,8).Value = "Shift Supervisor"
+
+	sh1.Sheets(1).cells(satir,9).Value = "ÇALIŞAN SAYISI"
+	sh1.Sheets(1).cells(satir+1,9).Value = "Worker Number"
+	
+	sh1.Sheets(1).cells(satir,10).Value = "ÇALIŞMA SÜRESİ" & vbcrlf & "( saat )"
+	sh1.Sheets(1).cells(satir+1,10).Value = "Workin Time" & vbcrlf & "( Hour )"			
+		
+	sh1.Sheets(1).cells(satir,11).Value = "ADAM x SAAT"
+	sh1.Sheets(1).cells(satir+1,11).Value = "Hour x Man"		
+
+	sh1.Sheets(1).cells(satir,12).Value = "ÜRETİM ADEDİ"
+	sh1.Sheets(1).cells(satir+1,12).Value = "Production pcs"	
+	
+	sh1.Sheets(1).cells(satir,13).Value = "YARI MAMUL AĞIRLIĞI" & vbcrlf & "( kg )"
+	sh1.Sheets(1).cells(satir+1,13).Value = "Semi Finished Product" & vbcrlf & "( kg )"
+
+	sh1.Sheets(1).cells(satir,14).Value = "BİTMİŞ ÜRÜN AĞIRLIĞI" & vbcrlf & "( kg )"
+	sh1.Sheets(1).cells(satir+1,14).Value = "Finished Product" & vbcrlf & "( kg )"
+
+	sh1.Sheets(1).cells(satir,15).Value = "HURDA" & vbcrlf & "( kg )"
+	sh1.Sheets(1).cells(satir+1,15).Value = "Scrap" & vbcrlf & "( kg )"					
+
+	sh1.Sheets(1).cells(satir,16).Value = "BİRİM AĞIRLIK" & vbcrlf & "( kg )"
+	sh1.Sheets(1).cells(satir+1,16).Value = "Unit Weight" & vbcrlf & "( kg )"					
+	
+	sh1.Sheets(1).cells(satir,17).Value = "PERFORMANS" & vbcrlf & "kg / saat Makine"
+	sh1.Sheets(1).cells(satir+1,17).Value = "Performance" & vbcrlf & "kg / hour Machine"	
+
+	sh1.Sheets(1).cells(satir,18).Value = "HEDEF" & vbcrlf & "kg / saat Makine"
+	sh1.Sheets(1).cells(satir+1,18).Value = "Target" & vbcrlf & "kg / hour Machine"	
+
+	sh1.Sheets(1).cells(satir,19).Value = "ORAN" & vbcrlf & " % "
+	sh1.Sheets(1).cells(satir+1,19).Value = "Ratio" & vbcrlf & " % "	
+	
+	Set RegisterTable = Doc.GetTableObject("SQLEmptyTable")
+	KayitSayisi = RegisterTable.GetRecCount
+
+	If KayitSayisi = 0 Then Exit Sub
+	
+	ToplamYariMamulAgirligi	= 0
+	ToplamBitmisMamulAgirligi = 0
+	ToplamBirimAgirlik = 0
+	ToplamAdamSaat	= 0
+	ToplamCalisanSayisi = 0
+	ToplamPerformans = 0
+	ToplamHedef = 0
+	
+	satir = 8
+	
+	For i = 1 To 10'KayitSayisi
+		Tarih = RegisterTable.TARIH(i)
+		MalzemeGrubu = Trim(RegisterTable.MALZEMEGRUBU(i))
+		StokKodu = Trim(RegisterTable.MAMULKOD(i))
+		StokAdi_TR = Trim(RegisterTable.STOKADI(i))
+		StokKod_ENG = Trim(RegisterTable.ENG_ADI(i))
+		Vardiya = Trim(RegisterTable.VARDIYA(i))
+		TelCapi = RegisterTable.TELCAPI(i)
+		TelTipi = Trim(RegisterTable.TELTIPI(i))
+		VardiyaAmiri = Trim(RegisterTable.VARDIYAAMIRADI(i))	
+		CalisanSayisi = RegisterTable.OPERATORSAYISI(i)
+		CalismaSuresi = RegisterTable.SURE(i)
+		AdamSaat = RegisterTable.ADAMSAAT(i)
+		UretimAdedi = RegisterTable.TM_MIKTAR(i)	
+		YariMamulAgirligi = RegisterTable.YARIMAMULAGIRLIK_KG(i)
+		BitmisMamulAgirligi = RegisterTable.BITMISURUNAGIRLIGI_KG(i)
+		Hurda = RegisterTable.HURDA(i)	
+		BirimAgirlik = RegisterTable.BIRIMAGIRLIK_KG(i)
+		Performans = RegisterTable.PERFORMANS(i)			
+		Hedef = RegisterTable.HEDEF(i)
+		Oran = RegisterTable.ORAN(i)
+				
+		If MalzemeGrubu = "" Then
+			UretimHatti = "OUT"
+		Else
+			UretimHatti = Trim(RegisterTable.URETIMHATTI(i))
+		End If
+
+		If StokKodu = "FORKLIFT_ISLERI" Then
+			StokKodu = ""
+			StokKod_ENG = "FORKLIFT"
+		End If
+
+		If StokKodu = "ELEKTRIK_ISLERI" Then
+			StokKodu = ""
+			StokKod_ENG = "ELECTRICAL MAINTENANCE"
+		End If
+
+		If StokKodu = "MEKANIK_ISLERI" Then
+			StokKodu = ""
+			StokKod_ENG = "MECHANICAL MAINTENANCE"
+		End If
+
+		If StokKodu = "DIGER_ISLER" Then
+			StokKodu = ""
+			StokKod_ENG = "OTHER WORKS"
+		End If
+
+		If i>1 Then
+			BirOncekVardiyaDegeri = Trim(RegisterTable.VARDIYA(i-1))
+			If Vardiya <> BirOncekVardiyaDegeri Then
+				satir = satir + 1
+				
+				sh1.Sheets(1).cells(satir,13).Value = ToplamYariMamulAgirligi
+				sh1.Sheets(1).cells(satir,14).Value = ToplamBitmisMamulAgirligi
+				sh1.Sheets(1).cells(satir,16).Value = ToplamBirimAgirlik
+				sh1.Sheets(1).cells(satir,11).Value = ToplamAdamSaat
+				sh1.Sheets(1).cells(satir,9).Value = ToplamCalisanSayisi
+				sh1.Sheets(1).cells(satir,17).Value = ToplamPerformans
+				sh1.Sheets(1).cells(satir,18).Value = ToplamHedef
+				
+				If ToplamPerformans > 0 AND ToplamHedef > 0 Then
+					ToplamOran = (ToplamPerformans / ToplamHedef) * 100
+				End If
+				
+				sh1.Sheets(1).cells(satir,19).Value = ToplamOran & " %"
+
+				ToplamYariMamulAgirligi = 0
+				ToplamBitmisMamulAgirligi = 0
+				ToplamBirimAgirlik = 0	
+				ToplamAdamSaat = 0
+				ToplamCalisanSayisi = 0
+				ToplamPerformans = 0
+				ToplamHedef = 0
+				ToplamOran = 0
+				
+				set range=ExcelSheet.Range(Sheet.Cells(satir,1),Sheet.Cells(satir,19))
+				range.Interior.Color = RGB(128,255,128) 'yeşil
+				satir = satir + 1
+
+			End If
+		End If
+
+		ToplamYariMamulAgirligi = ToplamYariMamulAgirligi + YariMamulAgirligi
+		ToplamBitmisMamulAgirligi = ToplamBitmisMamulAgirligi + BitmisMamulAgirligi
+		ToplamBirimAgirlik = ToplamBirimAgirlik + BirimAgirlik
+		ToplamAdamSaat = ToplamAdamSaat + AdamSaat
+		ToplamCalisanSayisi = ToplamCalisanSayisi + CalisanSayisi
+		ToplamPerformans = ToplamPerformans + Performans
+		ToplamHedef = ToplamHedef + Hedef
+		
+		sh1.Sheets(1).cells(satir,1).Value = Tarih
+		sh1.Sheets(1).cells(satir,2).Value = StokKodu
+		sh1.Sheets(1).cells(satir,3).Value = StokKod_ENG
+		sh1.Sheets(1).cells(satir,4).Value = UretimHatti
+			
+		Sheet.Cells(satir,5).Select
+
+		If MalzemeGrubu <> "" Then
+			sh1.Sheets(1).cells(satir,5).Value = TelCapi	
+			ExcelSheet.Selection.NumberFormat = "#,##0.00"
+		Else
+			sh1.Sheets(1).cells(satir,5).Value = ""
+		End If
+	
+		sh1.Sheets(1).cells(satir,6).Value = TelTipi
+		sh1.Sheets(1).cells(satir,7).Value = Vardiya
+		sh1.Sheets(1).cells(satir,8).Value = VardiyaAmiri
+
+		If CalisanSayisi = 0 Then
+			sh1.Sheets(1).cells(satir,9).Value = ""
+		Else
+			sh1.Sheets(1).cells(satir,9).Value = CalisanSayisi
+		End If
+	
+		If CalismaSuresi = 0 Then
+			sh1.Sheets(1).cells(satir,10).Value = ""
+		Else
+			sh1.Sheets(1).cells(satir,10).Value = CalismaSuresi
+		End If
+			
+		If AdamSaat = 0 Then
+			sh1.Sheets(1).cells(satir,11).Value = ""
+		Else
+			sh1.Sheets(1).cells(satir,11).Value = AdamSaat
+		End If
+			
+		If MalzemeGrubu <> "" Then
+			If UretimAdedi = 0 Then
+				sh1.Sheets(1).cells(satir,12).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,12).Value = UretimAdedi	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,12).Value = ""
+		End If
+	
+		If MalzemeGrubu <> "" Then
+			If YariMamulAgirligi = 0 Then
+				sh1.Sheets(1).cells(satir,13).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,13).Value = YariMamulAgirligi	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,13).Value = ""
+		End If
+
+		If MalzemeGrubu <> "" Then
+			If BitmisMamulAgirligi = 0 Then
+				sh1.Sheets(1).cells(satir,14).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,14).Value = BitmisMamulAgirligi	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,14).Value = ""
+		End If
+
+		If MalzemeGrubu <> "" Then
+			If Hurda = 0 Then
+				sh1.Sheets(1).cells(satir,15).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,15).Value = Hurda	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,15).Value = ""
+		End If
+
+		If MalzemeGrubu <> "" Then
+			If BirimAgirlik = 0 Then
+				sh1.Sheets(1).cells(satir,16).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,16).Value = BirimAgirlik	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,16).Value = ""
+		End If
+		
+		If MalzemeGrubu <> "" Then
+			If Performans = 0 Then
+				sh1.Sheets(1).cells(satir,17).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,17).Value = Performans	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,17).Value = ""
+		End If
+
+		If MalzemeGrubu <> "" Then
+			If Hedef = 0 Then
+				sh1.Sheets(1).cells(satir,18).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,18).Value = Hedef	
+				ExcelSheet.Selection.NumberFormat = "#,##0.00"
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,18).Value = ""
+		End If
+
+		If MalzemeGrubu <> "" Then
+			If Oran = 0 Then
+				sh1.Sheets(1).cells(satir,19).Value = ""
+			Else
+				sh1.Sheets(1).cells(satir,19).Value = Oran	& "  %"
+				'ExcelSheet.Selection.NumberFormat = "#,##0.00" 
+			End If
+		Else
+			sh1.Sheets(1).cells(satir,19).Value = ""
+		End If
+
+		If MalzemeGrubu = "FPS" Then
+			sh1.Sheets(1).cells(satir,3).interior.colorindex = 6 'sarı
+		End If
+		
+		satir = satir + 1
+	Next
+	
+	Sheet.Cells.Select
+	ExcelSheet.Selection.Columns.AutoFit
+	ExcelSheet.Selection.WrapText = True
+
+	ExcelSheet.Columns(2).Select
+	
+	ExcelSheet.Selection.HorizontalAlignment= -4131 
+	
+	'IZGARA ÇİZGİLERİ
+	'------------------------------------------------------------------------------------------------------------------
+	Sheet.Range(Sheet.Cells(1, 1),Sheet.Cells(satir, TOPLAMKOLONSAYISI)).Select
+	ExcelSheet.Selection.Borders(1).LineStyle = 1  		'.Borders(1):sol dik çizgi,.Borders(3)=üst yatay çizgi,(4):alt yatay çizgi, (5):çapraz \,(6):çapraz:/,(10):sağ dik çizgi
+	ExcelSheet.Selection.Borders(1).Weight = 2  			'1:noktalı,2:çizgi
+	ExcelSheet.Selection.Borders(4).LineStyle = 1		'.Borders(4):alt yatay çigi
+	ExcelSheet.Selection.Borders(4).Weight = 2  			'1:noktalı,2:çizgi
+	ExcelSheet.Selection.Borders(3).LineStyle = 1		'.Borders(3):üst yatay çigi
+	ExcelSheet.Selection.Borders(3).Weight = 2 			'1:noktalı,2:çizgi
+	ExcelSheet.Selection.Borders(10).LineStyle = 1  	'.Border(10):seçili alanın en sağ dik çizgisi
+	ExcelSheet.Selection.Borders(10).Weight = 2  		'1:noktalı,2:çizgi, 4:kalın	
+	
+	Sheet.Range(Sheet.Cells(5, 1), Sheet.Cells(5, TOPLAMKOLONSAYISI)).Select
+	ExcelSheet.Selection.WrapText = True 
+	ExcelSheet.Selection.HorizontalAlignment = 3 'xlCenter 	
+	ExcelSheet.Selection.Interior.ColorIndex = 15
+	
+	Sheet.Range(Sheet.Cells(6, 1), Sheet.Cells(6, TOPLAMKOLONSAYISI)).Select
+	ExcelSheet.Selection.WrapText = True 
+	ExcelSheet.Selection.HorizontalAlignment = 3 'xlCenter 	
+	ExcelSheet.Selection.Interior.ColorIndex = 48
+		
+	Sheet.Range(Sheet.Cells(7, 1), Sheet.Cells(7, TOPLAMKOLONSAYISI)).Select
+	ExcelSheet.Selection.WrapText = True 
+	ExcelSheet.Selection.HorizontalAlignment = 3 'xlCenter 	
+	ExcelSheet.Selection.Interior.ColorIndex = 15	
+	
+	Set sh1 = Nothing
+	Set ExcelSheet = Nothing
+
+End Sub]]></SCRIPTTEXT><FORMTEXT></FORMTEXT><ACIKLAMATEXT></ACIKLAMATEXT></Record></Table></Document>

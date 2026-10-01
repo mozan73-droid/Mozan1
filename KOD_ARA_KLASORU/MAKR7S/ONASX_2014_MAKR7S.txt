@@ -1,0 +1,612 @@
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR7S
+Makro Kodu : BARKOD
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Barkod Etiketleri için Tablo Oluþturur - Silmeyin
+Kod : 
+Public UygulamaKodu, EvrakTipi
+
+Function GetEtiketTable(EtiketFormu)
+	
+	UygulamaKodu = Trim(Doc.GetDocType)
+
+	If UygulamaKodu = "STOK29" or UygulamaKodu = "STOK29I" Then
+		Doc.Save_Voucher
+		EvrakTipi = "SI"
+		Set GetEtiket
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR7S
+Makro Kodu : FREEMAIL
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Mail Gönderme Fonksiyonu (Silmeyin!!!)
+Kod : 
+Sub SendMail(MailTo, MailHeader, MailMessage, DosyaAdi)
+	'on error resume next
+
+	cdoSendUsingPickup = 1 
+	cdoSendUsingPort = 2 
+	cdoAnonymous = 0
+	cdoBasic = 1
+	cdoNTLM = 2 'NTLM
+	
+	Kullanici = Doc.Getd7UserName
+	Kullanici = "ADMIN"
+	
+	mailserver = Trim(Doc.GetDBFieldValue("UDEF", "EMAILSERVER", Kullanici, ""))
+	mailUser = Trim(Doc.GetDBFieldValue("UDEF", "EMAILKULLANICIADI", Kullanici, ""))
+	mailPass = Trim(Doc.GetDBFieldValue("UDEF", "DATAMODEMNO", Kullanici, ""))
+	mailFrom = Trim(Doc.GetDBFieldValue("UDEF", "EMAIL", Kullanici, ""))
+	mailSMTPPort = Trim(Doc.GetDBFieldValue("UDEF", "SMTPSERVERPORT", Kullanici, ""))
+
+	Set CDO = CreateObject("CDO.Message")
+
+	CDO.From = Trim(MailFrom)
+	CDO.To = MailTo
+	CDO.Subject = MailHeader
+	CDO.TextBody = MailMessage
+	
+	'If Trim(DosyaAdi(3)) <> "" Then
+	'	CDO.AddAttachment("file://" & DosyaAdi(3))
+	'End if
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/sendusing") = cdoSendUsingPort 
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpserver") = mailserver
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = cdoBasic
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/sendusername") = mailUser
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/sendpassword") = mailPass
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = mailSMTPPort
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = False
+	
+	CDO.Configuration.Fields.Item _
+	("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = 60
+	
+	CDO.Configuration.Fields.Update
+	
+	On Error Resume Next
+	CDO.Send
+	
+	If DosyaAdi(2) = "RafOmru" Then
+		If Err.Number = 0 Then
+			Set CDO = Nothing
+			Msgbox "Raf Ömrü Bilgi E-maili Gönderildi." 
+			Call RafOmruTarihKTAGuncelle
+		Else
+			Set CDO = Nothing
+			Msgbox "RAf Ömrü Bilgi E-maili Gönderilemedi. !!!"
+		End If
+	Else
+		Set CDO = Nothing
+	End If
+
+End Sub
+'------------------------------------------------------------------------------
+Sub RafOmruTarihKTAGuncelle()
+	KalipArr = Split(Kaliplar, ",")	
+	Set Doc1 = Doc.CreateDocumentNoUI("MAKR8S", "")
+	Set M8SE = Doc1.GetTableObject("MAKR8SE")
+
+	ret = Doc1.UFLD00_CreateEditTable("xxx","MAKR8SE", "RAFOMRU")
+	Set KTA = Doc1.GetTableObject("xxx")   
+	GununTarihi = Doc.StrToNorDate(Doc.BuGun)
+	KTA.RAFTARIH = GununTarihi
+	KTA.Exec "SAVE"
+End Sub                                                                                                                                                                                                                                                                                                                                                                         
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR7S
+Makro Kodu : STOK29-01
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : STOK29 DAN SATIRLARI SERÝlLEME BUTONU
+Kod : 
+Sub SERILE
+	Set S29T = Doc.GetTableObject("STOK29T")
+	S29T.SafePack
+	KayitSayisi = S29T.GetRecCount
+	If KayitSayisi = 0 Then Exit Sub
+	For i = 1 to KayitSayisi
+		Set Doc1 = Doc.CreateDocumentNoUI("D7KIDSLB", "")
+		Set D7LB = Doc1.GetTableObject("D7KIDSLB")
+		YeniSeriNo = Doc.Sayac0danAl("SERINO")
+		If Trim(S29T.SERINO(i)) = "" Then
+			S29T.SERINO(i) = YeniSeriNo
+		End If
+	Next
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : STOK29
+Bu Uygulama için Baþlangýç Ekran Formu : STOK29XXX
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM STOK29XXX SCROLLBARS=NO
+SET CAPTION="Satýnalma Ýrsaliyesi Ýle Depoya Giriþ Fiþi"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8
+
+DEFINEFONT ID="FONT010" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="FONT011" FACE="MS Sans Serif" POINT=8 
+
+DEFINEFONT ID="text_font01" FACE="MS Sans Serif" POINT=8 BOLD=N
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU 
+
+
+
+
+
+
+
+
+ MENUITEM TEXT="Özet Gösterim" ID=CMD_OZET
+ SEPARATOR
+ MENUITEM TEXT="Sýralý Sipariþ Kapat" ID=CMD_SIRALI_SIPARIS_KAPATMA 
+ MENUITEM TEXT="Sipariþ Baðlantýlarýný Ýptal Et" ID=CMD_SPBAGLANTISI_IPTAL
+ SEPARATOR
+ MENUITEM TEXT="&Tüm Satýrlara Kalite Kontrol Onayý = E" ID=UID001
+ MENUITEM TEXT="Tüm &Satýrlara Kalite Kontrol Onayý = H" ID=UID002
+ SEPARATOR
+ MENUITEM TEXT="&Kabul Edilecek Sipariþ Seç (Toplam Miktar)" ID=CMD_SATINALMASIPARIS_KRITERLERI_T
+ MENUITEM TEXT="Kabul &Edilecek Sipariþ Seç (Bakiye Miktar)" ID=CMD_SATINALMASIPARIS_KRITERLERI_B
+ SEPARATOR
+ MENUITEM TEXT="Döviz Kurlarý &Giriþi" ID=DO_SENT_KURENT_0
+ SEPARATOR
+ MENUITEM TEXT="&Faturalardan Fiyat Hesapla" ID=CMD_SATINALMA_FATURASINDAN_FIYATLANDIR
+ MENUITEM TEXT="&Satýnalma Sipariþten Fiyatlandýr" ID=CMD_SATINALMA_SIPARISINDEN_FIYATLANDIR
+ MENUITEM TEXT="Fiyat Listesinden Fiyatlandýr" ID=CMD_FIYATLISTESINDENFIYATLANDIR
+ SEPARATOR
+ MENUITEM TEXT="Malzeme Listesinden Kopyala" ID=USR_SENT_STOK19_USE1
+ MENUITEM TEXT="Paket/Koli Seçimi" ID=USR_SENT_STOK67_USE1
+
+ IF SQL=1
+  SEPARATOR
+  MENUITEM TEXT="ASN Al" ID=CMD_TEDARIKNET_1
+ ENDIF
+
+ SEPARATOR
+ MENUITEM T="Kullanýcý Tanýmlý Alanlar" ID="MT_EDIT_UDF()"
+ MENUITEM T="Mesajlar"   ID="MT_EDIT_LMSG()"
+ SEPARATOR
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapýþtýr", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Dýþarýya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Dýþarýdan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+  MENUITEM TEXT="Yeni Evrak\tCtrl+Alt + N", ID=MT_NEW KEY=CTRL+ALT+N
+  MENUITEM TEXT="Kaydet\tF10",    ID=MT_SAVE KEY=F10
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  MENUITEM TEXT="Etiket\tCtrl+E",  ID=MT_PRINTLABEL KEY=CTRL+E
+  SEPARATOR
+    MENUITEM TEXT="Çý&kýþ"         ID=ID_APP_OK
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ýlk Kayýt\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayýt\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayýt\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ýlk Kayýt (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayýt (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayýt (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapýþtýr\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+     MENUITEM TEXT="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+     MENUITEM TEXT="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+  MENUITEM TEXT="&Satýr Detayý\tF4", ID=MT_LINEDETAIL KEY=F4
+  MENUITEM TEXT="&Satýr Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satýr Sil\tCtrl+Y",  ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalýþtýr\tALT+F8",   ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Ýþlevler\tF6",  ID=MT_TABFORMRBUTTON KEY=F6
+  SEPARATOR
+  MENUITEM TEXT="&Yardým\tF1",   ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP TEXT="Ýþle&vler" POPUP=EVRAKMENU
+ POPUP TEXT="&Yardým"
+     MENUITEM TEXT="&Yardým Baþlýklarý",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM TEXT="&Hakkýnda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=FOEDIT
+ SEPARATOR
+ MENUITEM TEXT="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+ SEPARATOR
+ MENUITEM TEXT="Feature/Option Seçimi\t(F3)", ID="CFFV('DO_SENT_FOCODE_0','KODFN=KOD')" KEY=F3
+ENDMENUDEF
+
+POPUPMENUDEF ID=GRIDMENU
+ SEPARATOR
+ MENUITEM TEXT="Satýr Detayý\t(F4)", ID=MT_LINEDETAIL
+
+
+
+
+ SEPARATOR
+ MENUITEM T="Kalite Test Sonuçlarý Giriþi" ID="MT_EDIT_QVAL('STOK29T,KRICKOD=STOK29E.CARIHESAPCODE')"
+ SEPARATOR
+ MENUITEM TEXT="Üzerinde Bulunulan Satýrý Serile" ID=DO_SENT_SERILE_0
+ SEPARATOR
+ MENUITEM TEXT="Üzerinde Bulunulan Satýrdaki Lot/Serili Malzemenin Hareketleri" ID="CMD1PP('DO_SENT_STOK10A_D','QTABLE=STOK29T,AMBCODE=AMBCODE_TR,E_AMBCODE=STOK29E.AMBCODE')"
+ENDMENUDEF
+
+POPUPMENUDEF ID=CARI00_SAPP
+ SEPARATOR
+ MENUITEM TEXT="Yeni Cari Hesap Kodu" ID="MT_RUNDOC('CARI00')"
+ENDMENUDEF
+
+POPUPMENUDEF ID=EVRAK_FIELD_MENU
+ SEPARATOR
+ MENUITEM TEXT="Araþtýr\t(F3)", ID="CFFNV('_BROWSE_3')" KEY=F3
+ENDMENUDEF
+
+INCLUDE TOOLBAR_FULLSET
+
+TABDEF X=0p Y=+0p WIDTH=1023p H=633p AUTOSIZE=N
+ TAB Name="Satýnalma Ýrsaliyesi" CAPTION=" Satýnalma Ýrsaliyesi "
+ TAB Name="Detay 1" CAPTION=" Detay 1 "
+ TAB Name="TL Detay" CAPTION=" TL Detay "
+ TAB Name="Daðýtýlacak Maliyetler" CAPTION=" Daðýtýlacak Maliyetler "
+ TAB Name="Tedarikçi" CAPTION=" Tedarikçi "
+
+ TAB Name="Baðlantýlý Dökümanlar" CAPTION=" Baðlantýlý Dökümanlar "
+ TAB Name="Liste" CAPTION=" Liste "
+ TAB Name="Ýrsaliye Satýrlarý Listesi" CAPTION=" Ýrsaliye Satýrlarý Listesi "
+ TAB Name="Satýnalma Sipariþi Evraklardan Seçim" CAPTION=" Satýnalma Sipariþi Evraklardan Seçim "
+ TAB Name="Satýnalma Sipariþi Satýrlardan Seçim" CAPTION=" Satýnalma Sipariþi Satýrlardan Seçim "
+
+ TAB Name="Hazýr Edim" CAPTION=" Hazýr Edim "
+ TAB Name="Ýzleme" CAPTION=" Ýzleme "
+ENDTABDEF
+
+TAB "Satýnalma Ýrsaliyesi"
+LOCATE TOP=5P
+SAVELOCATION LOCX0002
+GROUPBOX TEXT="Evrak" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=170p HEIGHT=133p TXTCOL=RGB_000_089_132
+ LOCATE TOP=0
+ LTEXT    LEFT=1 TOP=+15P W=50P T="Fiþ No" TXTCOL=RGB_255_000_000
+IF STARTUP=13
+ EDITTEXT LEFT=E+3P TOP=+0 D="STOK29E.EVRAKNO" BROWSEBUTTON=1 UPPERCASE=Y
+ELSE
+ EDITTEXT LEFT=E+3P TOP=+0 D="STOK29E.EVRAKNO" BROWSEBUTTON=1
+ENDIF
+
+ LTEXT    LEFT=1 TOP=+1 W=50P T="Tarih"  TXTCOL=RGB_255_000_000
+ COMBOBOX LEFT=E+3P TOP=+0 D="STOK29E.TARIH" RBUTTON_POPUPMENU=EVRAK_FIELD_MENU
+
+ 
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR7S
+Makro Kodu : QVAL20
+Hangi Tablo için : QVAL20
+Ýlave Hangi Uygulamalar için : 
+Açýklama : KALÝTE SONUÇ TABLOSU EVRAK SÝLME
+Kod : 
+Sub EvrakSil
+	Set Q02B = Doc.GetTableObject("QVAL02E")
+	EvrakNo = Trim(Q02B.EVRAKNO)
+	Doc.LoadEmpty_Voucher
+	Set Doc1 = Doc.CreateDocumentNoUI("QVAL20", "")
+	Set Q2B = Doc1.GetTableObject("QVAL02B")	
+	Doc1.Load_Voucher EvrakNo
+	Doc1.Delete_Voucher
+	
+End Sub                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : QVAL20
+Bu Uygulama için Baþlangýç Ekran Formu : QVAL20XXX
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+FORM QVAL20XXX SCROLLBARS=NO
+SET CAPTION="Kalite Parametreleri Kartý"
+SET AUTOFORMSIZE_RIGHTMARGIN=1
+
+SET DEFAULT_FSTYLE=3
+
+DEFINEFONT ID="default_font" FACE="MS Sans Serif" POINT=8
+DEFINEFONT ID="default_text_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_edittext_font" FACE="MS Sans Serif" POINT=8 
+DEFINEFONT ID="default_button_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_checkbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_groupbox_font" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="default_tabcaption_font" FACE="MS Sans Serif" POINT=8 
+
+SET DEFAULTFONT=default_font
+SET DEFAULTFONT_TEXT=default_text_font
+SET DEFAULTFONT_EDITTEXT=default_edittext_font
+SET DEFAULTFONT_BUTTON=default_button_font
+SET DEFAULTFONT_CHECKBOX=default_checkbox_font
+SET DEFAULTFONT_GROUPBOX=default_groupbox_font
+SET DEFAULTFONT_TABCAPTION=default_tabcaption_font
+
+DEFINEFONT ID="defaultfont_selectedtabcaption" FACE="MS Sans Serif" POINT=8 BOLD=Y
+DEFINEFONT ID="defaultfont_unselectedtabcaption" FACE="MS Sans Serif" POINT=8
+
+SET DEFAULTFONT_SELECTEDTABCAPTION=defaultfont_selectedtabcaption
+SET DEFAULTFONT_UNSELECTEDTABCAPTION=defaultfont_unselectedtabcaption
+
+POPUPMENUDEF ID=EVRAKMENU
+ MENUITEM TEXT="Evrak Kopyala", ID=MT_DOC_COPY
+ MENUITEM TEXT="Evrak Yapýþtýr", ID=MT_DOC_PASTE
+ SEPARATOR
+ MENUITEM TEXT="Dýþarýya Veri Gönder\t(Export)",  ID=MT_EXPORT
+ MENUITEM TEXT="Dýþarýdan Veri Al\t(Import)",   ID=MT_IMPORT
+ENDMENUDEF
+
+MENUDEF
+ POPUP TEXT="&Dosya"
+
+  SEPARATOR
+  MENUITEM TEXT="Listele\tCtrl+P", ID=MT_PRINT KEY=CTRL+P
+  SEPARATOR
+     MENUITEM TEXT="Çý&kýþ"         ID=ID_APP_EXIT
+ ENDPOPUP
+ POPUP TEXT="Dü&zen"
+  MENUITEM TEXT="Ýlk Kayýt\tCtrl+Alt + Home", ID=MT_LOADFIRST KEY=CTRL+ALT+HOME
+  MENUITEM TEXT="Son Kayýt\tCtrl+Alt + End", ID=MT_LOADLAST  KEY=CTRL+ALT+END
+  MENUITEM TEXT="Önceki Kayýt\tCtrl+Alt + <-", ID=MT_LOADPREV  KEY=CTRL+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt\tCtrl+Alt + ->", ID=MT_LOADNEXT  KEY=CTRL+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Ýlk Kayýt (Listeden)\tShift+Alt+Home", ID=MT_FILTERLIST_LOADFIRST KEY=SHIFT+ALT+HOME
+  MENUITEM TEXT="Son Kayýt (Listeden)\tShift+Alt+End", ID=MT_FILTERLIST_LOADLAST  KEY=SHIFT+ALT+END
+  MENUITEM TEXT="Önceki Kayýt (Listeden)\tShift+Alt+<-", ID=MT_FILTERLIST_LOADPREV  KEY=SHIFT+ALT+LEFT
+  MENUITEM TEXT="Sonraki Kayýt (Listeden)\tShift+Alt+->", ID=MT_FILTERLIST_LOADNEXT  KEY=SHIFT+ALT+RIGHT
+  SEPARATOR
+  MENUITEM TEXT="Geri Al\tCtrl+Z",  ID=ID_EDIT_UNDO KEY=CTRL+Z
+  SEPARATOR
+  MENUITEM TEXT="Kes\tCtrl+X",   ID=ID_EDIT_CUT KEY=CTRL+X
+  MENUITEM TEXT="Kopyala\tCtrl+C",  ID=ID_EDIT_COPY KEY=CTRL+C
+  MENUITEM TEXT="Yapýþtýr\tCtrl+V",  ID=ID_EDIT_PASTE KEY=CTRL+V
+  MENUITEM TEXT="&Sil\tDel",   ID=ID_EDIT_DELETE
+  SEPARATOR
+  MENUITEM TEXT="&Hepsini Seç\tCtrl+A", ID=ID_EDIT_SELECTALL KEY=CTRL+A
+  SEPARATOR
+  MENUITEM TEXT="&Satýr Ekle\tCtrl+N", ID=MT_INSERTLINE KEY=CTRL+N
+  MENUITEM TEXT="&Satýr Sil\tCtrl+Y",  ID=MT_DELETELINE KEY=CTRL+Y
+  SEPARATOR
+  MENUITEM TEXT="&Makro Çalýþtýr\tALT+F8",   ID=MT_MAKRO KEY=ALT+F8
+  SEPARATOR
+  MENUITEM TEXT="&Yardým\tF1",   ID=ID_HELP_FINDER KEY=F1
+ ENDPOPUP
+ POPUP T="Ýþle&vler" POPUP=EVRAKMENU
+ POPUP TEXT="&Yardým"
+     MENUITEM TEXT="&Yardým Baþlýklarý",     ID=ID_HELP_FINDER
+     SEPARATOR
+     MENUITEM TEXT="&Hakkýnda",       ID=ID_APP_ABOUT
+ ENDPOPUP
+INCLUDE DYN_MENU_FAVORITE_PROGRAM_0
+ENDMENUDEF
+
+SET RBUTTON_POPUPMENU=EVRAKMENU
+
+POPUPMENUDEF ID=EVRAK_FIELD_MENU
+ SEPARATOR
+ MENUITEM TEXT="Araþtýr\t(F3)", ID="CFFNV('_BROWSE_3')" KEY=F3
+ENDMENUDEF
+
+INCLUDE TOOLBAR_NAV1_LY_AM_MSW_NAV2
+
+LOCATE TOP=+0p
+SAVELOCATION LOC1
+GROUPBOX TEXT="" AUTOSIZE=N LEFT=1 TOP=+0 WIDTH=1007p HEIGHT=119p
+ LTEXT    LEFT=1 TOP=+17P W=60p T="Föy No" TXTCOL=RGB_255_000_000
+ EDITTEXT LEFT=E+3P TOP=+0 D="QVAL02E.EVRAKNO" BROWSEBUTTON=1
+ LOCATE TOP=0
+ LTEXT  LEFT=400p TOP=+17P W=60p T="Stok Kodu" 
+ EDITTEXT LEFT=E+3P TOP=+0 D="QVAL02E.KOD" RO=1
+ LTEXT  LEFT=400p TOP=+1 W=60p T="Lot No" 
+ EDITTEXT LEFT=E+3P TOP=+0 D="QVAL02E.LOTNUMBER" RO=1
+ LTEXT  LEFT=400p TOP=+1 W=60p T="Seri No" 
+ EDITTEXT LEFT=E+3P TOP=+0 D="QVAL02E.SERINO" RO=1
+ LTEXT  LEFT=400p TOP=+1 W=60p T="Container" 
+ EDITTEXT LEFT=E+3P TOP=+0 D="QVAL02E.CONTAINER_1" RO=1
+
+ LOCATE TOP=0
+ LTEXT  LEFT=700p TOP=+17P W=60p T="Ýþ No" 
+ EDITTEXT LEFT=E+3P TOP=+0 D="QVAL02E.JOBNO" RO=1
+
+	BUTTON LEFT=+0p TOP=E+10p W=100p HEIGHT=30p CAPTION="Evrak Sil" TXTCOL=RGB_000_000_000 BCKCOL=RGB_255_255_183 ID="MT_RUNMACRO_AFTERCALC('MAKR7S.@@@BUMAKRO@@@','EvrakSil')" FOCUS=NO
+
+
+ENDGROUPBOX
+
+TABDEF X=0 Y=+4P WIDTH=1023p H=500p AUTOSIZE=N
+ TAB Name="Kalite Parametreleri Kartý" CAPTION="Kalite Parametreleri Kartý"
+ TAB Name="Liste" CAPTION="Liste" 
+ENDTABDEF
+
+TAB "Kalite Parametreleri Kartý"
+LOCATE TOP=1
+GRID LEFT=1 TOP=E+5P WIDTH=1007p HEIGHT=442p TABLE=QVAL02T HEADERROWHEIGHT=35P NOEDIT=1
+ EDITTEXT D="QS_VARCODE" CAPTION="Kod"
+ EDITTEXT D="SVARASPNAME" CAPTION="Kod Açýklamasý" NOEDIT=YES
+ EDITTEXT D="QS_VARINDEX" W=35P CAPTION="Ölçüm No" FORMAT=N2.0
+ EDITTEXT D="QS_VARTYPE" W=50P CAPTION="Alan Türü"
+ EDITTEXT D="QS_VARLEN" W=48P CAPTION="Uzunluk"
+ EDITTEXT D="QS_VARSIG" W=42P CAPTION="Desimal"
+ EDITTEXT D="QS_VERIFIKASYONTEXT1" CAPTION="Minimum\nDeðer"
+ EDITTEXT D="QS_VERIFIKASYONTEXT2" CAPTION="Maksimum\nDeðer"
+ EDITTEXT D="QS_VALUE" CAPTION="Ölçüm Deðeri"
+ EDITTEXT D="QS_VERIFIKASYONTEXT3" CAPTION="Grup Kodu Seçimi"
+ COMBOBOX D="QS_VERIFIKASYONTEXT4" W=65p CAPTION="Geçerli Kod\nZorunlu Mu?"
+ COMBOBOX D=QS_GK1
+ CHECKBOX D=QS_ICKULLANIM10
+ENDGRID
+
+ RTEXT    LEFT=600P TOP=E+3p W=66P T="Son Kayýt"
+ LTEXT LEFT=E+3p  TOP=+0 D="QVAL02E.ELOG_USERNAME"    BORDER=ETCHED
+ LTEXT LEFT=E+0p  TOP=+0 D="QVAL02E.ELOG_LOGTARIH"     BORDER=ETCHED
+ LTEXT LEFT=E+0p  TOP=+0 D="QVAL02E.ELOG_LOGTIME"     BORDER=ETCHED
+ LTEXT LEFT=E+0p  TOP=+0 D="QVAL02E.ELOG_PSTATION"     BORDER=ETCHED
+
+ENDTAB
+
+TAB "Liste"
+ GROUPBOX TEXT="Kriterler" AUTOSIZE=N LEFT=1 TOP=+1 WIDTH=1007p HEIGHT=140p TXTCOL=RGB_000_089_132  
+  SAVELOCATION LOXC555
+  LTEXT    LEFT=1 TOP=+20P W=100p T="Föy No"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.EVRAKNO1" BROWSEBUTTON=1
+  LTEXT    LEFT=E+104p TOP=+0 T="->"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.EVRAKNO2" BROWSEBUTTON=1
+
+  LTEXT    LEFT=1 TOP=+1 W=100p T="Stok Kodu"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.STOKKODU1" BROWSEBUTTON=1
+  LTEXT    LEFT=E+3p TOP=+0 T="->"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.STOKKODU2" BROWSEBUTTON=1
+
+  LTEXT    LEFT=1 TOP=+1 W=100p T="Lot No"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.LOTNUMBER1"
+  LTEXT    LEFT=E+108p TOP=+0 T="->"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.LOTNUMBER2"
+
+  LTEXT    LEFT=1 TOP=+1 W=100p T="Seri No"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.SERINO1"
+  LTEXT    LEFT=E+50p TOP=+0 T="->"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.SERINO2"
+
+  LTEXT    LEFT=1 TOP=+1 W=100p T="Container"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.CONTAINER1"
+  LTEXT    LEFT=E+50p TOP=+0 T="->"
+  EDITTEXT LEFT=E+3P TOP=+0 D="LISTEE.CONTAINER2"
+
+  BITMAPBUTTON LEFT=900P TOP=18P WIDTH=47P HEIGHT=49p ID=GO_LIST BITMAP=BT4PROCESS
+  BITMAPBUTTON LEFT=E+3p TOP=+0p WIDTH=47P HEIGHT=49p ID=GO_LIST_LINE BITMAP=BT5PROCESS
+ ENDGROUPBOX
+
+ GRID LEFT=1 TOP=+5P WIDTH=1007p HEIGHT=327p TABLE=LISTET HEADERROWHEIGHT=35P NOEDIT=YES
+  EDITTEXT D="EVRAKNO" CAPTION="Föy No"
+  EDITTEXT D="KOD" CAPTION="Stok Kodu"
+  EDITTEXT D="KOD_STOK00_AD" CAPTION="Stok Adý"
+  EDITTEXT D="LOTNUMBER" CAPTION="Lot No"
+  EDITTEXT D="SERINO" CAPTION="Seri No"
+  EDITTEXT D="CONTAINER_1" CAPTION="Container"
+ ENDGRID
+ENDTAB
+
+ENDFORM                                                                                                                                                                                                                                                                                                                                                                   
+----------------------------------------------------------------
+Makro Kaynak Kodu
+Firma Kodu : ONASX_2014 / Uygulama : MAKR7S
+Makro Kodu : BARKOD
+Hangi Tablo için : 
+Ýlave Hangi Uygulamalar için : 
+Açýklama : Barkod Etiketleri için Tablo Oluþturur - Silmeyin
+Kod : 
+Public UygulamaKodu, EvrakTipi
+
+Function GetEtiketTable(EtiketFormu)
+	
+	UygulamaKodu = Trim(Doc.GetDocType)
+
+	If UygulamaKodu = "STOK29" or UygulamaKodu = "STOK29I" Then
+		Doc.Save_Voucher
+		EvrakTipi = "SI"
+		Set GetEtiket
+
+Ekran Formu
+Uygulamalar Ýçin Baþlangýç Ekran Formu Ayarlarý
+Baþlangýç Ekran Formu Bu Uygulama için : 
+Bu Uygulama için Baþlangýç Ekran Formu : 
+Baþlangýçta Bu Makro Çalýþacak : 
+Alt Ekranlar Ýçin Ekran Formu
+Alt Ekran Form Kodu : 
+Yeni Alt Ekra Form Kodu: 
+Alt Ekran Açýlmadan Önce Çalýþtýrýlacak Makro : 
+
+
+----------------------------------------------------------------
+
